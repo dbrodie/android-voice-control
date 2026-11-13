@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only additions, merged into the main manifest for debug builds. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Static receiver: handles EXPLICIT broadcasts (am broadcast ... -p com.brainstormity.voicecontrol),
+             and starts the process if it isn't running. -->
+        <receiver
+            android:name=".debug.DebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.RUN_TASK" />
+                <action android:name="com.brainstormity.voicecontrol.STOP" />
+                <action android:name="com.brainstormity.voicecontrol.VOICE_START" />
+                <action android:name="com.brainstormity.voicecontrol.VOICE_STOP" />
+                <action android:name="com.brainstormity.voicecontrol.VOICE_TEXT" />
+            </intent-filter>
+        </receiver>
+        <!-- Registers a runtime copy of DebugReceiver at process start so IMPLICIT broadcasts
+             (plain `am broadcast -a ...`, no -p) also arrive; Android 8+ never delivers those to
+             manifest receivers. -->
+        <provider
+            android:name=".debug.DebugReceiverInstaller"
+            android:authorities="${applicationId}.debug-receiver-installer"
+            android:exported="false" />
+    </application>
+</manifest>

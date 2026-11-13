@@ -1,0 +1,20 @@
+{
+  "overall": "Phase 0 — scaffolding + research",
+  "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
+  "needs_input": [
+    "OpenAI API key for the Realtime API (ChatGPT login is not usable by third-party apps for the Realtime API). Add it to .env as OPENAI_API_KEY=..."
+  ],
+  "tasks": [
+    {"id": "T0", "title": "Project skeleton: Gradle project, core contracts, manifest, debug hooks, emulator boot, first build + install", "owner": "Opus 5.5 agent: skeleton", "status": "running", "summary": "Creating app module, core/ package per ARCHITECTURE.md, verifying gradlew build and emulator boot.", "log": []},
+    {"id": "T0b", "title": "Research: current OpenAI Realtime API protocol (model id, WS events, tool calling, audio formats)", "owner": "Opus 5.5 agent: research", "status": "running", "summary": "Producing docs/realtime-api-notes.md for the voice agent.", "log": []},
+    {"id": "T1", "title": "AccessibilityService: screenshots + taps/swipes/typing/back/home/open app (control/)", "owner": "Opus 5.5 agent: accessibility", "status": "todo", "summary": "Starts after T0."},
+    {"id": "T2", "title": "JEV agent loop port (agent/): JevClient, TaskParser, TaskRunner with confidence gating, zoom refine, screen-settle wait", "owner": "Opus 5.5 agent: agent-loop", "status": "todo", "summary": "Starts after T0."},
+    {"id": "T3", "title": "Overlay bubble + status UI, foreground service, MainActivity setup/permissions/settings (overlay/, ui/)", "owner": "Opus 5.5 agent: overlay-ui", "status": "todo", "summary": "Starts after T0."},
+    {"id": "T4", "title": "Voice: OpenAI Realtime WebSocket client, mic capture, speaker playback, control_phone tool (voice/)", "owner": "Opus 5.5 agent: voice", "status": "todo", "summary": "Starts after T0 + T0b."},
+    {"id": "T5", "title": "Integration + end-to-end emulator test: voice (text-injected) → task → JEV loop → actions; final APK", "owner": "Opus 5.5 agent: integration", "status": "todo", "summary": "Starts after T1–T4."}
+  ],
+  "notes": [
+    "Upstream cloned to upstream/System-One-Computer-Use (gitignored).",
+    "Architecture contract for all agents: ARCHITECTURE.md."
+  ]
+}

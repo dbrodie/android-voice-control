@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Android Voice Control</string>
+    <string name="accessibility_service_label">Android Voice Control</string>
+    <string name="accessibility_service_description">Lets Android Voice Control see the screen (screenshots) and tap, swipe and type for you when you ask it to do something by voice.</string>
+    <string name="start_overlay">Start overlay</string>
+    <string name="overlay_channel_name">Voice control bubble</string>
+    <string name="overlay_notification_text">Tap the bubble to talk</string>
+</resources>
