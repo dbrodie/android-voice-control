@@ -51,6 +51,7 @@ interface Hands {
     suspend fun home()
     suspend fun enter()
     suspend fun typeText(text: String)                  // into the focused field
+    suspend fun replaceText(text: String) = typeText(text) // (T5, additive) replace the focused field's content
     suspend fun openApp(packageName: String)
     suspend fun openUrl(url: String)
     fun installedApps(): Set<String>                    // launchable package names
@@ -104,7 +105,12 @@ object AppSettings {       // SharedPreferences-backed; defaults from BuildConfi
     fun realtimeModel(ctx): String // default from BuildConfig.OPENAI_REALTIME_MODEL
 }
 ```
-Wiring: `OverlayService` tap → `VoiceController.start()`. `VoiceController` on tool call
+Also in core (additive): `OverlayInfo.regions` (overlay windows in screen pixels, published by overlay/) and
+`OverlayInfo.visibilityProbe` (set by control/: is the overlay really on screen, or hidden by Settings?).
+agent/ uses both to paint the overlay out of every screenshot (`agent/OverlayMask`) and to never tap it.
+
+Wiring: `App` (Application) calls `TaskController.init`, `ChatGptAuth.init`, `VoiceBackends.install`.
+`OverlayService` tap → `VoiceController.start()` (and adds the `microphone` FGS type for the session). `VoiceController` on tool call
 `control_phone(task)` → `TaskController.runTask(task)` and, when `TaskController.state` becomes `Finished`,
 sends the tool result back and lets GPT speak a one-sentence summary. Overlay observes both state flows.
 

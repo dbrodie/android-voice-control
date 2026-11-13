@@ -100,6 +100,50 @@
             android:textColor="@color/vc_text_secondary"
             android:textSize="13sp" />
 
+        <!-- Voice backend -->
+        <TextView
+            style="@style/VC.SectionTitle"
+            android:text="@string/section_voice" />
+
+        <LinearLayout style="@style/VC.Card">
+
+            <RadioGroup
+                android:id="@+id/backendGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/backendAuto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backend_auto"
+                    android:textColor="@color/vc_text" />
+
+                <RadioButton
+                    android:id="@+id/backendChatGpt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backend_chatgpt"
+                    android:textColor="@color/vc_text" />
+
+                <RadioButton
+                    android:id="@+id/backendOpenAiKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backend_openai_key"
+                    android:textColor="@color/vc_text" />
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/backendDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <!-- Settings (collapsible) -->
         <LinearLayout
             android:id="@+id/settingsHeader"

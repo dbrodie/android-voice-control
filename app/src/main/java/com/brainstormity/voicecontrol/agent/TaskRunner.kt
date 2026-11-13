@@ -56,8 +56,13 @@ class TaskRunner(
     private fun round1(x: Double) = Math.round(x * 10) / 10.0
     private fun log(msg: String) = msg.lines().forEach { VcLog.i(TAG, it) }
 
+    /**
+     * A screenshot with our own overlay windows painted over (see [OverlayMask]): JEV never sees or targets the
+     * bubble / strip, and the strip's changing step text doesn't count as the screen reacting.
+     */
     private suspend fun grab(): Shot {
-        val img = Images.shrink(screen.screenshot())
+        val full = screen.screenshot()  // real screen pixels: the same space as the overlay regions
+        val img = OverlayMask.apply(Images.shrink(full), full.width, full.height)
         return Shot(img, Images.grayThumb(img))
     }
 
@@ -134,6 +139,30 @@ class TaskRunner(
         }
         return Waited(last, linkedMapOf("reacted" to reacted, "waited" to round1(now() - started),
             "timed_out" to true, "still_moving" to moving), selfMoving)
+    }
+
+    /**
+     * After an action that seemingly did nothing: keep looking for up to [maxSeconds] for the screen to change
+     * after all; if it does, wait for it to settle and return that (marked "reacted" + "late_by").
+     */
+    private suspend fun lateReaction(before: Shot, maxSeconds: Double, movingOnItsOwn: Mask?): Waited? {
+        val started = now()
+        val ignore = movingOnItsOwn?.let { ScreenDiff.grow(it) }
+        while (now() < started + maxSeconds && !isStopped()) {
+            delay(150)
+            val current = grab()
+            if (fraction(changedPixels(before.gray, current.gray), ignore) > ScreenDiff.REACTED) {
+                val lateBy = round1(now() - started)
+                val settled = waitForScreen(current, 3.0, movingOnItsOwn, stillChecks = 2)
+                return Waited(
+                    settled.shot,
+                    linkedMapOf("reacted" to true, "late_by" to lateBy,
+                        "waited" to round1(now() - started)) + settled.info.filterKeys { it == "timed_out" },
+                    settled.selfMoving,
+                )
+            }
+        }
+        return null
     }
 
     private fun running(step: Int, action: String, detail: String, confidence: Double) =
@@ -298,38 +327,72 @@ class TaskRunner(
                 // Typing again into the box we just typed into: keep writing where we left off.
                 val sameField = action == "TYPE" && editing?.box?.contains(cx, cy) == true
 
-                // Do it.
-                when (action) {
-                    "CLICK" -> hands.tap(x, y)
-                    "LONG_PRESS" -> hands.longPress(x, y)
-                    "TYPE", "TYPE_ENTER" -> {
-                        if (sameField) {
-                            if (editing?.endsWithSpace != true) text = " $text"
-                        } else {
-                            hands.tap(x, y)  // focus the field; the keyboard slides up
-                            // Tapping a search bar often opens a new screen: type only once it has settled,
-                            // or the first letters go nowhere.
-                            waitForScreen(imgBefore, 3.0, movingOnItsOwn, stillChecks = 2)
-                        }
-                        hands.typeText(text)
-                        if (action == "TYPE_ENTER") hands.enter()
+                // Never press our own overlay (the bubble, or the strip's stop button): JEV doesn't see it
+                // (it's masked), so a tap there is a miss. Skip it and let JEV try again.
+                val tapsAt = action in CLICKS && !(action == "TYPE" && sameField)
+                val ours = if (tapsAt) OverlayMask.touchableAt(x, y) else null
+                if (ours != null) {
+                    log("    ($x, $y) is on Voice Control's own ${ours.name}: not tapping it")
+                    step["result"] = "Not executed: the tap point is on Voice Control's own ${ours.name}."
+                    step["seconds"] = round1(now() - stepStarted)
+                    lastMiss = Miss(action, cx, cy)
+                    unchanged += 1
+                    history.add("$action $detail".trim() + " (nothing changed on screen)")
+                    editing = null
+                    save()
+                    if (unchanged >= 5) {
+                        return save("unsure", "The screen hasn't changed for 5 steps, so the agent stopped.")
                     }
-                    "ENTER" -> hands.enter()
-                    "BACK" -> hands.back()
-                    "HOME" -> hands.home()
-                    "OPEN_APP" -> hands.openApp(app?.packageName ?: throw JevException("No app to open"))
-                    "ALL_APPS" -> hands.allApps()
-                    "OPEN_WEBSITE" -> hands.openUrl(url)
-                    "SCROLL_DOWN" -> hands.swipe(SwipeDirection.UP)
-                    "SCROLL_UP" -> hands.swipe(SwipeDirection.DOWN)
-                    "SWIPE_LEFT" -> hands.swipe(SwipeDirection.LEFT)
-                    "SWIPE_RIGHT" -> hands.swipe(SwipeDirection.RIGHT)
-                    "WAIT" -> Unit
-                    else -> VcLog.w(TAG, "unknown action $action: doing nothing")
+                    nextScreen = grab()
+                    continue
+                }
+
+                // Do it. Hands throw IllegalStateException / IllegalArgumentException with a readable message
+                // (no focused field, service disconnected, app not installed, ...): record it on the step and
+                // end the run with status "error".
+                try {
+                    when (action) {
+                        "CLICK" -> hands.tap(x, y)
+                        "LONG_PRESS" -> hands.longPress(x, y)
+                        "TYPE", "TYPE_ENTER" -> {
+                            if (sameField) {
+                                if (editing?.endsWithSpace != true) text = " $text"
+                            } else {
+                                hands.tap(x, y)  // focus the field; the keyboard slides up
+                                // Tapping a search bar often opens a new screen: type only once it has settled,
+                                // or the first letters go nowhere.
+                                waitForScreen(imgBefore, 3.0, movingOnItsOwn, stillChecks = 2)
+                            }
+                            // Same field: keep writing where we left off. A field we just tapped: replace what's
+                            // in it (an old search query), or the result is "old querynew query".
+                            if (sameField) hands.typeText(text) else hands.replaceText(text)
+                            if (action == "TYPE_ENTER") hands.enter()
+                        }
+                        "ENTER" -> hands.enter()
+                        "BACK" -> hands.back()
+                        "HOME" -> hands.home()
+                        "OPEN_APP" -> hands.openApp(app?.packageName ?: throw JevException("No app to open"))
+                        "ALL_APPS" -> hands.allApps()
+                        "OPEN_WEBSITE" -> hands.openUrl(url)
+                        "SCROLL_DOWN" -> hands.swipe(SwipeDirection.UP)
+                        "SCROLL_UP" -> hands.swipe(SwipeDirection.DOWN)
+                        "SWIPE_LEFT" -> hands.swipe(SwipeDirection.LEFT)
+                        "SWIPE_RIGHT" -> hands.swipe(SwipeDirection.RIGHT)
+                        "WAIT" -> Unit
+                        else -> VcLog.w(TAG, "unknown action $action: doing nothing")
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    val why = (e.message ?: e.javaClass.simpleName).take(300)
+                    VcLog.e(TAG, "[$n] $action failed: $why", e)
+                    step["result"] = "Failed: $why"
+                    step["seconds"] = round1(now() - stepStarted)
+                    return save("error", "Step $n (${action.lowercase().replace('_', ' ')}) failed: $why")
                 }
 
                 // Wait only as long as the screen keeps changing, not a fixed time.
-                val waited = if (action == "WAIT") {
+                var waited = if (action == "WAIT") {
                     delay(1000)
                     waitForScreen(imgBefore, 2.0, movingOnItsOwn)
                 } else {
@@ -337,6 +400,15 @@ class TaskRunner(
                         imgBefore, if (action == "OPEN_WEBSITE" || action == "OPEN_APP") 8.0 else 3.0,
                         movingOnItsOwn, stillChecks = if (action in LOADS_PAGE) 3 else 1,
                     )
+                }
+                // Not in upstream: on a slow/busy phone a tap can take several seconds to open the next page
+                // (seen on the emulator: Settings sub-pages took 5+ s). Before telling JEV "nothing changed" (it
+                // would tap again, queueing more taps on a busy app), give a tap a few more seconds to show.
+                if (action in CLICKS && waited.info["reacted"] != true && !isStopped()) {
+                    lateReaction(imgBefore, LATE_REACTION_SECONDS, movingOnItsOwn)?.let { late ->
+                        log("    the screen reacted late (after ${late.info["late_by"]}s more)")
+                        waited = late
+                    }
                 }
                 nextScreen = waited.shot
                 selfMoving = waited.selfMoving
@@ -366,8 +438,11 @@ class TaskRunner(
             save("stopped", "Stopped by you.")
             throw e
         } catch (e: Exception) {
-            VcLog.e(TAG, "Failed: ${e.message}", e)
-            return save("error", (e.message ?: e.javaClass.simpleName).take(500))
+            // JEV / screenshot / wait failures (actions are handled where they run).
+            val why = (e.message ?: e.javaClass.simpleName).take(500)
+            VcLog.e(TAG, "Failed: $why", e)
+            steps().lastOrNull()?.let { if (it["result"] == "") it["result"] = "Failed: $why" }
+            return save("error", why)
         }
     }
 
@@ -382,5 +457,7 @@ class TaskRunner(
 
     companion object {
         private const val TAG = "Agent"
+        /** Extra time a tap gets to show any effect before it counts as "nothing changed". */
+        private const val LATE_REACTION_SECONDS = 4.0
     }
 }
