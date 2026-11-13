@@ -76,5 +76,18 @@
             android:name=".debug.HandsTestReceiverInstaller"
             android:authorities="${applicationId}.hands-test-receiver-installer"
             android:exported="false" />
+        <!-- Voice backend chooser hooks (voice/VoiceBackends): BACKEND_STATUS / BACKEND_SET. -->
+        <receiver
+            android:name=".debug.BackendDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.BACKEND_STATUS" />
+                <action android:name="com.brainstormity.voicecontrol.BACKEND_SET" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.BackendDebugInstaller"
+            android:authorities="${applicationId}.backend-debug-installer"
+            android:exported="false" />
     </application>
 </manifest>

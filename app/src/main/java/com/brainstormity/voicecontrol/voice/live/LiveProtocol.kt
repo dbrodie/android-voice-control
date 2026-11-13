@@ -205,6 +205,97 @@ object LiveProtocol {
         }
 
     fun sessionClose(): JSONObject = JSONObject().put("type", "session.close")
+
+    // ---------------------------------------------------------------------------------------------------
+    // Public GPT-Live API (API key, primary WebSocket). Verified 2026-11-13 against
+    // https://developers.openai.com/api/reference/resources/live/primary-websocket and
+    // https://developers.openai.com/api/docs/guides/voice-websockets?api=live (see voice/live/README.md).
+
+    /** Primary WebSocket. No query parameters; `Authorization: Bearer <OpenAI API key>`. */
+    const val PUBLIC_URL = "wss://api.openai.com/v1/live/sessions"
+    const val PUBLIC_MODEL = "gpt-live-1"
+    /** `session.audio.format` PCM rates accepted on the primary WebSocket (mono PCM16 LE). */
+    const val PUBLIC_RATE = 24_000
+    const val PUBLIC_DEFAULT_VOICE = "marin"
+    /** Built-in voices of the public API (`session.audio.output.voice`); the Codex voices are not among them. */
+    val PUBLIC_VOICES = setOf(
+        "alloy", "ash", "ballad", "beacon", "bossa", "brise", "calandria", "cedar", "cinder", "compas", "coral",
+        "delta", "destello", "echo", "flitz", "gleam", "halo", "harema", "hornero", "juni", "luciernaga", "marin",
+        "meridian", "nira", "noeul", "nuri", "pearl", "quartz", "ripple", "sage", "shida", "shimmer", "sillage",
+        "stone", "tempo", "verse", "vesper", "willow",
+    )
+
+    /** A public-API model id from a settings value: any `gpt-live*` id except the Codex-only one, else gpt-live-1. */
+    fun publicModel(setting: String?): String {
+        val m = setting?.trim().orEmpty()
+        return if (m.startsWith("gpt-live") && !m.endsWith("-codex")) m else PUBLIC_MODEL
+    }
+
+    /**
+     * `session.start` for the primary WebSocket. Based on [LiveSessionConfig.toJson], adapted to the public schema:
+     * public model id, `audio.format {type:"audio/pcm", rate}`, a public voice (Codex voices fall back to marin),
+     * and no `delegation.ack_filler` (not a public field; unknown parameters are rejected).
+     */
+    fun publicSessionStart(config: LiveSessionConfig, eventId: String, rate: Int = PUBLIC_RATE): JSONObject {
+        val session = config.toJson()
+        session.put("model", publicModel(config.model))
+        val voice = config.voice.takeIf { it in PUBLIC_VOICES } ?: PUBLIC_DEFAULT_VOICE
+        session.put(
+            "audio", JSONObject()
+                .put("format", JSONObject().put("type", "audio/pcm").put("rate", rate))
+                .put("output", JSONObject().put("voice", voice)),
+        )
+        session.optJSONObject("delegation")?.remove("ack_filler")
+        return JSONObject().put("type", "session.start").put("event_id", eventId).put("session", session)
+    }
+
+    /**
+     * Public context appends: [LiveChannel.SPEAKABLE] -> `session.commentary.append` (GPT paraphrases it aloud),
+     * [LiveChannel.COMMENTARY] -> `session.thinking.append` (silent). `delegation_id` is required but nullable.
+     * `content` is limited to 500 tokens; chunks of at most 500 UTF-8 bytes can never exceed that.
+     */
+    fun publicAppend(text: String, channel: LiveChannel, delegationId: String?, eventId: (Int) -> String): List<JSONObject> =
+        chunk(text).mapIndexed { i, part ->
+            JSONObject()
+                .put("type", if (channel == LiveChannel.SPEAKABLE) "session.commentary.append" else "session.thinking.append")
+                .put("event_id", eventId(i))
+                .put("delegation_id", delegationId ?: JSONObject.NULL)
+                .put("content", part)
+        }
+
+    /** `session.input_audio.append` with base64 of raw PCM16 LE mono (even byte count). */
+    fun inputAudioAppend(pcm: ByteArray, offset: Int = 0, length: Int = pcm.size): JSONObject {
+        val b64 = java.util.Base64.getEncoder().encodeToString(
+            if (offset == 0 && length == pcm.size) pcm else pcm.copyOfRange(offset, offset + length),
+        )
+        return JSONObject().put("type", "session.input_audio.append").put("audio", b64)
+    }
+
+    /** Decoded PCM of a `session.output_audio.delta`, or null for any other event / a malformed delta. */
+    fun outputAudio(event: JSONObject): ByteArray? {
+        if (event.optString("type") != "session.output_audio.delta") return null
+        val delta = event.optStringOrNull("delta") ?: return null
+        return try { java.util.Base64.getDecoder().decode(delta) } catch (_: IllegalArgumentException) { null }
+    }
+
+    /** Message of a JSON error body (`{"error":{"message":..}}`), with [secret] removed. */
+    fun errorBodyMessage(body: String?, secret: String?): String? {
+        if (body.isNullOrBlank()) return null
+        val msg = try {
+            val root = JSONObject(body)
+            root.optJSONObject("error")?.optStringOrNull("message") ?: root.optStringOrNull("message")
+        } catch (_: Exception) { body.trim().take(200) } ?: return null
+        return if (secret.isNullOrEmpty()) msg else msg.replace(secret, "[redacted]")
+    }
+
+    /** Human-readable message for a rejected API-key WebSocket handshake. */
+    fun describePublicHttpError(status: Int, detail: String?): String = when (status) {
+        401 -> "Invalid OpenAI API key (401). Check the key in settings."
+        403 -> "This OpenAI API key has no access to GPT-Live (403)."
+        429 -> "OpenAI rate limit or quota exceeded (429). Try again later."
+        else -> "GPT-Live connection failed" + (if (status > 0) " (HTTP $status)" else "") +
+            if (!detail.isNullOrBlank()) ": $detail" else ""
+    }
 }
 
 enum class Role { USER, ASSISTANT }

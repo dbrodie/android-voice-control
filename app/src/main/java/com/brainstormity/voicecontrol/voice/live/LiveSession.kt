@@ -11,7 +11,8 @@ enum class LiveConnectionState { IDLE, CONNECTING, CONNECTED, CLOSING, CLOSED, F
  * Implementations:
  * - [CodexLiveTransport]: ChatGPT subscription. WebRTC audio + `oai-events` data channel, call created via
  *   chatgpt.com, control over the `wss://api.openai.com/v1/live/<callId>` sideband.
- * - (T4c) an API-key transport on `wss://api.openai.com/v1/live/sessions` with audio over the same WebSocket.
+ * - [OpenAiLiveWsTransport]: OpenAI API key. Public `wss://api.openai.com/v1/live/sessions`, PCM16 audio and
+ *   events over the same WebSocket.
  *
  * Contract:
  * - [connect] suspends until the call is up and control events can be sent, or throws [LiveException]

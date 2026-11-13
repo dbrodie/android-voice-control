@@ -16,6 +16,7 @@ import com.brainstormity.voicecontrol.voice.live.LivePrompt
 import com.brainstormity.voicecontrol.voice.live.LiveSession
 import com.brainstormity.voicecontrol.voice.live.LiveSessionConfig
 import com.brainstormity.voicecontrol.voice.live.LiveTaskBridge
+import com.brainstormity.voicecontrol.voice.live.OpenAiLiveWsTransport
 import com.brainstormity.voicecontrol.voice.live.Role
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -29,8 +30,9 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
 /**
- * The voice front-desk: a GPT-Live call (ChatGPT subscription route, [CodexLiveTransport]) whose client
- * delegations run on the phone-control agent via [LiveTaskBridge].
+ * The voice front-desk: a GPT-Live call whose client delegations run on the phone-control agent via
+ * [LiveTaskBridge]. The transport (ChatGPT route [CodexLiveTransport] or API-key [OpenAiLiveWsTransport]) is
+ * picked per call by [VoiceBackends.createSession].
  *
  * State: Idle -> Connecting -> Listening <-> UserSaid / AssistantSaying; failures -> Error(human message).
  * All event handling runs on one background thread, so no locking is needed inside the handlers.
@@ -45,9 +47,9 @@ object VoiceController : VoiceControllerApi {
     private val dispatcher = Executors.newSingleThreadExecutor { r -> Thread(r, "vc-live") }.asCoroutineDispatcher()
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
-    /** Overridable for tests / the API-key transport (T4c). */
+    /** Builds the transport for one call; default = the backend chooser. Throws [LiveException] when unusable. */
     @Volatile var sessionFactory: (Context, LiveAuthProvider) -> LiveSession = { ctx, auth ->
-        CodexLiveTransport(ctx, auth, LiveSessionConfig(instructions = LivePrompt.INSTRUCTIONS))
+        VoiceBackends.createSession(ctx, auth)
     }
     @Volatile var tasks: TaskControllerApi = TaskController
 
@@ -60,6 +62,10 @@ object VoiceController : VoiceControllerApi {
     private val buffers = mutableMapOf(Role.USER to StringBuilder(), Role.ASSISTANT to StringBuilder())
     private var lastRole: Role? = null
     private var lastUserText = ""
+    // Public-API delegations carry no text: the request is rebuilt from the user's turns (see delegationText).
+    private val requestTurns = mutableListOf<String>()
+    private var assistantAsked = false
+    private var consumedUserText = ""
     private var sawFinals = false
     private val lastTurn = mutableMapOf<Role, String>()
     private var idleJob: Job? = null
@@ -71,16 +77,18 @@ object VoiceController : VoiceControllerApi {
                 VcLog.d(TAG, "start(): already active")
                 return@launch
             }
-            val auth = LiveAuth.provider
-            if (auth == null) {
-                fail("Sign in to ChatGPT first (no sign-in available).")
+            // No provider = not signed in; the API-key backend does not need one.
+            val auth = LiveAuth.provider ?: LiveAuthProvider { null }
+            val s = try {
+                sessionFactory(appContext, auth)
+            } catch (e: LiveException) {
+                fail(e.message ?: VoiceBackends.NOT_CONFIGURED)
                 return@launch
             }
-            VcLog.i(TAG, "start(): opening GPT-Live call")
+            VcLog.i(TAG, "start(): opening GPT-Live call (${s.javaClass.simpleName})")
             _state.value = VoiceState.Connecting
             stopping = false
             resetTranscripts()
-            val s = sessionFactory(appContext, auth)
             session = s
             bridge = LiveTaskBridge(s, tasks, scope)
             s.onEvent = { event -> scope.launch { handle(s, event) } }
@@ -90,7 +98,7 @@ object VoiceController : VoiceControllerApi {
                     if (session === s && _state.value == VoiceState.Connecting) _state.value = VoiceState.Listening
                     VcLog.i(TAG, "GPT-Live call up (call=${s.callId})")
                 } catch (e: LiveException) {
-                    if (session === s) fail(errorMessage(e), e)
+                    if (session === s) fail(errorMessage(s, e), e)
                 } catch (e: Exception) {
                     if (session === s) fail("Voice connection failed: ${e.message}", e)
                 }
@@ -129,7 +137,11 @@ object VoiceController : VoiceControllerApi {
                 return@launch
             }
             VcLog.i(TAG, "sendText(\"$text\"): simulated delegation")
+            // A typed turn is not a transport final: don't switch the public-API turn tracking to finals mode.
+            val hadFinals = sawFinals
             onTranscript(Role.USER, text, final = true)
+            sawFinals = hadFinals
+            requestTurns.clear()
             s.append(
                 "The user typed this request instead of saying it: \"$text\". It has already been handed to the phone; " +
                     "the result will follow.",
@@ -159,8 +171,9 @@ object VoiceController : VoiceControllerApi {
             }
             is LiveEvent.Transcript -> onTranscript(event.role, event.text, event.final)
             is LiveEvent.Delegation -> {
-                // Public-API delegations carry no text: fall back to what the user last said.
-                val text = event.text.ifBlank { lastUserText }
+                // Public-API delegations carry no text: rebuild it from what the user said.
+                val text = event.text.ifBlank { delegationText() }
+                requestTurns.clear()
                 bridge?.onDelegation(event.id, text)
             }
             LiveEvent.SpeechCleared -> {
@@ -170,7 +183,7 @@ object VoiceController : VoiceControllerApi {
             }
             is LiveEvent.Error -> {
                 VcLog.w(TAG, "GPT-Live error${if (event.fatal) " (fatal)" else ""}: ${event.message}")
-                if (event.fatal) fail("Sign in again: ${event.message}")
+                if (event.fatal) fail(if (s is OpenAiLiveWsTransport) event.message else "Sign in again: ${event.message}")
             }
             is LiveEvent.Closed -> {
                 VcLog.i(TAG, "call closed: ${event.reason}")
@@ -225,9 +238,16 @@ object VoiceController : VoiceControllerApi {
         lastTurn[role] = text
         if (role == Role.USER) {
             lastUserText = text
+            // Part of this turn may already have gone out with a delegation that arrived while the user spoke.
+            val rest = if (consumedUserText.isNotEmpty() && text.startsWith(consumedUserText)) {
+                text.removePrefix(consumedUserText).trim()
+            } else text
+            consumedUserText = ""
+            if (rest.isNotEmpty()) addRequestTurn(rest)
             VcLog.i(TAG, "UserSaid: \"$text\"")
         } else {
             VcLog.i(TAG, "AssistantSaying: \"$text\"")
+            assistantAsked = text.endsWith("?")
             idleJob?.cancel()
             idleJob = scope.launch {
                 delay(2_500)
@@ -236,7 +256,34 @@ object VoiceController : VoiceControllerApi {
         }
     }
 
+    /** A user turn joins the pending request after a clarifying question, otherwise it starts a new request. */
+    private fun addRequestTurn(text: String) {
+        if (!assistantAsked) requestTurns.clear()
+        assistantAsked = false
+        requestTurns += text
+        while (requestTurns.size > 3) requestTurns.removeAt(0)
+    }
+
+    /**
+     * The request for a public-API delegation (`session.delegation.created` has no text): the user's words since the
+     * last delegation. The delegation usually arrives while the user turn is still open (before GPT's spoken
+     * acknowledgement ends it), so the in-progress transcript counts too; answers to a clarifying question
+     * ("Send a message." / "Who to?" / "Anna, saying hi.") are joined with the request they complete.
+     */
+    private fun delegationText(): String {
+        val current = if (lastRole == Role.USER) buffers.getValue(Role.USER).toString().trim() else ""
+        if (current.isNotEmpty() && current != lastTurn[Role.USER]) {
+            addRequestTurn(current)
+            consumedUserText = current
+        }
+        val text = requestTurns.joinToString(" ") { if (it.last() in ".?!") it else "$it." }
+        return text.ifBlank { lastUserText }
+    }
+
     private fun resetTranscripts() {
+        requestTurns.clear()
+        assistantAsked = false
+        consumedUserText = ""
         buffers.values.forEach { it.setLength(0) }
         lastRole = null
         lastUserText = ""
@@ -260,7 +307,10 @@ object VoiceController : VoiceControllerApi {
         if (s != null) scope.launch { s.close() }
     }
 
-    private fun errorMessage(e: LiveException): String = when (e.status) {
+    private fun errorMessage(s: LiveSession, e: LiveException): String = if (s is OpenAiLiveWsTransport) {
+        // Already readable and about the API key ("Invalid OpenAI API key (401). ..."), not the ChatGPT sign-in.
+        e.message ?: "Voice connection failed."
+    } else when (e.status) {
         401 -> "Sign in again (ChatGPT rejected the sign-in)."
         403 -> "Your ChatGPT plan has no voice, or the voice allowance is used up."
         429 -> "Voice limit reached. Try again later."
