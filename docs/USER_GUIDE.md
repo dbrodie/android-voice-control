@@ -20,7 +20,23 @@ The build includes the JEV key from `.env`. You can replace it in the app under 
 
 ## 2. First-run setup
 
-Open the app. The **Setup** list shows a green ✓ for each step that is done. Do the steps from top to bottom:
+Open the app. The first time (and whenever voice has neither a ChatGPT sign-in nor an API key), the
+**sign-in screen** opens first:
+
+- **Sign in with ChatGPT** (needs ChatGPT Plus or Pro): OpenAI's login page opens in a browser tab inside the
+  app. Log in there. The screen meanwhile says "Waiting for you to finish signing in in the browser…" with a
+  5-minute countdown. If you closed the tab by accident, tap **Open browser again**; **Cancel** stops the
+  sign-in. When you're done, the tab closes by itself and you see **You're signed in** with your email and plan.
+  Tap **Continue**. (If the app doesn't come back on its own, tap **Back to Voice Control** on the page.)
+- **Use an OpenAI API key instead**: paste a key (`sk-…`) and tap **Save key and use it**. Voice then uses the
+  official API, billed per use to that key.
+- **Not now** skips this; you can come back any time from the *Sign in with ChatGPT* row.
+
+If something goes wrong, a red box on the sign-in screen says what happened (cancelled, couldn't be verified,
+no connection to OpenAI, token exchange failed, sign-in port busy, timed out, your plan has no voice, …), with
+**Try again** below it.
+
+The **Setup** list shows a green ✓ for each step that is done. Do the steps from top to bottom:
 
 1. **Display over other apps**: tap *Grant*, turn on *Android Voice Control*, then go back. This is what
    lets the bubble appear.
@@ -29,9 +45,12 @@ Open the app. The **Setup** list shows a green ✓ for each step that is done. D
    Android 13+ may first say the setting is "restricted" for side-loaded apps. If so, open the app's
    *App info* page, tap ⋮ → *Allow restricted settings*, and try again.
 3. **Microphone**: tap *Allow*.
-4. **Sign in with ChatGPT**: tap *Sign in*, then *Sign in with ChatGPT*. The browser opens. Log in, and you
-   come back to the app. Voice then runs on your ChatGPT Plus/Pro plan. If you want to use an **OpenAI API
-   key** instead, skip this step and enter the key under *Settings → OpenAI API key*.
+4. **Sign in with ChatGPT**: if you skipped the sign-in screen, tap *Sign in* here (same screen as above). Once
+   signed in, the row shows your email and plan (for example "you@example.com · ChatGPT Pro"), and the button
+   says *Manage*: it shows the account, **Switch account** (signs in again in the browser; to pick a different
+   OpenAI account, log out on OpenAI's page first) and **Sign out**. Signing out forgets the sign-in on this
+   phone; if the Voice choice below was *ChatGPT sign-in*, it goes back to *Automatic*. If you use an **OpenAI
+   API key** instead, this row is optional; you can also change the key under *Settings → OpenAI API key*.
 5. **Notifications**: tap *Allow*. You get the "bubble running" notification, which has a Stop button.
 6. *(Optional)* **Ignore battery optimisation**: this stops aggressive phones from killing the bubble.
 
@@ -97,7 +116,10 @@ The log under the box shows each step.
 | "Voice Control can't see or touch the screen yet" or "accessibility service is no longer connected" | Turn the accessibility service **off and on** again (Settings → Accessibility → Android Voice Control). This happens after you reinstall or update the app: Android keeps the switch on, but the old connection is dead. |
 | "Can't take a screenshot: INTERNAL_ERROR" | Same fix: turn the accessibility service off and on. |
 | The bubble disappears in Settings | This is normal. Android hides every app's floating windows while Settings and some permission screens are open. The agent keeps working, and the bubble comes back when you leave Settings. |
-| Tapping the bubble opens the app with "Voice isn't set up" | Sign in with ChatGPT, or enter an OpenAI API key and pick that backend under *Voice*. |
+| Tapping the bubble says "Voice isn't set up" and opens the sign-in screen | Sign in with ChatGPT there, or use an OpenAI API key. |
+| Sign-in: "Sign-in port is busy" | Another app (another sign-in, or a Codex CLI login in Termux) holds ports 1455 and 1457. Close it and tap *Try again*. |
+| Sign-in: "Token exchange failed" / "Sign-in couldn't be verified" | The page you finished on belonged to an older attempt, or OpenAI rejected the code. Tap *Try again* and finish the login within 5 minutes. |
+| Sign-in: "Your ChatGPT plan has no voice" | The account is on ChatGPT Free. Sign in with a Plus/Pro account, or use an OpenAI API key. |
 | "Android didn't allow the microphone right now" | Open the app once (it then counts as in use), then tap the bubble again. |
 | "Sign in again" / "ChatGPT rejected the sign-in" | Your sign-in expired or was revoked. Use *Sign in with ChatGPT* → *Manage*, then sign in again. |
 | "Your ChatGPT plan has no voice" / "Voice limit reached" | Your plan's voice allowance is used up. Wait, or switch to an OpenAI API key. |
@@ -135,6 +157,9 @@ adb push ~/.codex/auth.json /data/local/tmp/codex-auth.json
 adb shell am broadcast -p $P -a $P.AUTH_IMPORT --es path /data/local/tmp/codex-auth.json
 adb shell rm /data/local/tmp/codex-auth.json
 adb shell am broadcast -p $P -a $P.AUTH_STATUS
+adb shell am broadcast -p $P -a $P.AUTH_LOGIN                         # open the sign-in screen and start a sign-in
+adb shell am broadcast -p $P -a $P.AUTH_CALLBACK --es code bogus      # play OpenAI's redirect (expects "Token exchange failed")
+adb shell am broadcast -p $P -a $P.AUTH_SIGNOUT
 # Note: AUTH_REFRESH rotates the refresh token. A Codex CLI login you imported then stops working on the Mac.
 
 # Voice without a microphone (emulator): fake mic + injected speech

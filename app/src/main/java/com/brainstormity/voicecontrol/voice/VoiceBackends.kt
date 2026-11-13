@@ -48,8 +48,35 @@ object VoiceBackends {
             }
         }
         VoiceController.sessionFactory = ::createSession
+        ChatGptAuth.onSignedOut = ::onChatGptSignedOut
         VcLog.d(TAG, "installed (backend setting=${AppSettings.voiceBackend(app)}, resolves to '${resolve(app)}')")
     }
+
+    /** Backend of the most recent session [createSession] built ("" before the first one). */
+    @Volatile var lastSessionBackend: String = ""
+        private set
+
+    /**
+     * After "Sign out": a forced "chatgpt" setting would leave voice with no backend, so it goes back to "auto"
+     * (which then picks the API key if there is one), and a running ChatGPT voice session is hung up since its
+     * credentials are gone.
+     */
+    fun onChatGptSignedOut(ctx: Context) {
+        val app = ctx.applicationContext
+        if (AppSettings.voiceBackend(app) == AppSettings.BACKEND_CHATGPT) {
+            AppSettings.setVoiceBackend(app, AppSettings.BACKEND_AUTO)
+            VcLog.i(TAG, "signed out: voice backend setting chatgpt -> auto")
+        }
+        if (lastSessionBackend == AppSettings.BACKEND_CHATGPT && VoiceController.isActive) {
+            VcLog.i(TAG, "signed out: stopping the running ChatGPT voice session")
+            VoiceController.stop()
+        }
+        VcLog.i(TAG, "signed out: voice now resolves to '${resolve(app)}'")
+    }
+
+    /** Neither a ChatGPT sign-in nor an API key: MainActivity shows the sign-in screen, the bubble opens it. */
+    fun needsSetup(ctx: Context): Boolean =
+        !chatGptAvailable(ctx) && AppSettings.openAiApiKey(ctx.applicationContext).isBlank()
 
     /** Human-readable description of what [resolve] would pick right now, for the settings screen. */
     fun describe(ctx: Context): String {
@@ -84,7 +111,9 @@ object VoiceBackends {
      */
     fun createSession(ctx: Context, auth: LiveAuthProvider): LiveSession {
         val app = ctx.applicationContext
-        return when (val backend = resolve(app)) {
+        val backend = resolve(app)
+        lastSessionBackend = backend
+        return when (backend) {
             AppSettings.BACKEND_CHATGPT -> {
                 VcLog.i(TAG, "backend: chatgpt (Codex GPT-Live, WebRTC)")
                 CodexLiveTransport(app, auth, LiveSessionConfig(instructions = LivePrompt.INSTRUCTIONS))

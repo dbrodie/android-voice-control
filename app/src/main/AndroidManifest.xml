@@ -16,6 +16,18 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Sign in with ChatGPT: find a browser that supports Custom Tabs (androidx.browser). -->
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -35,13 +47,22 @@
             </intent-filter>
         </activity>
 
-        <!-- ChatGPT sign-in (voice/auth). Exported only so the "Back to Voice Control" link on the
-             loopback success page (intent://done#Intent;scheme=com.brainstormity.voicecontrol.auth;...) can
-             reopen it; it ignores the intent data. -->
+        <!-- ChatGPT sign-in / onboarding / account screen (voice/auth). singleTop: the post-callback
+             relaunch (CLEAR_TOP | SINGLE_TOP) resumes the existing screen instead of stacking a copy. -->
         <activity
             android:name=".voice.auth.LoginActivity"
+            android:exported="false"
+            android:label="Sign in"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Invisible trampoline for the "Back to Voice Control" link on the loopback result page
+             (intent://done#Intent;scheme=com.brainstormity.voicecontrol.auth;...). Ignores the intent data. -->
+        <activity
+            android:name=".voice.auth.AuthReturnActivity"
             android:exported="true"
-            android:label="ChatGPT sign-in">
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -50,11 +71,16 @@
             </intent-filter>
         </activity>
 
-        <!-- Keeps the process unfrozen while the browser sign-in is in progress (max ~3 min). -->
+        <!-- Keeps the process unfrozen while the browser sign-in is in progress (up to the 5 min timeout).
+             specialUse rather than shortService, which Android stops after ~3 minutes. -->
         <service
             android:name=".voice.auth.LoginKeepAliveService"
             android:exported="false"
-            android:foregroundServiceType="shortService" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the local OAuth callback listener (127.0.0.1) running while the user signs in to ChatGPT in the browser; stops when the sign-in ends (max 5 minutes)." />
+        </service>
 
         <service
             android:name=".control.PhoneAccessibilityService"

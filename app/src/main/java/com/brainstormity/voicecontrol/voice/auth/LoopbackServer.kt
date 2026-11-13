@@ -89,20 +89,32 @@ internal class LoopbackServer private constructor(private val server: ServerSock
          * Codex CLI), retries for ~2 s, then falls back to 1457 like codex-rs `bind_server`.
          * Throws [BindException] if neither port can be bound.
          */
-        fun bind(): LoopbackServer {
-            tryBind(CodexOAuth.DEFAULT_PORT)?.let { return LoopbackServer(it) }
-            VcLog.w(TAG, "port ${CodexOAuth.DEFAULT_PORT} in use; sending /cancel to its owner")
-            sendCancel(CodexOAuth.DEFAULT_PORT)
-            repeat(10) {
-                Thread.sleep(200)
-                tryBind(CodexOAuth.DEFAULT_PORT)?.let { return LoopbackServer(it) }
-            }
-            VcLog.w(TAG, "port ${CodexOAuth.DEFAULT_PORT} still in use; falling back to ${CodexOAuth.FALLBACK_PORT}")
-            tryBind(CodexOAuth.FALLBACK_PORT)?.let { return LoopbackServer(it) }
+        fun bind(primary: Int = CodexOAuth.DEFAULT_PORT, fallback: Int = CodexOAuth.FALLBACK_PORT): LoopbackServer {
+            bindWithCancel(primary)?.let { return it }
+            VcLog.w(TAG, "port $primary still in use; falling back to $fallback")
+            tryBind(fallback)?.let { return LoopbackServer(it) }
             throw BindException(
-                "Ports ${CodexOAuth.DEFAULT_PORT} and ${CodexOAuth.FALLBACK_PORT} are both in use " +
+                "Ports $primary and $fallback are both in use " +
                     "(is another sign-in, or a Codex CLI login, running on this device?)"
             )
+        }
+
+        /**
+         * Binds exactly [port] (same `/cancel` + retry dance, no fallback). Used to resume a sign-in after the
+         * process was killed: the redirect_uri sent to OpenAI names this port, so no other port would do.
+         */
+        fun bindExact(port: Int): LoopbackServer =
+            bindWithCancel(port) ?: throw BindException("Port $port is in use")
+
+        private fun bindWithCancel(port: Int): LoopbackServer? {
+            tryBind(port)?.let { return LoopbackServer(it) }
+            VcLog.w(TAG, "port $port in use; sending /cancel to its owner")
+            sendCancel(port)
+            repeat(10) {
+                Thread.sleep(200)
+                tryBind(port)?.let { return LoopbackServer(it) }
+            }
+            return null
         }
 
         private fun tryBind(port: Int): ServerSocket? = try {
@@ -128,12 +140,19 @@ internal class LoopbackServer private constructor(private val server: ServerSock
             }
         }
 
-        private fun parseQuery(q: String): Map<String, String> =
+        internal fun parseQuery(q: String): Map<String, String> =
             q.split('&').filter { it.isNotEmpty() }.associate { pair ->
                 val k = pair.substringBefore('=')
                 val v = if ('=' in pair) pair.substringAfter('=') else ""
-                URLDecoder.decode(k, "UTF-8") to URLDecoder.decode(v, "UTF-8")
+                decode(k) to decode(v)
             }
+
+        /** Lenient: a malformed %-escape from a hostile/broken request must not abort the wait. */
+        private fun decode(s: String): String = try {
+            URLDecoder.decode(s, "UTF-8")
+        } catch (_: IllegalArgumentException) {
+            s
+        }
 
         private fun writeResponse(socket: Socket, status: Int, body: String) {
             try {
