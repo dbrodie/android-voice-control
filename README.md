@@ -12,14 +12,8 @@ the middle.
 
 ## Credit where it is due
 
-This app is a port of **[System One Computer Use](https://github.com/brainstormity/System-One-Computer-Use)**
-by the brainstormity team, and it would not exist without it. That project is an amazing piece of
-work: a complete computer-use and phone-use agent in a few hundred readable lines, with a model that
-only ever picks from options (so web pages can't inject instructions), a confidence gate that stops
-instead of guessing, zoom-in refinement for tiny targets, and a dashboard that shows exactly what
-the agent saw, chose and paid for at every step. Every one of those ideas is carried over here, and
-the Kotlin port is checked against the original Python with golden tests. If you want to understand
-how this app thinks, read `jev_agent.py` there first.
+This app is based on, and is mostly the logic of, **[System One Computer Use](https://github.com/brainstormity/System-One-Computer-Use)**
+by brainstormity. It is an amazing project and you should check it out.
 
 The ChatGPT sign-in and GPT-Live call handling follow
 **[opencode-gpt-live](https://github.com/malhashemi/opencode-gpt-live)** by M. Adel Alhashemi.
