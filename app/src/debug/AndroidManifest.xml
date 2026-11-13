@@ -38,6 +38,7 @@
                 <action android:name="com.brainstormity.voicecontrol.AUTH_SIGNOUT" />
                 <action android:name="com.brainstormity.voicecontrol.AUTH_LOGIN" />
                 <action android:name="com.brainstormity.voicecontrol.AUTH_PROBE" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_CALLBACK" />
             </intent-filter>
         </receiver>
         <provider

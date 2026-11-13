@@ -12,6 +12,8 @@
     <color name="vc_warn">#E59A12</color>
     <color name="vc_optional">#A3A9B3</color>
     <color name="vc_error">#D93025</color>
+    <color name="vc_error_bg">#FDECEA</color>
+    <color name="vc_error_stroke">#F5C2BD</color>
     <color name="vc_log_bg">#14171C</color>
     <color name="vc_log_text">#D7DCE3</color>
     <!-- Overlay pill / strip (dark glass) -->

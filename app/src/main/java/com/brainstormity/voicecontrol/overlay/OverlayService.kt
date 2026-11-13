@@ -26,6 +26,7 @@ import com.brainstormity.voicecontrol.core.VoiceState
 import com.brainstormity.voicecontrol.ui.MainActivity
 import com.brainstormity.voicecontrol.voice.VoiceBackends
 import com.brainstormity.voicecontrol.voice.VoiceController
+import com.brainstormity.voicecontrol.voice.auth.LoginActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -211,9 +212,9 @@ class OverlayService : Service() {
                 return
             }
             if (VoiceBackends.resolve(this).isEmpty()) {
-                VcLog.w(TAG, "bubble tap but no voice backend is configured (${VoiceBackends.describe(this)}); opening setup")
+                VcLog.w(TAG, "bubble tap but no voice backend is configured (${VoiceBackends.describe(this)}); opening sign-in")
                 showTransient(Pill(getString(R.string.overlay_need_voice_setup), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
-                openSetup()
+                openSignIn()
                 return
             }
             // Android 14+: mic capture from the background needs the microphone FGS type, and that type can only
@@ -247,6 +248,16 @@ class OverlayService : Service() {
             startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
             VcLog.w(TAG, "can't open setup: ${e.message}")
+        }
+    }
+
+    /** Voice isn't set up: go straight to the sign-in screen (ChatGPT sign-in or API key). */
+    private fun openSignIn() {
+        try {
+            LoginActivity.start(this)
+        } catch (e: Exception) {
+            VcLog.w(TAG, "can't open the sign-in screen: ${e.message}")
+            openSetup()
         }
     }
 

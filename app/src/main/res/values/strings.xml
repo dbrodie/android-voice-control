@@ -12,7 +12,7 @@
     <string name="overlay_bubble_description_active">Voice control: listening, tap to stop</string>
     <string name="overlay_stop_description">Stop the running task</string>
     <string name="overlay_need_mic">Microphone permission needed: opening setup</string>
-    <string name="overlay_need_voice_setup">Voice isn\'t set up: sign in with ChatGPT or add an OpenAI API key</string>
+    <string name="overlay_need_voice_setup">Voice isn\'t set up: opening sign-in</string>
     <string name="overlay_mic_fgs_denied">Android didn\'t allow the microphone right now. Open Voice Control once, then tap the bubble again.</string>
 
     <!-- MainActivity -->
@@ -30,6 +30,37 @@
     <string name="action_sign_in">Sign in</string>
     <string name="action_manage">Manage</string>
     <string name="section_settings">Settings</string>
+
+    <!-- LoginActivity (voice/auth) -->
+    <string name="login_intro">Voice Control talks to GPT through your ChatGPT account. Sign in with ChatGPT (Plus/Pro) or use an OpenAI API key.</string>
+    <string name="login_sign_in">Sign in with ChatGPT</string>
+    <string name="login_try_again">Try again</string>
+    <string name="login_sign_in_hint">Opens OpenAI\'s sign-in page in your browser. Needs ChatGPT Plus or Pro.</string>
+    <string name="login_use_key">Use an OpenAI API key instead</string>
+    <string name="login_hide_key">Hide the API key option</string>
+    <string name="login_key_hint">sk-…</string>
+    <string name="login_show_key">Show key</string>
+    <string name="login_save_key">Save key and use it</string>
+    <string name="login_key_note">Billed per use by OpenAI. Stored only on this phone; you can change it later under Settings.</string>
+    <string name="login_key_empty">Paste your OpenAI API key first.</string>
+    <string name="login_key_invalid">That doesn\'t look like an OpenAI API key (they start with \"sk-\").</string>
+    <string name="login_not_now">Not now</string>
+    <string name="login_starting">Opening the browser…</string>
+    <string name="login_waiting">Waiting for you to finish signing in in the browser…</string>
+    <string name="login_waiting_detail">Log in on OpenAI\'s page. When you\'re done, you come back here automatically.</string>
+    <string name="login_exchanging">Finishing sign-in…</string>
+    <string name="login_exchanging_detail">Getting your ChatGPT account details from OpenAI.</string>
+    <string name="login_cancel">Cancel</string>
+    <string name="login_open_again">Open browser again</string>
+    <string name="login_continue">Continue</string>
+    <string name="login_done">Done</string>
+    <string name="login_switch_account">Switch account</string>
+    <string name="login_sign_out">Sign out</string>
+    <string name="login_success_title">You\'re signed in</string>
+    <string name="login_account_title">Signed in to ChatGPT</string>
+    <string name="login_key_saved_title">API key saved</string>
+    <string name="login_key_saved_detail">Voice will use your OpenAI API key (official GPT-Live API, billed per use).</string>
+    <string name="login_signed_out_toast">Signed out of ChatGPT</string>
     <string name="section_test">Test without voice</string>
 
     <string name="check_overlay_title">Display over other apps</string>

@@ -43,6 +43,7 @@ import com.brainstormity.voicecontrol.voice.VoiceController
 import com.brainstormity.voicecontrol.voice.auth.AuthState
 import com.brainstormity.voicecontrol.voice.auth.ChatGptAuth
 import com.brainstormity.voicecontrol.voice.auth.LoginActivity
+import com.brainstormity.voicecontrol.voice.auth.LoginFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -115,6 +116,7 @@ class MainActivity : AppCompatActivity() {
         setupSettings()
         setupTestBox()
         logText.text = logBuffer.joinToString("\n")
+        maybeShowOnboarding(savedInstanceState)
     }
 
     override fun onStart() {
@@ -130,6 +132,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        syncSettingsViews()
         refreshChecklist()
     }
 
@@ -170,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             dynamicDetail = ::chatGptDetail,
             okLabel = R.string.action_manage,
             isOptional = { AppSettings.openAiApiKey(this).isNotBlank() },
-        ) { LoginActivity.start(this, autoStart = false) }
+        ) { LoginActivity.start(this) } // signed out: sign-in choices; signed in ("Manage"): account details
         add(
             R.string.check_notif_title,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.check_notif_detail else R.string.check_notif_detail_old,
@@ -215,10 +218,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun chatGptDetail(): String? = when (val s = ChatGptAuth.state.value) {
-        is AuthState.SignedIn -> "Signed in" + (s.email?.let { " as $it" } ?: "") + (s.plan?.let { " ($it)" } ?: "") + "."
+        is AuthState.SignedIn -> (s.email ?: "Signed in") + (LoginFlow.planDisplayName(s.plan)?.let { " · $it" } ?: "")
         AuthState.SigningIn -> "Signing in… finish in the browser."
         is AuthState.Error -> "Sign-in problem: ${s.message}"
         AuthState.SignedOut -> getString(R.string.check_chatgpt_detail)
+    }
+
+    /**
+     * First launch (and every cold start while voice has neither a ChatGPT sign-in nor an API key): show the
+     * sign-in screen on top. Once per process, so "Not now" / Back really leaves it.
+     */
+    private fun maybeShowOnboarding(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null || onboardingShown) return
+        onboardingShown = true
+        if (VoiceBackends.needsSetup(this)) {
+            VcLog.i(TAG, "voice not set up: showing the sign-in screen")
+            LoginActivity.start(this, onboarding = true)
+        }
+    }
+
+    /** LoginActivity may have changed the backend / API key: keep the radio buttons and key field in sync. */
+    private fun syncSettingsViews() {
+        val group = findViewById<RadioGroup>(R.id.backendGroup)
+        val id = backendIds.entries.firstOrNull { it.value == AppSettings.voiceBackend(this) }?.key ?: R.id.backendAuto
+        if (group.checkedRadioButtonId != id) group.check(id) // listener sees the same value: no write
+        val openAi = findViewById<EditText>(R.id.openAiKeyInput)
+        val key = AppSettings.openAiApiKey(this)
+        if (!openAi.hasFocus() && openAi.text.toString() != key) openAi.setText(key)
     }
 
     // ---------------------------------------------------------------- voice backend
@@ -414,5 +440,7 @@ class MainActivity : AppCompatActivity() {
         private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
         /** Survives Activity recreation (rotation) for the life of the process. */
         private val logBuffer = ArrayDeque<String>()
+        /** The automatic sign-in screen was already offered in this process. */
+        private var onboardingShown = false
     }
 }

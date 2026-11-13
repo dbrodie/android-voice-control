@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sign-in / onboarding / account screen (voice/auth/LoginActivity). Edge-to-edge: the activity pads #root
+     with the system-bar / IME insets. Exactly one of the panels below is visible at a time. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="32dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="28dp">
+
+        <!-- Header -->
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_bubble"
+            android:importantForAccessibility="no"
+            android:padding="16dp"
+            android:src="@drawable/ic_mic_bubble" />
+
+        <TextView
+            android:id="@+id/loginTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/main_title"
+            android:textColor="@color/vc_text"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/loginIntro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_horizontal"
+            android:lineSpacingMultiplier="1.15"
+            android:text="@string/login_intro"
+            android:textColor="@color/vc_text_secondary"
+            android:textSize="15sp" />
+
+        <!-- Error banner (Failed states) -->
+        <LinearLayout
+            android:id="@+id/errorBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_banner_error"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/errorTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/vc_error"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/errorDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingMultiplier="1.1"
+                android:textColor="@color/vc_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Choose: Sign in with ChatGPT / use an API key -->
+        <LinearLayout
+            android:id="@+id/choosePanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/signInButton"
+                style="@style/VC.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/login_sign_in"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/signInHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_horizontal"
+                android:text="@string/login_sign_in_hint"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/useKeyButton"
+                style="@style/VC.Button.Borderless"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/login_use_key" />
+
+            <LinearLayout
+                android:id="@+id/keyPanel"
+                style="@style/VC.Card"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/VC.FieldLabel"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/settings_openai_key" />
+
+                <EditText
+                    android:id="@+id/keyInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/login_key_hint"
+                    android:imeOptions="actionDone"
+                    android:importantForAutofill="no"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/keyError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/vc_error"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <CheckBox
+                    android:id="@+id/showKeyCheck"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_show_key"
+                    android:textColor="@color/vc_text_secondary" />
+
+                <Button
+                    android:id="@+id/saveKeyButton"
+                    style="@style/VC.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/login_save_key" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/login_key_note"
+                    android:textColor="@color/vc_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/notNowButton"
+                style="@style/VC.Button.Borderless"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/login_not_now"
+                android:textColor="@color/vc_text_secondary"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Waiting for the browser / finishing the exchange -->
+        <LinearLayout
+            android:id="@+id/waitingPanel"
+            style="@style/VC.Card"
+            android:layout_marginTop="24dp"
+            android:gravity="center_horizontal"
+            android:paddingTop="22dp"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/vc_accent" />
+
+            <TextView
+                android:id="@+id/waitingTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_horizontal"
+                android:text="@string/login_waiting"
+                android:textColor="@color/vc_text"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/waitingDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_horizontal"
+                android:lineSpacingMultiplier="1.1"
+                android:text="@string/login_waiting_detail"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/waitingCountdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_horizontal"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/waitingActions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/cancelButton"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/login_cancel"
+                    android:textColor="@color/vc_text_secondary" />
+
+                <Button
+                    android:id="@+id/openAgainButton"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/login_open_again" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Signed in (success, or account management) / API key saved -->
+        <LinearLayout
+            android:id="@+id/accountPanel"
+            style="@style/VC.Card"
+            android:layout_marginTop="24dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/accountDot"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/bg_status_dot"
+                    android:backgroundTint="@color/vc_ok"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:text="✓"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/accountTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/vc_text"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/accountEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="@color/vc_text"
+                android:textIsSelectable="true"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/accountPlan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/accountMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/continueButton"
+                style="@style/VC.Button"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/login_continue" />
+
+            <LinearLayout
+                android:id="@+id/accountActions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/switchAccountButton"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/login_switch_account" />
+
+                <Button
+                    android:id="@+id/signOutButton"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/login_sign_out"
+                    android:textColor="@color/vc_error" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

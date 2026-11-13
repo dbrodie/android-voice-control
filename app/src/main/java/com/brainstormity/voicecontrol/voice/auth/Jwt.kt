@@ -1,10 +1,11 @@
 package com.brainstormity.voicecontrol.voice.auth
 
-import android.util.Base64
 import org.json.JSONObject
+import java.util.Base64
 
 /**
  * Unverified JWT payload reading (we only need our own tokens' claims; the server verifies signatures).
+ * Pure JVM (java.util.Base64), so it is covered by the JVM unit tests.
  * Mirrors codex-rs/login/src/token_data.rs (`decode_jwt_payload`, `parse_chatgpt_jwt_claims`).
  */
 internal object Jwt {
@@ -16,7 +17,7 @@ internal object Jwt {
         val parts = jwt.split('.')
         if (parts.size != 3 || parts[1].isEmpty()) return null
         return try {
-            val bytes = Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+            val bytes = Base64.getUrlDecoder().decode(parts[1].trimEnd('='))
             JSONObject(String(bytes, Charsets.UTF_8))
         } catch (_: Exception) {
             null

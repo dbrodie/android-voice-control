@@ -34,6 +34,10 @@ import java.util.concurrent.TimeUnit
  *   AUTH_SIGNOUT                    forget the tokens
  *   AUTH_LOGIN                      open LoginActivity and start the browser sign-in
  *   AUTH_PROBE                      POST a dummy offer to the GPT-Live call endpoint, log status + body excerpt
+ *   AUTH_CALLBACK [--es code C] [--es state S] [--es error E] [--ez direct true]
+ *                                   play OpenAI's redirect for the pending sign-in: opens
+ *                                   http://127.0.0.1:<port>/auth/callback?code=C&state=<real state unless S> in the
+ *                                   browser (or, with direct=true, sends it straight to the loopback server)
  * Actions are prefixed com.brainstormity.voicecontrol. Same manifest + runtime-registered pattern as DebugReceiver.
  */
 class AuthDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastReceiver() {
@@ -60,6 +64,7 @@ class AuthDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
                     AUTH_SIGNOUT -> { ChatGptAuth.signOut(ctx); status(ctx) }
                     AUTH_LOGIN -> LoginActivity.start(ctx, autoStart = true)
                     AUTH_PROBE -> probe(ctx)
+                    AUTH_CALLBACK -> callback(ctx, intent)
                     else -> VcLog.w(TAG, "unknown action $action")
                 }
             } catch (e: Exception) {
@@ -90,6 +95,34 @@ class AuthDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
         status(ctx)
     }
 
+    private fun callback(ctx: Context, intent: Intent) {
+        val url = ChatGptAuth.debugCallbackUrl(
+            code = intent.getStringExtra("code") ?: if (intent.hasExtra("error")) null else "debug-bogus-code",
+            state = intent.getStringExtra("state"),
+            error = intent.getStringExtra("error"),
+        ) ?: run { VcLog.w(TAG, "AUTH_CALLBACK: no sign-in is waiting (${ChatGptAuth.login.value})"); return }
+        val shown = url.replace(Regex("state=[^&]*"), "state=" + if (intent.hasExtra("state")) "<override>" else "<real>")
+        if (intent.getBooleanExtra("direct", false)) {
+            // Raw socket: OkHttp/HttpURLConnection refuse cleartext http:// under the default security config.
+            val u = Uri.parse(url)
+            java.net.Socket("127.0.0.1", u.port).use { s ->
+                s.soTimeout = 90_000
+                s.getOutputStream().write(
+                    "GET ${u.encodedPath}?${u.encodedQuery} HTTP/1.1\r\nHost: 127.0.0.1:${u.port}\r\nConnection: close\r\n\r\n"
+                        .toByteArray()
+                )
+                val status = s.getInputStream().bufferedReader().readLine()
+                VcLog.i(TAG, "AUTH_CALLBACK direct $shown -> $status")
+            }
+        } else {
+            ctx.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            VcLog.i(TAG, "AUTH_CALLBACK opened $shown in the browser")
+        }
+    }
+
     private fun status(ctx: Context) {
         val s = ChatGptAuth.state.value
         val info = ChatGptAuth.info(ctx)
@@ -98,7 +131,7 @@ class AuthDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
             else -> s.toString()
         }
         if (info == null) {
-            VcLog.i(TAG, "AUTH_STATUS state=$stateText signedIn=false")
+            VcLog.i(TAG, "AUTH_STATUS state=$stateText signedIn=false login=${ChatGptAuth.login.value}")
         } else {
             VcLog.i(
                 TAG, "AUTH_STATUS state=$stateText signedIn=true account_id=${info.accountId} plan=${info.plan} " +
@@ -153,7 +186,8 @@ class AuthDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
         const val AUTH_SIGNOUT = P + "AUTH_SIGNOUT"
         const val AUTH_LOGIN = P + "AUTH_LOGIN"
         const val AUTH_PROBE = P + "AUTH_PROBE"
-        val ACTIONS = listOf(AUTH_IMPORT, AUTH_STATUS, AUTH_REFRESH, AUTH_SIGNOUT, AUTH_LOGIN, AUTH_PROBE)
+        const val AUTH_CALLBACK = P + "AUTH_CALLBACK"
+        val ACTIONS = listOf(AUTH_IMPORT, AUTH_STATUS, AUTH_REFRESH, AUTH_SIGNOUT, AUTH_LOGIN, AUTH_PROBE, AUTH_CALLBACK)
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

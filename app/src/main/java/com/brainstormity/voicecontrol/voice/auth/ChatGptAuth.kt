@@ -1,9 +1,7 @@
 package com.brainstormity.voicecontrol.voice.auth
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import com.brainstormity.voicecontrol.core.VcLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +16,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.IOException
+import java.net.URLEncoder
 
 sealed class AuthState {
     object SignedOut : AuthState() { override fun toString() = "SignedOut" }
@@ -41,15 +41,28 @@ data class Credentials(val accessToken: String, val accountId: String) {
  * ```
  * On HTTP 401 from the backend, call `credentials(ctx, forceRefresh = true)` once and retry.
  * Never log tokens.
+ *
+ * Two flows: [state] says whether a sign-in is stored; [login] is the progress of the current browser sign-in
+ * attempt (LoginActivity renders it). The attempt lives here, not in the Activity, so it survives rotation and
+ * the Activity being destroyed while the browser is in front.
  */
 object ChatGptAuth {
     private const val TAG = "Auth"
     /** Codex: CHATGPT_ACCESS_TOKEN_REFRESH_WINDOW_MINUTES = 5. */
     private const val REFRESH_WINDOW_MS = 5 * 60_000L
-    private const val LOGIN_TIMEOUT_MS = 3 * 60_000L
 
     private val _state = MutableStateFlow<AuthState>(AuthState.SignedOut)
     val state: StateFlow<AuthState> = _state.asStateFlow()
+
+    private val _login = MutableStateFlow<LoginState>(LoginState.Idle)
+    /** Progress of the browser sign-in. Terminal states stay until [clearLoginResult] or the next attempt. */
+    val login: StateFlow<LoginState> = _login.asStateFlow()
+
+    /** Token endpoint client; replaceable for tests. */
+    internal var oauth: CodexOAuth = CodexOAuth()
+
+    /** Called after [signOut] (VoiceBackends resets its backend choice / stops a ChatGPT voice session). */
+    @Volatile var onSignedOut: ((Context) -> Unit)? = null
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val refreshMutex = Mutex()
@@ -58,6 +71,7 @@ object ChatGptAuth {
     private var loginJob: Job? = null
     private var loginServer: LoopbackServer? = null
     private var loginGen = 0
+    @Volatile private var pending: PendingLogin? = null
 
     /** Loads the stored sign-in and publishes it to [state]. Idempotent; every ctx-taking method calls it. */
     fun init(ctx: Context) {
@@ -134,7 +148,7 @@ object ChatGptAuth {
             if (t.accessToken != seen.accessToken && (reason == "forced" || !needsRefresh(t))) return@withLock t
             VcLog.i(TAG, "refreshing ChatGPT access token (reason=$reason)")
             val resp = try {
-                CodexOAuth.refresh(t.refreshToken, reason)
+                oauth.refresh(t.refreshToken, reason)
             } catch (e: CodexOAuth.TokenEndpointException) {
                 VcLog.e(TAG, "refresh failed: HTTP ${e.status} ${e.errorCode ?: ""} permanent=${e.isPermanent}")
                 if (e.isPermanent) {
@@ -160,40 +174,95 @@ object ChatGptAuth {
             updated
         }
 
-    /** Starts the browser sign-in: loopback server on 127.0.0.1:1455, authorize URL in the browser. */
-    fun startLogin(ctx: Context) {
+    // ------------------------------------------------------------------------------------------ browser sign-in
+
+    /**
+     * Starts a browser sign-in: binds 127.0.0.1:1455 (or 1457), publishes [LoginState.Waiting] with the authorize
+     * URL, and waits up to 5 minutes for the redirect. The caller (LoginActivity) opens the URL in a Custom Tab.
+     * A second call while an attempt is in progress is ignored (double taps) and returns the running attempt's id.
+     */
+    fun startLogin(ctx: Context): Int {
         init(ctx)
+        val app = ctx.applicationContext
+        synchronized(lock) {
+            val cur = _login.value
+            if (cur.isInProgress && loginJob?.isActive == true) {
+                VcLog.i(TAG, "login #$loginGen already in progress; ignoring a second start")
+                return loginGen
+            }
+            return begin(app, null)
+        }
+    }
+
+    /**
+     * Restarts the listener for an attempt whose process died while the browser was in front (LoginActivity
+     * keeps [PendingLogin] in its saved state). Same port, state and PKCE verifier, so a redirect from the
+     * already-open login page still validates. Returns the attempt id, or 0 if an attempt is already running or
+     * [p] has expired.
+     */
+    fun resumeLogin(ctx: Context, p: PendingLogin): Int {
+        init(ctx)
+        val app = ctx.applicationContext
+        synchronized(lock) {
+            if (_login.value.isInProgress && loginJob?.isActive == true) return 0
+            if (p.deadlineMs <= System.currentTimeMillis()) return 0
+            VcLog.i(TAG, "resuming a sign-in on port ${p.port} (the process was restarted)")
+            return begin(app, p)
+        }
+    }
+
+    /** The in-progress attempt's secrets, for LoginActivity.onSaveInstanceState. Null when not waiting. */
+    fun pendingLogin(): PendingLogin? = pending?.takeIf { _login.value.isInProgress }
+
+    /** Aborts a pending browser sign-in → [LoginState.Failed] with [LoginFailure.CANCELLED]. No-op otherwise. */
+    fun cancelLogin(ctx: Context) {
+        val app = ctx.applicationContext
+        val gen = synchronized(lock) {
+            if (!_login.value.isInProgress) return
+            loginJob?.cancel()
+            loginServer?.close()
+            loginGen
+        }
+        VcLog.i(TAG, "login #$gen cancelled by the user")
+        end(app, gen, LoginFlow.cancelledProblem())
+    }
+
+    /** Ends the current attempt with [problem] (e.g. no browser could be opened). */
+    fun failLogin(ctx: Context, problem: LoginFlow.Problem) {
+        val app = ctx.applicationContext
+        val gen = synchronized(lock) {
+            if (!_login.value.isInProgress) return
+            loginJob?.cancel()
+            loginServer?.close()
+            loginGen
+        }
+        end(app, gen, problem)
+    }
+
+    /** Forgets a finished attempt's result (the screen showed it). */
+    fun clearLoginResult() {
+        synchronized(lock) { if (_login.value.isFinished) _login.value = LoginState.Idle }
+    }
+
+    fun signOut(ctx: Context) {
         val app = ctx.applicationContext
         synchronized(lock) {
             loginJob?.cancel()
             loginServer?.close()
-            _state.value = AuthState.SigningIn
-            val gen = ++loginGen
-            // Started here (caller is normally a foreground activity) so the process isn't frozen while the
-            // browser is in front; stopped when this login attempt ends.
-            LoginKeepAliveService.start(app)
-            loginJob = scope.launch { runLogin(app, gen) }
+            pending = null
+            loginGen++
+            _login.value = LoginState.Idle
         }
-    }
-
-    /** Aborts a pending browser sign-in (no-op otherwise). */
-    fun cancelLogin(ctx: Context) {
-        synchronized(lock) {
-            loginJob?.cancel()
-            loginServer?.close()
-        }
-        if (_state.value == AuthState.SigningIn) publishStored(ctx)
-    }
-
-    fun signOut(ctx: Context) {
-        synchronized(lock) {
-            loginJob?.cancel()
-            loginServer?.close()
-        }
-        TokenStore.clear(ctx)
+        LoginKeepAliveService.stop(app)
+        TokenStore.clear(app)
         initialized = true
         _state.value = AuthState.SignedOut
         VcLog.i(TAG, "signed out")
+        try {
+            onSignedOut?.invoke(app)
+        } catch (e: Exception) {
+            VcLog.w(TAG, "onSignedOut hook failed: ${e.message}")
+        }
     }
 
     /**
@@ -240,97 +309,166 @@ object ChatGptAuth {
         return Info(emailOf(t), planOf(t), t.accountId, Jwt.expiresAtMs(t.accessToken), t.lastRefreshMs, t.idToken != null)
     }
 
+    /**
+     * Debug builds: the callback URL the browser would be redirected to for the pending attempt, with the real
+     * state unless [state] overrides it. Lets adb tests play OpenAI's redirect without knowing the state.
+     */
+    internal fun debugCallbackUrl(code: String?, state: String?, error: String?): String? {
+        val p = pendingLogin() ?: return null
+        fun e(s: String) = URLEncoder.encode(s, "UTF-8")
+        val q = buildList {
+            code?.let { add("code=${e(it)}") }
+            error?.let { add("error=${e(it)}") }
+            add("state=${e(state ?: p.state)}")
+        }
+        return p.redirectUri + "?" + q.joinToString("&")
+    }
+
     // ---- internals ----
 
-    private suspend fun runLogin(app: Context, gen: Int) {
+    /** Caller holds [lock]. */
+    private fun begin(app: Context, resume: PendingLogin?): Int {
+        loginJob?.cancel()
+        loginServer?.close()
+        pending = null
+        val gen = ++loginGen
+        _state.value = AuthState.SigningIn
+        _login.value = LoginState.Starting(gen)
+        // Started here (caller is a foreground activity) so the process isn't frozen while the browser is in
+        // front; stopped when this attempt ends.
+        LoginKeepAliveService.start(app)
+        loginJob = scope.launch { runLogin(app, gen, resume) }
+        return gen
+    }
+
+    private fun runLogin(app: Context, gen: Int, resume: PendingLogin?) {
         var server: LoopbackServer? = null
         try {
             server = try {
-                LoopbackServer.bind()
-            } catch (e: Exception) {
-                fail("Can't start the sign-in listener: ${e.message}"); return
+                if (resume != null) LoopbackServer.bindExact(resume.port) else LoopbackServer.bind()
+            } catch (e: IOException) {
+                VcLog.w(TAG, "login #$gen: can't bind the callback port: ${e.message}")
+                end(app, gen, LoginFlow.portInUseProblem(resume?.port?.toString() ?: "${CodexOAuth.DEFAULT_PORT} and ${CodexOAuth.FALLBACK_PORT}"))
+                return
             }
-            synchronized(lock) { loginServer = server }
-            val pkce = CodexOAuth.generatePkce()
-            val state = CodexOAuth.generateState()
-            val redirectUri = CodexOAuth.redirectUri(server.port)
-            val url = CodexOAuth.authorizeUrl(redirectUri, pkce, state)
-            VcLog.i(TAG, "login: listening on 127.0.0.1:${server.port}, opening browser")
-            try {
-                withContext(Dispatchers.Main) {
-                    app.startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            .addCategory(Intent.CATEGORY_BROWSABLE)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    )
-                }
-            } catch (e: ActivityNotFoundException) {
-                fail("No browser installed to sign in with."); return
+            val p = resume ?: run {
+                val pkce = CodexOAuth.generatePkce()
+                val st = CodexOAuth.generateState()
+                PendingLogin(
+                    verifier = pkce.verifier,
+                    state = st,
+                    port = server.port,
+                    authorizeUrl = oauth.authorizeUrl(CodexOAuth.redirectUri(server.port), pkce, st),
+                    deadlineMs = System.currentTimeMillis() + LoginFlow.TIMEOUT_MS,
+                )
             }
+            synchronized(lock) {
+                if (gen != loginGen || !_login.value.isInProgress) return // superseded or cancelled while binding
+                loginServer = server
+                pending = p
+                _login.value = LoginState.Waiting(gen, p.port, p.authorizeUrl, p.deadlineMs)
+            }
+            VcLog.i(TAG, "login #$gen: listening on 127.0.0.1:${p.port} (redirect_uri ${p.redirectUri}), waiting for the browser")
 
-            when (val r = server.await(System.currentTimeMillis() + LOGIN_TIMEOUT_MS)) {
-                LoopbackServer.Result.TimedOut -> fail("Sign-in timed out after 3 minutes.")
-                LoopbackServer.Result.Cancelled -> {
-                    VcLog.i(TAG, "login cancelled"); publishStored(app)
-                }
-                is LoopbackServer.Result.Callback -> handleCallback(app, r, state, redirectUri, pkce)
+            when (val r = server.await(p.deadlineMs)) {
+                LoopbackServer.Result.TimedOut -> end(app, gen, LoginFlow.timeoutProblem())
+                LoopbackServer.Result.Cancelled -> end(app, gen, LoginFlow.cancelledProblem()) // no-op after cancelLogin
+                is LoopbackServer.Result.Callback -> handleCallback(app, gen, r, p)
             }
         } catch (e: CancellationException) {
-            VcLog.i(TAG, "login job cancelled")
+            VcLog.i(TAG, "login #$gen job cancelled")
             throw e
         } catch (e: Exception) {
-            VcLog.e(TAG, "login failed", e)
-            fail("Sign-in failed: ${e.message}")
+            VcLog.e(TAG, "login #$gen failed", e)
+            end(app, gen, LoginFlow.Problem(LoginFailure.INTERNAL, "Sign-in failed: ${e.message}"))
         } finally {
             server?.close()
-            synchronized(lock) {
-                if (loginServer === server) loginServer = null
-                if (gen == loginGen) LoginKeepAliveService.stop(app)
-            }
+            synchronized(lock) { if (loginServer === server) loginServer = null }
         }
     }
 
-    private fun handleCallback(
-        app: Context, cb: LoopbackServer.Result.Callback, state: String, redirectUri: String, pkce: CodexOAuth.Pkce,
-    ) {
-        val p = cb.params
-        VcLog.i(TAG, "login callback received (has_code=${!p["code"].isNullOrEmpty()} has_error=${p["error"] != null} state_ok=${p["state"] == state})")
-        val problem = when {
-            p["state"] != state -> "State mismatch, please try again."
-            p["error"] != null -> "OpenAI returned ${p["error"]}${p["error_description"]?.let { ": $it" } ?: ""}"
-            p["code"].isNullOrEmpty() -> "Missing authorization code."
-            else -> null
+    private fun handleCallback(app: Context, gen: Int, cb: LoopbackServer.Result.Callback, p: PendingLogin) {
+        val q = cb.params
+        VcLog.i(
+            TAG, "login #$gen: callback received (has_code=${!q["code"].isNullOrEmpty()} error=${q["error"]} " +
+                "state_ok=${q["state"] == p.state})"
+        )
+        LoginFlow.checkCallback(q, p.state)?.let { problem ->
+            cb.respond(400, page(app, false, problem.reason.title, problem.detail))
+            end(app, gen, problem)
+            bringToFront(app)
+            return
         }
-        if (problem != null) {
-            cb.respond(400, page(app, false, problem)); fail(problem); bringToFront(app); return
-        }
+        synchronized(lock) { if (gen == loginGen && _login.value.isInProgress) _login.value = LoginState.Exchanging(gen) }
+
         val tokens = try {
-            CodexOAuth.exchangeCode(p.getValue("code"), redirectUri, pkce)
+            oauth.exchangeCode(q.getValue("code"), p.redirectUri, CodexOAuth.pkceFor(p.verifier))
         } catch (e: Exception) {
-            val msg = "Token exchange failed: ${e.message}"
-            cb.respond(400, page(app, false, msg)); fail(msg); bringToFront(app); return
+            VcLog.w(TAG, "login #$gen: token exchange failed: ${e.javaClass.simpleName}: ${e.message}")
+            val problem = LoginFlow.exchangeProblem(e)
+            cb.respond(400, page(app, false, problem.reason.title, problem.detail))
+            end(app, gen, problem)
+            bringToFront(app)
+            return
         }
         val access = tokens.accessToken
         val refresh = tokens.refreshToken
         val accountId = Jwt.accountId(tokens.idToken) ?: Jwt.accountId(access)
         if (access == null || refresh == null || accountId == null) {
-            val msg = "Sign-in response was missing tokens or the ChatGPT account id."
-            cb.respond(400, page(app, false, msg)); fail(msg); bringToFront(app); return
+            VcLog.w(TAG, "login #$gen: token response incomplete ($tokens, accountId=${accountId != null})")
+            val problem = LoginFlow.Problem(
+                LoginFailure.MISSING_ACCOUNT,
+                "OpenAI signed you in but didn't return a ChatGPT account for it. Make sure the account has a " +
+                    "ChatGPT plan, or use an OpenAI API key.",
+            )
+            cb.respond(400, page(app, false, problem.reason.title, problem.detail))
+            end(app, gen, problem)
+            bringToFront(app)
+            return
         }
         val t = TokenStore.Tokens(tokens.idToken, access, refresh, accountId, System.currentTimeMillis())
-        TokenStore.save(app, t)
-        val signed = signedIn(t)
-        _state.value = signed
-        VcLog.i(TAG, "login ok: account=$accountId plan=${signed.plan} access expires ${Jwt.expiresAtMs(access)?.let(::fmt)}")
-        cb.respond(200, page(app, true, signed.email?.let { "Signed in as $it." } ?: "Signed in."))
+        val email = emailOf(t)
+        val plan = planOf(t)
+        if (!LoginFlow.planHasVoice(plan)) {
+            VcLog.w(TAG, "login #$gen: plan '$plan' has no GPT-Live voice; not keeping the sign-in")
+            val problem = LoginFlow.noVoiceProblem(email, plan)
+            cb.respond(400, page(app, false, problem.reason.title, problem.detail))
+            end(app, gen, problem)
+            bringToFront(app)
+            return
+        }
+        synchronized(lock) {
+            if (gen != loginGen) { VcLog.w(TAG, "login #$gen superseded during the exchange; discarding tokens"); return }
+            TokenStore.save(app, t)
+            _state.value = signedIn(t)
+        }
+        VcLog.i(TAG, "login #$gen ok: account=$accountId plan=$plan access expires ${Jwt.expiresAtMs(access)?.let(::fmt)}")
+        end(app, gen, null, LoginState.Succeeded(gen, email, plan))
+        cb.respond(200, page(app, true, "You're signed in", email?.let { "Signed in to ChatGPT as $it." } ?: "Signed in to ChatGPT."))
         bringToFront(app)
     }
 
-    private fun fail(msg: String) {
-        VcLog.w(TAG, "login: $msg")
-        _state.value = AuthState.Error(msg)
+    /** Ends attempt [gen] (ignored if it was already ended or superseded). */
+    private fun end(app: Context, gen: Int, problem: LoginFlow.Problem?, success: LoginState.Succeeded? = null) {
+        synchronized(lock) {
+            if (gen != loginGen || !_login.value.isInProgress) return
+            pending = null
+            _login.value = success ?: LoginState.Failed(gen, problem!!.reason, problem.detail)
+            if (success == null) {
+                VcLog.w(TAG, "login #$gen failed: ${problem!!.reason} (${problem.detail})")
+                publishStored(app) // AuthState back from SigningIn; an existing sign-in is untouched
+            }
+        }
+        LoginKeepAliveService.stop(app)
     }
 
+    /**
+     * Brings LoginActivity back over the browser. CLEAR_TOP finishes a Custom Tab that sits above it in our task;
+     * SINGLE_TOP delivers onNewIntent instead of a second copy. Allowed from the background because the app is
+     * exempt from background-activity-start limits while it has a Custom Tab in the foreground task, a visible
+     * overlay, the SYSTEM_ALERT_WINDOW grant or a bound accessibility service. If Android still blocks it, the
+     * page in the browser has a "Back to Voice Control" button (AuthReturnActivity).
+     */
     private fun bringToFront(app: Context) {
         try {
             app.startActivity(
@@ -358,15 +496,20 @@ object ChatGptAuth {
         return "$stamp (in ${mins / 60}h${mins % 60}m)"
     }
 
-    private fun page(app: Context, ok: Boolean, detail: String): String {
-        val esc = detail.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        val title = if (ok) "You're signed in" else "Sign-in failed"
-        val intentUrl = "intent://done#Intent;scheme=${LoginActivity.RETURN_SCHEME};package=${app.packageName};end"
+    private fun page(app: Context, ok: Boolean, title: String, detail: String): String {
+        fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
+        val intentUrl = "intent://done#Intent;scheme=${AuthReturnActivity.SCHEME};package=${app.packageName};end"
+        val accent = if (ok) "#1E9E5A" else "#D93025"
+        val icon = if (ok) "&#10003;" else "!"
+        val hint = if (ok) "Voice Control should already be back in front. If not, tap the button."
+        else "Go back to Voice Control to try again."
         return """<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>$title</title>
-<style>body{font-family:sans-serif;margin:48px 24px;text-align:center;color:#222}
-a.b{display:inline-block;margin-top:24px;padding:14px 22px;border-radius:24px;background:#10a37f;color:#fff;text-decoration:none}</style>
-</head><body><h2>$title</h2><p>$esc</p><p>${if (ok) "Return to Voice Control." else "Return to Voice Control and try again."}</p>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
+<style>body{font-family:sans-serif;margin:56px 24px;text-align:center;color:#1B1E24;background:#F5F6F8}
+.i{width:56px;height:56px;border-radius:28px;margin:0 auto 16px;background:$accent;color:#fff;font:bold 30px/56px sans-serif}
+p{color:#5F6672;line-height:1.4}
+a.b{display:inline-block;margin-top:20px;padding:14px 26px;border-radius:26px;background:#3F51F5;color:#fff;text-decoration:none;font-weight:bold}</style>
+</head><body><div class="i">$icon</div><h2>${esc(title)}</h2><p>${esc(detail)}</p><p>${esc(hint)}</p>
 <a class="b" href="$intentUrl">Back to Voice Control</a></body></html>"""
     }
 }
