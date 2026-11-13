@@ -67,6 +67,15 @@ class RunReport(val dir: File?) {
         var activeDir: File? = null
             private set
 
+        /**
+         * Folder name (run id) of the most recently created run; unlike [activeDir] it isn't cleared when the run
+         * ends. voice/live/LiveTaskBridge compares it before and after `runTask` to learn which run a voice
+         * delegation produced.
+         */
+        @Volatile
+        var lastId: String? = null
+            private set
+
         /** "yyyy-MM-dd'T'HH:mm:ss" in local time: the format of `started` (Python's isoformat(timespec="seconds")). */
         fun isoNow(): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(Date())
 
@@ -82,6 +91,7 @@ class RunReport(val dir: File?) {
                 dir.mkdirs()
                 prune(runs)
                 activeDir = dir
+                lastId = dir.name
                 RunReport(dir)
             } catch (e: Exception) {
                 VcLog.w(TAG, "couldn't create a run folder: ${e.message}")

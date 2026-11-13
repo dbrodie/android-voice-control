@@ -133,6 +133,24 @@ the app's main screen: **Runs & costs → Open** (below *Start overlay*).
   of steps, how long it took, what it cost (in US dollars, to 5 decimals) and how many JEV tokens it used.
   The card on top adds up all listed runs: number of runs, total cost, total JEV tokens, and the success rate
   (the share of finished runs that ended *Done*).
+- **Voice costs.** The card's second row adds up your GPT voice calls: the number of calls, the minutes billed,
+  the voice cost, and **All-in** (JEV cost of the listed runs plus voice cost). Voice is priced at OpenAI's
+  GPT-Live API rate: **$0.05 per minute of call time**, counted per second. Silence counts too, because OpenAI bills
+  the whole time a call is open, so end the call when you're done. If you use the **ChatGPT plan**, you don't pay
+  this: the figure is what the same call would cost on the API ("equiv."). It is labelled "equivalent at API
+  pricing, included in your plan". With an **OpenAI API key** it is the amount OpenAI charges your key.
+- **Voice tab** (between Runs and Trash): every voice call, newest first. Each card shows:
+  - when the call was, and its status: *Live*, *Ended*, *Error* (the reason in red), or *Interrupted* (the app
+    closed during the call);
+  - which route it used and its cost, e.g. "ChatGPT plan · equiv. $0.121" or "OpenAI API · $0.012";
+  - how long it lasted, the minutes billed, and how many times you and GPT spoke;
+  - every task you gave it, with that run's status. Tap a task to open its run report.
+
+  The minutes come from OpenAI's own usage reports. If the call broke off before OpenAI sent a final figure,
+  the app uses the time the call was connected, marked "(est.)". The app keeps the last 100 calls.
+- In a run's report, **Triggered by voice session …** names the call that asked for that task and the call's
+  cost. The cost is for the whole call; it isn't split between the tasks of that call. Tap the line to see the
+  call in the Voice tab.
 - **While a task runs**, a blue-bordered card at the top shows it live (step, action, how sure JEV is, cost so
   far) with a red **Stop** button. The screen refreshes by itself.
 - **Tap a run** to see its report. The header repeats the task, status and the agent's closing message (a
@@ -155,7 +173,8 @@ the app's main screen: **Runs & costs → Open** (below *Start overlay*).
 
 The app keeps the **last 20 runs** and deletes older ones as new tasks start. Runs in the Trash don't count
 towards the 20 and stay until you delete them forever. A run you restore counts again, so if you already
-have 20, the oldest one goes when the next task starts.
+have 20, the oldest one goes when the next task starts. Voice calls are kept separately (the last 100), so
+*All-in* can include voice calls whose runs have already been deleted.
 
 ## 6. Troubleshooting
 

@@ -1,5 +1,6 @@
 package com.brainstormity.voicecontrol.ui.runs
 
+import com.brainstormity.voicecontrol.voice.VoiceSession
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -97,4 +98,56 @@ object RunFormat {
 
     fun stepCost(s: Step): String =
         "${tokens(s.inputTokens)} in / ${tokens(s.outputTokens)} out tokens · ${usd(s.costUsd)}"
+
+    // ------------------------------------------------------------------ voice (GPT-Live) sessions
+
+    /** Voice money: 3 decimals ("$0.011"); "<$0.001" for a tiny non-zero amount. */
+    fun usdVoice(x: Double): String =
+        if (x > 0 && x < 0.0005) "<$0.001" else "$" + String.format(Locale.US, "%.3f", x)
+
+    /** Billed voice time in minutes: "0.2 min", "12.5 min". */
+    fun minutes(ms: Long): String = String.format(Locale.US, "%.1f", ms / 60_000.0)
+
+    /** "ChatGPT plan · equiv. $0.011" or "OpenAI API · $0.011". */
+    fun voiceCost(s: VoiceSession): String = when (s.backend) {
+        "chatgpt" -> "ChatGPT plan · equiv. ${usdVoice(s.costUsd)}"
+        "openai_key" -> "OpenAI API · ${usdVoice(s.costUsd)}"
+        else -> "${s.backend.ifEmpty { "Voice" }} · ${usdVoice(s.costUsd)}"
+    }
+
+    fun voiceStatusLabel(status: String): String = when (status) {
+        "active" -> "Live"
+        "ended" -> "Ended"
+        "error" -> "Error"
+        "interrupted" -> "Interrupted"
+        else -> label(status)
+    }
+
+    fun voiceTone(status: String): Tone = when (status) {
+        "active" -> Tone.ACCENT
+        "ended" -> Tone.MUTED
+        "error" -> Tone.BAD
+        else -> Tone.WARN
+    }
+
+    /** "20s · 0.2 min billed · 1 you / 2 GPT turns · 1 task". */
+    fun voiceMetrics(s: VoiceSession): String = listOf(
+        duration(s.seconds),
+        "${minutes(s.billedMs)} min billed" + if (!s.billedFromServer && s.billedMs > 0) " (est.)" else "",
+        "${s.userTurns} you / ${s.assistantTurns} GPT turn${if (s.assistantTurns == 1) "" else "s"}",
+        "${s.tasks.size} task${if (s.tasks.size == 1) "" else "s"}",
+    ).joinToString(" · ")
+
+    /** What happened to a delegated request that didn't produce a run (or whose run is gone). */
+    fun taskOutcome(outcome: String): String = when (outcome) {
+        "busy" -> "not started: another task was running"
+        "stop" -> "stop request"
+        "empty" -> "empty request"
+        "running" -> "still running when the call ended"
+        else -> label(outcome)
+    }
+
+    /** Run detail header: "Triggered by voice session Today 14:45 · ChatGPT plan · equiv. $0.011". */
+    fun triggeredBy(s: VoiceSession, now: Date = Date()): String =
+        "Triggered by voice session ${whenShort(s.started, now)} · ${voiceCost(s)} for the whole call (not split per task) ›"
 }

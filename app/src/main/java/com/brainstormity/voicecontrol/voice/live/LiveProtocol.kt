@@ -122,7 +122,8 @@ object LiveProtocol {
                 LiveEvent.Delegation(id, contentText(d.optJSONArray("content")))
             }
             "output_audio_buffer.cleared" -> LiveEvent.SpeechCleared
-            "session.closed" -> LiveEvent.Closed(event.optStringOrNull("reason"))
+            "session.closed" -> LiveEvent.Closed(event.optStringOrNull("reason"), parseUsage(event))
+            "session.usage.updated" -> parseUsage(event)?.let { LiveEvent.Usage(it) } ?: LiveEvent.Other(type)
             "error" -> {
                 val error = event.optJSONObject("error")
                 val status = when {
@@ -141,6 +142,42 @@ object LiveProtocol {
             }
             else -> LiveEvent.Other(type)
         }
+    }
+
+    /**
+     * The voice usage in `session.usage.updated` / `session.closed`, or null if the event has none. Both routes
+     * report a cumulative snapshot (each one replaces the previous; never sum them):
+     * - Codex (ChatGPT) route, captured 2026-11-13:
+     *   `{"type":"session.usage.updated","usage":{"audio_duration_ms":13200,"backend_model_usage":[]},
+     *     "usage_limit":{"status":null,"reset_seconds":null}}` about every 15 s, and on a clean close
+     *   `{"type":"session.closed","reason":"client_request","usage":{"audio_duration_ms":145000,"backend_model_usage":[]}}`
+     *   (no `usage_limit` there). When the call dies on our side (audio failure) no `session.closed` arrives.
+     * - Public API (https://developers.openai.com/api/docs/guides/voice-latency-cost?api=live):
+     *   `{"type":"session.usage.updated","usage":{"seconds":12},"context_window":{"usage_ratio":0.42}}` and the final
+     *   `session.closed {reason, usage:{seconds}}`.
+     */
+    fun parseUsage(event: JSONObject): LiveUsage? {
+        val usage = event.optJSONObject("usage")
+        val ms: Long?
+        val source: String?
+        when {
+            usage != null && usage.has("audio_duration_ms") && !usage.isNull("audio_duration_ms") -> {
+                ms = usage.optLong("audio_duration_ms"); source = "audio_duration_ms"
+            }
+            usage != null && usage.has("seconds") && !usage.isNull("seconds") -> {
+                ms = Math.round(usage.optDouble("seconds", 0.0) * 1000); source = "seconds"
+            }
+            else -> { ms = null; source = null }
+        }
+        val limit = event.optJSONObject("usage_limit")
+        if (ms == null && limit == null) return null
+        return LiveUsage(
+            durationMs = ms,
+            source = source,
+            limitStatus = limit?.let { if (it.has("status") && !it.isNull("status")) it.opt("status")?.toString() else null },
+            limitResetSeconds = limit?.let { if (it.has("reset_seconds") && !it.isNull("reset_seconds")) it.optLong("reset_seconds") else null },
+            hasLimit = limit != null,
+        )
     }
 
     private fun contentText(content: JSONArray?): String {
@@ -311,10 +348,31 @@ sealed class LiveEvent {
     data class Transcript(val role: Role, val text: String, val final: Boolean) : LiveEvent()
     data class Delegation(val id: String, val text: String) : LiveEvent()
     object SpeechCleared : LiveEvent() { override fun toString() = "SpeechCleared" }
-    data class Closed(val reason: String?) : LiveEvent()
+    /** [usage]: the final usage snapshot carried by `session.closed`, if any. */
+    data class Closed(val reason: String?, val usage: LiveUsage? = null) : LiveEvent()
+    /**
+     * `session.usage.updated`: a cumulative snapshot (replaces the previous one). [final]: the transport re-emits
+     * the usage of `session.closed` this way: the session's final figure (both routes send one on a server-confirmed
+     * close; without it the last snapshot can be ~15 s old on the Codex route).
+     */
+    data class Usage(val usage: LiveUsage, val final: Boolean = false) : LiveEvent()
     data class Error(val message: String, val fatal: Boolean, val code: String? = null) : LiveEvent()
     data class Other(val type: String) : LiveEvent()
 }
+
+/**
+ * Voice usage reported by the server. [durationMs]: the cumulative billed voice duration so far (Codex route
+ * `usage.audio_duration_ms`, public API `usage.seconds` × 1000), null if the event had none. [source] names the
+ * field it came from. [limitStatus]/[limitResetSeconds]: the ChatGPT plan allowance (`usage_limit`, Codex route only;
+ * both null while within the allowance as of 2026-11-13). [hasLimit]: the event carried a `usage_limit` object.
+ */
+data class LiveUsage(
+    val durationMs: Long?,
+    val source: String?,
+    val limitStatus: String? = null,
+    val limitResetSeconds: Long? = null,
+    val hasLimit: Boolean = false,
+)
 
 /** A failure with an optional HTTP status (call creation) so the UI can map 401/403/429. */
 class LiveException(message: String, val status: Int = 0, cause: Throwable? = null) : Exception(message, cause)

@@ -17,6 +17,16 @@
     <string name="runs_stat_tokens">JEV tokens</string>
     <string name="runs_stat_success">Success</string>
 
+    <!-- Voice (GPT-Live) costs (T12) -->
+    <string name="runs_tab_voice">Voice</string>
+    <string name="runs_stat_voice_sessions">Voice calls</string>
+    <string name="runs_stat_voice_minutes">Voice min</string>
+    <string name="runs_stat_voice_cost">Voice cost</string>
+    <string name="runs_stat_voice_equiv">Voice equiv.</string>
+    <string name="runs_stat_all_in">All-in</string>
+    <string name="runs_voice_empty">No voice sessions yet. Tap the bubble and talk to GPT.</string>
+    <string name="runs_voice_plan_note">Equivalent at API pricing, included in your plan</string>
+
     <string name="run_title">Run</string>
     <string name="run_share">Share report</string>
     <string name="run_in_trash">In trash</string>

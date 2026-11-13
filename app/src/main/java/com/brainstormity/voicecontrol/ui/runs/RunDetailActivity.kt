@@ -19,6 +19,8 @@ import androidx.core.content.FileProvider
 import com.brainstormity.voicecontrol.R
 import com.brainstormity.voicecontrol.agent.RunReport
 import com.brainstormity.voicecontrol.core.VcLog
+import com.brainstormity.voicecontrol.voice.VoiceSession
+import com.brainstormity.voicecontrol.voice.VoiceSessionLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -87,7 +89,10 @@ class RunDetailActivity : AppCompatActivity() {
     }
 
     private suspend fun reload() {
-        val text = withContext(Dispatchers.IO) { store.reportText(id, inTrash) }
+        val (text, voice) = withContext(Dispatchers.IO) {
+            store.reportText(id, inTrash) to VoiceSessionLog.sessionForRun(VoiceSessionLog.forFilesDir(filesDir).list(), id)
+        }
+        showVoice(voice)
         if (text == null) {
             if (run == null) {
                 findViewById<TextView>(R.id.detailEmpty).apply {
@@ -103,6 +108,17 @@ class RunDetailActivity : AppCompatActivity() {
         lastText = text
         run = parsed
         render(parsed)
+    }
+
+    /** "Triggered by voice session …" when a voice call delegated this run; tap = that call in the Voice tab. */
+    private fun showVoice(s: VoiceSession?) {
+        findViewById<TextView>(R.id.detailVoice).apply {
+            visibility = if (s != null) View.VISIBLE else View.GONE
+            if (s == null) return
+            text = RunFormat.triggeredBy(s) +
+                if (s.isPlan) "\n" + getString(R.string.runs_voice_plan_note) + "." else ""
+            setOnClickListener { RunsActivity.startVoice(this@RunDetailActivity, s.id) }
+        }
     }
 
     private fun render(r: Run) {

@@ -51,6 +51,7 @@ class OpenAiLiveWsTransport(
     @Volatile override var callId: String? = null
         private set
     @Volatile override var onEvent: ((LiveEvent) -> Unit)? = null
+    override val model: String get() = LiveProtocol.publicModel(config.model)
 
     @Volatile private var socket: WebSocket? = null
     @Volatile private var audio: PcmAudio? = null
@@ -179,11 +180,15 @@ class OpenAiLiveWsTransport(
                 if (event.role == Role.USER) maybeBargeIn(event.text)
             }
             LiveEvent.SpeechCleared -> audio?.flushPlayback()
+            is LiveEvent.Usage, is LiveEvent.Closed ->
+                VcLog.d(TAG, "event $event" + if (RAW_LOG) " raw=${redact(text.take(400))}" else "")
             is LiveEvent.Other -> if (RAW_LOG) VcLog.d(TAG, "event ${event.type}: ${redact(text.take(400))}") else VcLog.d(TAG, "event ${event.type}")
             else -> VcLog.d(TAG, "event $event")
         }
         if (event is LiveEvent.Closed) {
             closedEvent.complete(event)
+            // The final usage snapshot (`session.closed.usage.seconds`) goes out as its own event before the close.
+            event.usage?.let { onEvent?.invoke(LiveEvent.Usage(it, final = true)) }
             finish(event.reason ?: "closed")
             return
         }
