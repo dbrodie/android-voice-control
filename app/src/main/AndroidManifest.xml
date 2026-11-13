@@ -28,6 +28,27 @@
             </intent-filter>
         </activity>
 
+        <!-- ChatGPT sign-in (voice/auth). Exported only so the "Back to Voice Control" link on the
+             loopback success page (intent://done#Intent;scheme=com.brainstormity.voicecontrol.auth;...) can
+             reopen it; it ignores the intent data. -->
+        <activity
+            android:name=".voice.auth.LoginActivity"
+            android:exported="true"
+            android:label="ChatGPT sign-in">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.brainstormity.voicecontrol.auth" />
+            </intent-filter>
+        </activity>
+
+        <!-- Keeps the process unfrozen while the browser sign-in is in progress (max ~3 min). -->
+        <service
+            android:name=".voice.auth.LoginKeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
         <service
             android:name=".control.PhoneAccessibilityService"
             android:exported="true"
