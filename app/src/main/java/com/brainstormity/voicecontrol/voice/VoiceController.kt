@@ -2,6 +2,7 @@ package com.brainstormity.voicecontrol.voice
 
 import android.content.Context
 import com.brainstormity.voicecontrol.agent.TaskController
+import com.brainstormity.voicecontrol.core.AppSettings
 import com.brainstormity.voicecontrol.core.TaskControllerApi
 import com.brainstormity.voicecontrol.core.VcLog
 import com.brainstormity.voicecontrol.core.VoiceControllerApi
@@ -55,6 +56,8 @@ object VoiceController : VoiceControllerApi {
 
     @Volatile private var session: LiveSession? = null
     private var bridge: LiveTaskBridge? = null
+    /** Writes the current call's record to files/voice/ (see VoiceSessionLog); null between calls. */
+    private var recorder: VoiceSessionRecorder? = null
     private var connectJob: Job? = null
     private var stopping = false
 
@@ -90,11 +93,25 @@ object VoiceController : VoiceControllerApi {
             stopping = false
             resetTranscripts()
             session = s
-            bridge = LiveTaskBridge(s, tasks, scope)
-            s.onEvent = { event -> scope.launch { handle(s, event) } }
+            val rec = VoiceSessionRecorder(VoiceSessionLog.forFilesDir(appContext.filesDir), backendId(s), s.model)
+            recorder = rec
+            VcLog.i(TAG, "voice session record ${rec.id} (backend=${rec.backend}, model=${rec.model})")
+            val b = LiveTaskBridge(s, tasks, scope)
+            b.onDelegatedChanged = { rec.tasks(b.delegated) }
+            bridge = b
+            // The record sees every event of its call, also those after stop() (final usage, session.closed).
+            s.onEvent = { event -> scope.launch { rec.onEvent(event); handle(s, event) } }
+            scope.launch {
+                // Keep the record current while the call is open, so a crash still leaves its data.
+                while (!rec.isFinished) {
+                    delay(RECORD_EVERY_MS)
+                    rec.tick()
+                }
+            }
             connectJob = scope.launch {
                 try {
                     s.connect()
+                    rec.connected(s.callId)
                     if (session === s && _state.value == VoiceState.Connecting) _state.value = VoiceState.Listening
                     VcLog.i(TAG, "GPT-Live call up (call=${s.callId})")
                 } catch (e: LiveException) {
@@ -115,9 +132,13 @@ object VoiceController : VoiceControllerApi {
             VcLog.i(TAG, "stop(): closing GPT-Live call")
             stopping = true
             connectJob?.cancel() // stop() during Connecting: abandon the handshake
+            val rec = recorder
             teardown()
             _state.value = VoiceState.Idle
             s.close()
+            // Normally session.closed has ended the record; this covers a call that never came up. Queued, so a
+            // Closed event already on its way is recorded first (its reason wins).
+            if (rec != null) scope.launch { rec.finish("close_requested") }
         }
     }
 
@@ -188,12 +209,19 @@ object VoiceController : VoiceControllerApi {
             is LiveEvent.Closed -> {
                 VcLog.i(TAG, "call closed: ${event.reason}")
                 val wasStopping = stopping
+                val rec = recorder
                 teardown()
                 if (!wasStopping && _state.value !is VoiceState.Error) {
                     val reason = event.reason ?: "closed"
-                    _state.value = if (reason in NORMAL_CLOSE) VoiceState.Idle else VoiceState.Error("Voice call ended: $reason")
+                    if (reason in NORMAL_CLOSE) {
+                        _state.value = VoiceState.Idle
+                    } else {
+                        _state.value = VoiceState.Error("Voice call ended: $reason")
+                        rec?.fail("Voice call ended: $reason")
+                    }
                 }
             }
+            is LiveEvent.Usage -> {} // recorded by the call's VoiceSessionRecorder
             is LiveEvent.Other -> {}
         }
     }
@@ -236,6 +264,7 @@ object VoiceController : VoiceControllerApi {
         // A speaker change can end a turn just before its own `turn.done` repeats it.
         if (text.isEmpty() || lastTurn[role] == text) return
         lastTurn[role] = text
+        recorder?.turn(role)
         if (role == Role.USER) {
             lastUserText = text
             // Part of this turn may already have gone out with a delegation that arrived while the user spoke.
@@ -296,11 +325,13 @@ object VoiceController : VoiceControllerApi {
         bridge?.cancel()
         bridge = null
         session = null
+        recorder = null
         idleJob?.cancel()
     }
 
     private fun fail(message: String, t: Throwable? = null) {
         VcLog.e(TAG, "VoiceState.Error: $message", t)
+        recorder?.fail(message)
         val s = session
         teardown()
         _state.value = VoiceState.Error(message)
@@ -317,5 +348,14 @@ object VoiceController : VoiceControllerApi {
         else -> e.message ?: "Voice connection failed."
     }
 
-    private val NORMAL_CLOSE = setOf("close_requested", "client_request", "remote_hangup")
+    private const val RECORD_EVERY_MS = 3_000L
+
+    /** AppSettings backend id of a transport, for the voice session record. */
+    private fun backendId(s: LiveSession): String = when (s) {
+        is CodexLiveTransport -> AppSettings.BACKEND_CHATGPT
+        is OpenAiLiveWsTransport -> AppSettings.BACKEND_OPENAI_KEY
+        else -> VoiceBackends.lastSessionBackend.ifEmpty { "other" }
+    }
+
+    private val NORMAL_CLOSE =setOf("close_requested", "client_request", "remote_hangup")
 }

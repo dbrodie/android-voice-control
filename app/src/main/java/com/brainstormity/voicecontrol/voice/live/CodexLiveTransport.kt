@@ -38,6 +38,7 @@ class CodexLiveTransport(
     @Volatile override var callId: String? = null
         private set
     @Volatile override var onEvent: ((LiveEvent) -> Unit)? = null
+    override val model: String get() = config.model
 
     private val ids = LiveProtocol.RequestIds()
     private var creds: LiveCredentials? = null
@@ -57,7 +58,9 @@ class CodexLiveTransport(
 
             val p = RtcAudioPeer(appContext).also { peer = it }
             p.onDataChannelMessage = { text -> if (sideband?.isOpen != true) dispatch(text, "dc") }
-            p.onPeerLost = { reason -> finish(reason) }
+            // onPeerLost runs on WebRTC's signaling thread; disposing the PeerConnection from inside its own observer
+            // callback aborts the process ("pthread_mutex_lock called on a destroyed mutex"), so finish elsewhere.
+            p.onPeerLost = { reason -> Thread({ finish(reason) }, "vc-live-peer-lost").start() }
             audio.acquire()
             p.create()
             val offer = p.createOffer()
@@ -80,9 +83,12 @@ class CodexLiveTransport(
                 sb.connect()
             } catch (e: LiveException) {
                 // Audio still works and the data channel carries the same events, so keep the call going.
-                if (!p.dataChannelOpen) throw e
+                if (finished || !p.dataChannelOpen) throw e
                 VcLog.w(TAG, "sideband unavailable (${e.message}); using the data channel for control events")
             }
+            // The audio leg died while the sideband was connecting: finish() ran before the sideband existed, so
+            // close it now (release() below) instead of leaving a server session open (it kept reporting usage).
+            if (finished) throw LiveException("GPT-Live call ended while connecting (audio connection failed)")
             _connection.value = LiveConnectionState.CONNECTED
         } catch (e: Exception) {
             _connection.value = LiveConnectionState.FAILED
@@ -126,10 +132,15 @@ class CodexLiveTransport(
                 else -> VcLog.d(TAG, "event[$via] ${event.type}")
             }
             is LiveEvent.Transcript -> if (RAW_LOG) VcLog.d(TAG, "event[$via] $event")
+            // Usage and close carry no credentials; the raw payload documents what the route actually reports.
+            is LiveEvent.Usage, is LiveEvent.Closed ->
+                VcLog.d(TAG, "event[$via] $event" + if (RAW_LOG) " raw=${payload.take(400)}" else "")
             else -> VcLog.d(TAG, "event[$via] $event")
         }
         if (event is LiveEvent.Closed) {
             closedEvent.complete(event)
+            // The final usage snapshot goes out as its own event before the close.
+            event.usage?.let { onEvent?.invoke(LiveEvent.Usage(it, final = true)) }
             finish(event.reason ?: "closed")
             return
         }

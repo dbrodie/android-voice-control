@@ -55,6 +55,18 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tabVoice"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/runs_tab_voice"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/tabTrash"
             android:layout_width="wrap_content"
             android:layout_height="44dp"
@@ -89,29 +101,76 @@
             android:paddingEnd="16dp"
             android:paddingBottom="24dp">
 
-            <!-- Totals (Runs tab) -->
+            <!-- Totals (Runs and Voice tabs): JEV runs on top, GPT voice below, then the all-in total -->
             <LinearLayout
                 android:id="@+id/totalsCard"
                 style="@style/VC.Card"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp">
 
-                <include
-                    android:id="@+id/totalRuns"
-                    layout="@layout/item_run_stat" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                <include
-                    android:id="@+id/totalCost"
-                    layout="@layout/item_run_stat" />
+                    <include
+                        android:id="@+id/totalRuns"
+                        layout="@layout/item_run_stat" />
 
-                <include
-                    android:id="@+id/totalTokens"
-                    layout="@layout/item_run_stat" />
+                    <include
+                        android:id="@+id/totalCost"
+                        layout="@layout/item_run_stat" />
 
-                <include
-                    android:id="@+id/totalSuccess"
-                    layout="@layout/item_run_stat" />
+                    <include
+                        android:id="@+id/totalTokens"
+                        layout="@layout/item_run_stat" />
+
+                    <include
+                        android:id="@+id/totalSuccess"
+                        layout="@layout/item_run_stat" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@color/vc_card_stroke" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <include
+                        android:id="@+id/totalVoiceSessions"
+                        layout="@layout/item_run_stat" />
+
+                    <include
+                        android:id="@+id/totalVoiceMinutes"
+                        layout="@layout/item_run_stat" />
+
+                    <include
+                        android:id="@+id/totalVoiceCost"
+                        layout="@layout/item_run_stat" />
+
+                    <include
+                        android:id="@+id/totalAllIn"
+                        layout="@layout/item_run_stat" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/totalsNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:textColor="@color/vc_text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- The task running right now (Runs tab) -->

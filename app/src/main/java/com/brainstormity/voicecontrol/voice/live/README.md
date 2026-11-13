@@ -78,6 +78,21 @@ Add `.md` to any of these URLs to get raw markdown.
   - An error before `session.started` fails `connect()`.
   - `invalid_api_key` and 401 errors are fatal, and the user sees "Invalid OpenAI API key (401)…".
 
+## Usage events and voice cost (T12)
+
+`LiveProtocol.parseUsage` turns both routes' usage into `LiveEvent.Usage(LiveUsage)`. A `session.closed` that
+carries usage is re-emitted by the transport as `Usage(final = true)` just before the close. `voice/VoiceSessionLog`
+records each call in `files/voice/<id>.json` and prices it at $0.05 per minute of session time (see `VoicePricing`).
+Every value is a cumulative snapshot, so never add them up.
+
+| Route | `session.usage.updated` | `session.closed` |
+|---|---|---|
+| ChatGPT (Codex), captured 2026-11-13 | `{"usage":{"audio_duration_ms":13200,"backend_model_usage":[]},"usage_limit":{"status":null,"reset_seconds":null}}`, about every 15 s (the first one at 0 ms) | `{"reason":"client_request","usage":{"audio_duration_ms":145000,"backend_model_usage":[]}}` on a clean close. Nothing arrives when the call dies on our side. |
+| Official API (docs) | `{"usage":{"seconds":12},"context_window":{"usage_ratio":0.42}}` | `{"reason":…,"usage":{"seconds":…}}` |
+
+`audio_duration_ms` tracks the length of the call, not the time anyone spoke. It was 145 s for a call that was
+connected for 131 s.
+
 ## Barge-in on the WebSocket transport
 
 The server stops generating when the user interrupts, but audio we have already queued would keep playing.

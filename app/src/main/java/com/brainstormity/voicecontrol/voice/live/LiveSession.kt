@@ -26,6 +26,8 @@ interface LiveSession {
     /** Server-side call/session id once known (for logs and the sideband). */
     val callId: String?
     var onEvent: ((LiveEvent) -> Unit)?
+    /** The model id this call uses (for the voice session log); null if unknown. */
+    val model: String? get() = null
 
     suspend fun connect()
 

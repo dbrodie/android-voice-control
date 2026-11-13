@@ -135,6 +135,21 @@
                     android:lineSpacingMultiplier="1.2"
                     android:textColor="@color/vc_text_secondary"
                     android:textSize="13sp" />
+
+                <!-- "Triggered by voice session …" (T12): opens the Voice tab at that session -->
+                <TextView
+                    android:id="@+id/detailVoice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:lineSpacingMultiplier="1.2"
+                    android:minHeight="40dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@color/vc_accent"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout

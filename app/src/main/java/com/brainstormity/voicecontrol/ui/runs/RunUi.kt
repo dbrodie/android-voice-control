@@ -53,10 +53,13 @@ internal object RunUi {
     )
 
     /** Turn [chip] into upstream's status pill: coloured text in a 1dp outline of the same colour. */
-    fun styleChip(chip: TextView, status: String) {
+    fun styleChip(chip: TextView, status: String) = styleChip(chip, RunFormat.label(status), RunFormat.tone(status))
+
+    /** The same pill with any [text] and [tone] (voice sessions). */
+    fun styleChip(chip: TextView, text: String, tone: RunFormat.Tone) {
         val ctx = chip.context
-        val color = toneColor(ctx, RunFormat.tone(status))
-        chip.text = RunFormat.label(status)
+        val color = toneColor(ctx, tone)
+        chip.text = text
         chip.setTextColor(color)
         chip.textSize = 12f
         chip.setTypeface(chip.typeface, Typeface.BOLD)
