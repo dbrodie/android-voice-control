@@ -1,0 +1,464 @@
+{
+ "some_missing": [
+  "com.google.android.googlequicksearchbox",
+  "com.spotify.music"
+ ],
+ "cases": [
+  {
+   "task": "Open Settings and turn on Wi-Fi",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "Settings",
+    "and",
+    "turn",
+    "on",
+    "Wi-Fi",
+    "Open Settings",
+    "Settings and",
+    "and turn",
+    "turn on",
+    "on Wi-Fi",
+    "Open Settings and",
+    "Settings and turn",
+    "and turn on",
+    "turn on Wi-Fi"
+   ],
+   "sites": [],
+   "apps_all": [
+    [
+     "settings",
+     "com.android.settings"
+    ]
+   ],
+   "apps_some": [
+    [
+     "settings",
+     "com.android.settings"
+    ]
+   ]
+  },
+  {
+   "task": "Go to x.com and post \"Hello from my JEV agent!\"",
+   "quoted": [
+    "Hello from my JEV agent!"
+   ],
+   "texts": [
+    "Hello from my JEV agent!",
+    "Go",
+    "to",
+    "x.com",
+    "and",
+    "post",
+    "Go to",
+    "to x.com",
+    "x.com and",
+    "and post",
+    "Go to x.com",
+    "to x.com and",
+    "x.com and post"
+   ],
+   "sites": [
+    "https://x.com"
+   ],
+   "apps_all": [],
+   "apps_some": []
+  },
+  {
+   "task": "Search YouTube for “cat videos” then open https://example.org/path?q=1.",
+   "quoted": [
+    "cat videos"
+   ],
+   "texts": [
+    "cat videos",
+    "Search",
+    "YouTube",
+    "for",
+    "then",
+    "open",
+    "https",
+    "example.org",
+    "path",
+    "q",
+    "1",
+    "Search YouTube",
+    "YouTube for",
+    "for then",
+    "then open",
+    "open https",
+    "https example.org",
+    "example.org path",
+    "path q",
+    "q 1",
+    "Search YouTube for",
+    "YouTube for then",
+    "for then open",
+    "then open https",
+    "open https example.org",
+    "https example.org path",
+    "example.org path q",
+    "path q 1"
+   ],
+   "sites": [
+    "https://youtube.com",
+    "https://example.org/path?q=1"
+   ],
+   "apps_all": [
+    [
+     "youtube",
+     "com.google.android.youtube"
+    ]
+   ],
+   "apps_some": [
+    [
+     "youtube",
+     "com.google.android.youtube"
+    ]
+   ]
+  },
+  {
+   "task": "Set an alarm for 7.30 in the Clock app",
+   "quoted": [],
+   "texts": [
+    "Set",
+    "an",
+    "alarm",
+    "for",
+    "7.30",
+    "in",
+    "the",
+    "Clock",
+    "app",
+    "Set an",
+    "an alarm",
+    "alarm for",
+    "for 7.30",
+    "7.30 in",
+    "in the",
+    "the Clock",
+    "Clock app",
+    "Set an alarm",
+    "an alarm for",
+    "alarm for 7.30",
+    "for 7.30 in",
+    "7.30 in the",
+    "in the Clock",
+    "the Clock app",
+    "7",
+    "30",
+    "7:30"
+   ],
+   "sites": [],
+   "apps_all": [],
+   "apps_some": []
+  },
+  {
+   "task": "Type \"unclosed quote here",
+   "quoted": [
+    "unclosed quote here"
+   ],
+   "texts": [
+    "unclosed quote here",
+    "Type"
+   ],
+   "sites": [],
+   "apps_all": [],
+   "apps_some": []
+  },
+  {
+   "task": "Open wikipedia and search for Aliens, then visit github.com/foo, and reddit",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "wikipedia",
+    "and",
+    "search",
+    "for",
+    "Aliens",
+    "then",
+    "visit",
+    "github.com",
+    "foo",
+    "reddit",
+    "Open wikipedia",
+    "wikipedia and",
+    "and search",
+    "search for",
+    "for Aliens",
+    "Aliens then",
+    "then visit",
+    "visit github.com",
+    "github.com foo",
+    "foo and",
+    "and reddit",
+    "Open wikipedia and",
+    "wikipedia and search",
+    "and search for",
+    "search for Aliens",
+    "for Aliens then",
+    "Aliens then visit",
+    "then visit github.com",
+    "visit github.com foo",
+    "github.com foo and",
+    "foo and reddit"
+   ],
+   "sites": [
+    "https://en.wikipedia.org",
+    "https://github.com/foo",
+    "https://reddit.com"
+   ],
+   "apps_all": [
+    [
+     "reddit",
+     "com.reddit.frontpage"
+    ]
+   ],
+   "apps_some": [
+    [
+     "reddit",
+     "com.reddit.frontpage"
+    ]
+   ]
+  },
+  {
+   "task": "Post on X: \"Grüße aus Köln\"",
+   "quoted": [
+    "Grüße aus Köln"
+   ],
+   "texts": [
+    "Grüße aus Köln",
+    "Post",
+    "on",
+    "X",
+    "Post on",
+    "on X",
+    "Post on X"
+   ],
+   "sites": [],
+   "apps_all": [
+    [
+     "x",
+     "com.twitter.android"
+    ]
+   ],
+   "apps_some": [
+    [
+     "x",
+     "com.twitter.android"
+    ]
+   ]
+  },
+  {
+   "task": "Open Google Maps and find the next café",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "Google",
+    "Maps",
+    "and",
+    "find",
+    "the",
+    "next",
+    "café",
+    "Open Google",
+    "Google Maps",
+    "Maps and",
+    "and find",
+    "find the",
+    "the next",
+    "next café",
+    "Open Google Maps",
+    "Google Maps and",
+    "Maps and find",
+    "and find the",
+    "find the next",
+    "the next café"
+   ],
+   "sites": [
+    "https://google.com"
+   ],
+   "apps_all": [
+    [
+     "google",
+     "com.google.android.googlequicksearchbox"
+    ],
+    [
+     "google maps",
+     "com.google.android.apps.maps"
+    ]
+   ],
+   "apps_some": [
+    [
+     "google maps",
+     "com.google.android.apps.maps"
+    ]
+   ]
+  },
+  {
+   "task": "Relax with Xbox then open Chrome",
+   "quoted": [],
+   "texts": [
+    "Relax",
+    "with",
+    "Xbox",
+    "then",
+    "open",
+    "Chrome",
+    "Relax with",
+    "with Xbox",
+    "Xbox then",
+    "then open",
+    "open Chrome",
+    "Relax with Xbox",
+    "with Xbox then",
+    "Xbox then open",
+    "then open Chrome"
+   ],
+   "sites": [],
+   "apps_all": [
+    [
+     "chrome",
+     "com.android.chrome"
+    ]
+   ],
+   "apps_some": [
+    [
+     "chrome",
+     "com.android.chrome"
+    ]
+   ]
+  },
+  {
+   "task": "Open Rock & Roll's top-10 list",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "Rock",
+    "&",
+    "Roll's",
+    "top-10",
+    "list",
+    "Open Rock",
+    "Rock &",
+    "& Roll's",
+    "Roll's top-10",
+    "top-10 list",
+    "Open Rock &",
+    "Rock & Roll's",
+    "& Roll's top-10",
+    "Roll's top-10 list"
+   ],
+   "sites": [],
+   "apps_all": [],
+   "apps_some": []
+  },
+  {
+   "task": "Send \"hi\" and \"bye\" to Bob at 12:05",
+   "quoted": [
+    "hi",
+    "bye"
+   ],
+   "texts": [
+    "hi",
+    "bye",
+    "Send",
+    "and",
+    "to",
+    "Bob",
+    "at",
+    "12",
+    "05",
+    "Send and",
+    "and to",
+    "to Bob",
+    "Bob at",
+    "at 12",
+    "12 05",
+    "Send and to",
+    "and to Bob",
+    "to Bob at",
+    "Bob at 12",
+    "at 12 05"
+   ],
+   "sites": [],
+   "apps_all": [],
+   "apps_some": []
+  },
+  {
+   "task": "Open the Play Store and install Spotify",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "the",
+    "Play",
+    "Store",
+    "and",
+    "install",
+    "Spotify",
+    "Open the",
+    "the Play",
+    "Play Store",
+    "Store and",
+    "and install",
+    "install Spotify",
+    "Open the Play",
+    "the Play Store",
+    "Play Store and",
+    "Store and install",
+    "and install Spotify"
+   ],
+   "sites": [],
+   "apps_all": [
+    [
+     "play store",
+     "com.android.vending"
+    ],
+    [
+     "spotify",
+     "com.spotify.music"
+    ]
+   ],
+   "apps_some": [
+    [
+     "play store",
+     "com.android.vending"
+    ]
+   ]
+  },
+  {
+   "task": "Open GOOGLE.COM, then YOUTUBE.",
+   "quoted": [],
+   "texts": [
+    "Open",
+    "GOOGLE.COM",
+    "then",
+    "YOUTUBE",
+    "Open GOOGLE.COM",
+    "GOOGLE.COM then",
+    "then YOUTUBE",
+    "Open GOOGLE.COM then",
+    "GOOGLE.COM then YOUTUBE"
+   ],
+   "sites": [
+    "https://GOOGLE.COM",
+    "https://youtube.com"
+   ],
+   "apps_all": [
+    [
+     "google",
+     "com.google.android.googlequicksearchbox"
+    ],
+    [
+     "youtube",
+     "com.google.android.youtube"
+    ]
+   ],
+   "apps_some": [
+    [
+     "youtube",
+     "com.google.android.youtube"
+    ]
+   ]
+  }
+ ]
+}

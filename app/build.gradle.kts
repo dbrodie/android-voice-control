@@ -77,4 +77,14 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.org.json) // android.jar's org.json is stubs-only on the JVM
+}
+
+tasks.withType<Test>().configureEach {
+    // The live JEV smoke test (JevLiveTest) runs only when JEV_KEY is set, e.g. after `source scripts/env.sh`.
+    System.getenv("JEV_KEY")?.let { environment("JEV_KEY", it) }
+    testLogging { events("passed", "skipped", "failed"); showStandardStreams = true }
 }
