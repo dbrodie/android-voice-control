@@ -25,5 +25,24 @@
             android:name=".debug.DebugReceiverInstaller"
             android:authorities="${applicationId}.debug-receiver-installer"
             android:exported="false" />
+
+        <!-- voice/auth debug hooks (AUTH_IMPORT / AUTH_STATUS / AUTH_REFRESH / AUTH_SIGNOUT / AUTH_LOGIN / AUTH_PROBE).
+             Same manifest + runtime-registered pattern as DebugReceiver. -->
+        <receiver
+            android:name=".debug.AuthDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.AUTH_IMPORT" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_STATUS" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_REFRESH" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_SIGNOUT" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_LOGIN" />
+                <action android:name="com.brainstormity.voicecontrol.AUTH_PROBE" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.AuthDebugReceiverInstaller"
+            android:authorities="${applicationId}.auth-debug-receiver-installer"
+            android:exported="false" />
     </application>
 </manifest>
