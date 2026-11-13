@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="vc_bubble_size">56dp</dimen>
+    <dimen name="vc_bubble_window">72dp</dimen>
+    <dimen name="vc_strip_height">24dp</dimen>
+    <dimen name="vc_strip_stop_width">36dp</dimen>
+    <dimen name="vc_pill_max_width">260dp</dimen>
+</resources>

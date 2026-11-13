@@ -1,34 +1,354 @@
 package com.brainstormity.voicecontrol.ui
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.brainstormity.voicecontrol.R
+import com.brainstormity.voicecontrol.agent.TaskController
+import com.brainstormity.voicecontrol.core.AgentState
+import com.brainstormity.voicecontrol.core.AppSettings
+import com.brainstormity.voicecontrol.core.Device
 import com.brainstormity.voicecontrol.core.VcLog
+import com.brainstormity.voicecontrol.core.VoiceState
 import com.brainstormity.voicecontrol.overlay.OverlayService
+import com.brainstormity.voicecontrol.voice.VoiceController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/** STUB (skeleton). The overlay-ui agent turns this into the permission checklist + settings screen. */
+/** Setup checklist + settings + a text box to run tasks without voice. Plain Views. */
 class MainActivity : AppCompatActivity() {
+
+    private class CheckRow(
+        val optional: Boolean,
+        val isOk: () -> Boolean,
+        val actionLabel: Int,
+        val action: () -> Unit,
+        val view: View,
+    )
+
+    private val rows = mutableListOf<CheckRow>()
+    private var startedScope: CoroutineScope? = null
+
+    private lateinit var overlayButton: Button
+    private lateinit var overlayStatus: TextView
+    private lateinit var logText: TextView
+    private lateinit var logScroll: ScrollView
+    private lateinit var taskInput: EditText
+
+    private val micPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        onPermissionResult(Manifest.permission.RECORD_AUDIO, granted)
+    }
+    private val notifPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onPermissionResult(Manifest.permission.POST_NOTIFICATIONS, granted)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         VcLog.d(TAG, "MainActivity created")
 
-        findViewById<Button>(R.id.startOverlayButton).setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-            }
-            VcLog.d(TAG, "Start overlay clicked")
-            OverlayService.start(this)
+        // targetSdk 36 => always edge-to-edge. Pad the scroll content by the bars (and the keyboard).
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
         }
+        val root = findViewById<View>(R.id.root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            WindowInsetsCompat.CONSUMED
+        }
+
+        overlayButton = findViewById(R.id.overlayButton)
+        overlayStatus = findViewById(R.id.overlayStatus)
+        logText = findViewById(R.id.logText)
+        logScroll = findViewById(R.id.logScroll)
+        taskInput = findViewById(R.id.taskInput)
+
+        buildChecklist()
+        setupOverlayButton()
+        setupSettings()
+        setupTestBox()
+        logText.text = logBuffer.joinToString("\n")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        startedScope = scope
+        scope.launch { TaskController.state.collect { log("agent  " + describe(it)) } }
+        scope.launch { VoiceController.state.collect { log("voice  " + describe(it)) } }
+        scope.launch { OverlayService.running.collect { updateOverlayButton(it) } }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshChecklist()
+    }
+
+    override fun onStop() {
+        startedScope?.cancel()
+        startedScope = null
+        super.onStop()
+    }
+
+    // ---------------------------------------------------------------- checklist
+
+    private fun buildChecklist() {
+        val container = findViewById<LinearLayout>(R.id.checklist)
+        fun add(title: Int, detail: Int, optional: Boolean, actionLabel: Int, isOk: () -> Boolean, action: () -> Unit) {
+            val v = layoutInflater.inflate(R.layout.item_check_row, container, false)
+            v.findViewById<TextView>(R.id.checkTitle).setText(title)
+            v.findViewById<TextView>(R.id.checkDetail).setText(detail)
+            container.addView(v)
+            rows += CheckRow(optional, isOk, actionLabel, action, v)
+        }
+        add(R.string.check_overlay_title, R.string.check_overlay_detail, false, R.string.action_grant,
+            { Settings.canDrawOverlays(this) }) { openOverlaySettings() }
+        add(R.string.check_accessibility_title, R.string.check_accessibility_detail, false, R.string.action_open,
+            ::isAccessibilityEnabled) {
+            launch(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+        add(R.string.check_mic_title, R.string.check_mic_detail, false, R.string.action_allow,
+            { hasPermission(Manifest.permission.RECORD_AUDIO) }) {
+            micPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+        add(
+            R.string.check_notif_title,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.check_notif_detail else R.string.check_notif_detail_old,
+            false, R.string.action_allow,
+            {
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    hasPermission(Manifest.permission.POST_NOTIFICATIONS)
+            },
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        add(R.string.check_battery_title, R.string.check_battery_detail, true, R.string.action_allow,
+            { getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName) }) {
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))
+                )
+            } catch (_: ActivityNotFoundException) {
+                launch(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            }
+        }
+    }
+
+    private fun refreshChecklist() {
+        for (row in rows) {
+            val ok = row.isOk()
+            val status = row.view.findViewById<TextView>(R.id.checkStatus)
+            val button = row.view.findViewById<Button>(R.id.checkButton)
+            status.text = if (ok) "✓" else if (row.optional) "–" else "!"
+            status.backgroundTintList = ColorStateList.valueOf(
+                getColor(if (ok) R.color.vc_ok else if (row.optional) R.color.vc_optional else R.color.vc_warn)
+            )
+            button.setText(if (ok) R.string.action_done else row.actionLabel)
+            button.isEnabled = !ok
+            button.setOnClickListener { row.action() }
+        }
+    }
+
+    private fun isAccessibilityEnabled(): Boolean {
+        if (Device.isReady) return true
+        val ours = ComponentName(packageName, ACCESSIBILITY_SERVICE_CLASS)
+        val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: ""
+        return enabled.split(':').any { ComponentName.unflattenFromString(it.trim()) == ours }
+    }
+
+    private fun hasPermission(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+
+    private fun onPermissionResult(permission: String, granted: Boolean) {
+        VcLog.d(TAG, "permission $permission granted=$granted")
+        if (!granted && !shouldShowRequestPermissionRationale(permission)) {
+            // "Don't ask again" (or denied twice): the only way left is the app's settings page.
+            Toast.makeText(this, "Enable it in the app's permission settings", Toast.LENGTH_LONG).show()
+            launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+        }
+        refreshChecklist()
+    }
+
+    private fun openOverlaySettings() {
+        launch(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+    }
+
+    private fun launch(intent: Intent) {
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            VcLog.w(TAG, "no activity for ${intent.action}")
+            Toast.makeText(this, "Can't open settings on this device", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ---------------------------------------------------------------- overlay
+
+    private fun setupOverlayButton() {
+        overlayButton.setOnClickListener {
+            if (OverlayService.running.value) {
+                VcLog.d(TAG, "Stop overlay clicked")
+                OverlayService.stop(this)
+            } else if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, R.string.toast_need_overlay, Toast.LENGTH_SHORT).show()
+                openOverlaySettings()
+            } else {
+                VcLog.d(TAG, "Start overlay clicked")
+                if (!OverlayService.start(this)) {
+                    Toast.makeText(this, "Android refused to start the bubble; try again", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun updateOverlayButton(running: Boolean) {
+        overlayButton.setText(if (running) R.string.stop_overlay else R.string.start_overlay)
+        overlayStatus.text = if (running) "Bubble is running. You can close this screen." else "Bubble is off."
+    }
+
+    // ---------------------------------------------------------------- settings
+
+    private fun setupSettings() {
+        val header = findViewById<View>(R.id.settingsHeader)
+        val body = findViewById<View>(R.id.settingsBody)
+        val chevron = findViewById<TextView>(R.id.settingsChevron)
+        header.setOnClickListener {
+            val show = body.visibility != View.VISIBLE
+            body.visibility = if (show) View.VISIBLE else View.GONE
+            chevron.text = if (show) "▾" else "▸"
+        }
+
+        val jev = findViewById<EditText>(R.id.jevKeyInput)
+        val openAi = findViewById<EditText>(R.id.openAiKeyInput)
+        val model = findViewById<EditText>(R.id.modelInput)
+        // Prefill first, attach the save-watchers after, so prefilling doesn't write defaults into prefs.
+        jev.setText(AppSettings.jevApiKey(this))
+        openAi.setText(AppSettings.openAiApiKey(this))
+        model.setText(AppSettings.realtimeModel(this))
+        jev.addTextChangedListener(saver { AppSettings.setJevApiKey(this, it) })
+        openAi.addTextChangedListener(saver { AppSettings.setOpenAiApiKey(this, it) })
+        model.addTextChangedListener(saver { AppSettings.setRealtimeModel(this, it) })
+
+        findViewById<CheckBox>(R.id.showKeysCheck).setOnCheckedChangeListener { _, show ->
+            val type = InputType.TYPE_CLASS_TEXT or
+                if (show) InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD else InputType.TYPE_TEXT_VARIATION_PASSWORD
+            for (f in listOf(jev, openAi)) {
+                val sel = f.selectionEnd
+                f.inputType = type
+                if (sel >= 0) f.setSelection(sel)
+            }
+        }
+    }
+
+    private fun saver(save: (String) -> Unit) = object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        override fun afterTextChanged(s: Editable?) = save(s?.toString() ?: "")
+    }
+
+    // ---------------------------------------------------------------- test box
+
+    private fun setupTestBox() {
+        findViewById<Button>(R.id.runButton).setOnClickListener { runTypedTask() }
+        taskInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_GO) { runTypedTask(); true } else false
+        }
+        findViewById<Button>(R.id.stopButton).setOnClickListener {
+            log("ui     stop pressed")
+            TaskController.stop()
+        }
+        findViewById<Button>(R.id.clearLogButton).setOnClickListener {
+            logBuffer.clear()
+            logText.text = ""
+        }
+    }
+
+    private fun runTypedTask() {
+        val task = taskInput.text.toString().trim()
+        if (task.isEmpty()) {
+            Toast.makeText(this, R.string.toast_enter_task, Toast.LENGTH_SHORT).show()
+            return
+        }
+        getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(taskInput.windowToken, 0)
+        log("ui     run \"$task\"")
+        try {
+            TaskController.runTask(task)
+        } catch (t: Throwable) {
+            VcLog.e(TAG, "runTask failed", t)
+            log("ui     runTask threw ${t.javaClass.simpleName}: ${t.message}")
+        }
+    }
+
+    private fun log(line: String) {
+        val stamped = "${timeFormat.format(Date())}  $line"
+        logBuffer.addLast(stamped)
+        while (logBuffer.size > MAX_LOG_LINES) logBuffer.removeFirst()
+        logText.text = logBuffer.joinToString("\n")
+        // scrollTo, not fullScroll: fullScroll would also scroll the outer page to the log.
+        logScroll.post { logScroll.scrollTo(0, maxOf(0, logText.height - logScroll.height + logScroll.paddingTop + logScroll.paddingBottom)) }
+    }
+
+    private fun describe(s: AgentState): String = when (s) {
+        AgentState.Idle -> "idle"
+        is AgentState.Running ->
+            "step ${s.step} · ${s.action} ${s.detail}".trimEnd() + " (conf %.2f)".format(Locale.US, s.confidence)
+        is AgentState.Finished ->
+            "finished [${s.status}] ${s.message} · ${s.steps} steps · $%.4f".format(Locale.US, s.costUsd)
+    }
+
+    private fun describe(s: VoiceState): String = when (s) {
+        VoiceState.Idle -> "idle"
+        VoiceState.Connecting -> "connecting"
+        VoiceState.Listening -> "listening"
+        is VoiceState.UserSaid -> "user said \"${s.transcript}\""
+        is VoiceState.AssistantSaying -> "assistant: \"${s.transcript}\""
+        is VoiceState.Error -> "ERROR ${s.message}"
     }
 
     companion object {
         private const val TAG = "UI"
+        private const val ACCESSIBILITY_SERVICE_CLASS = "com.brainstormity.voicecontrol.control.PhoneAccessibilityService"
+        private const val MAX_LOG_LINES = 300
+        private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
+        /** Survives Activity recreation (rotation) for the life of the process. */
+        private val logBuffer = ArrayDeque<String>()
     }
 }
