@@ -6,16 +6,19 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
+import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import android.view.Display
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.brainstormity.voicecontrol.R
@@ -55,7 +58,37 @@ class OverlayService : Service() {
     private var micForeground = false   // the FGS currently carries the microphone type
     private var micDenied = false       // adding it failed during this session; don't retry on every update
     private val rerender = Runnable { render() }
-    private val rebuild = Runnable { windows?.rebuild(); render() }
+
+    // ---- screen size changes (fold/unfold, rotation, multi-window). Several signals, because not every device
+    // delivers every one promptly: a Service only gets onConfigurationChanged when the *process* configuration
+    // changes (it can follow one of our activities instead of the display), the overlay's window context gets its
+    // display area's configuration, and DisplayManager reports the display itself. All of them just schedule
+    // [screenCheck], which is debounced (fold animations emit bursts) and repeated a few times while the window
+    // metrics settle.
+    private var screenReason = ""
+    private var screenCheckStep = 0
+    private val screenCheck = object : Runnable {
+        override fun run() {
+            windows?.onScreenMaybeChanged("$screenReason, +${SCREEN_CHECK_AT_MS[screenCheckStep]}ms")
+            val next = screenCheckStep + 1
+            if (next < SCREEN_CHECK_AT_MS.size) {
+                handler.postDelayed(this, SCREEN_CHECK_AT_MS[next] - SCREEN_CHECK_AT_MS[screenCheckStep])
+                screenCheckStep = next
+            }
+        }
+    }
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) = onScreenSignal("display $displayId added")
+        override fun onDisplayRemoved(displayId: Int) = onScreenSignal("display $displayId removed")
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId == Display.DEFAULT_DISPLAY) onScreenSignal("display changed")
+        }
+    }
+    private val windowCallbacks = object : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) = onScreenSignal("window configuration")
+        @Deprecated("Deprecated in Java")
+        override fun onLowMemory() = Unit
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -79,10 +112,17 @@ class OverlayService : Service() {
             stopSelf()
             return
         }
-        windows = OverlayWindows(this, ::onBubbleTap, ::onStopTap)
+        val w = OverlayWindows(this, ::onBubbleTap, ::onStopTap)
+        windows = w
         voice = effectiveVoice()
         agent = effectiveAgent()
         render()
+        try {
+            w.registerWindowCallbacks(windowCallbacks)
+            getSystemService(DisplayManager::class.java).registerDisplayListener(displayListener, handler)
+        } catch (e: Exception) {
+            VcLog.w(TAG, "can't listen for display changes: ${e.message}")
+        }
 
         scope.launch {
             var wasDemo = false
@@ -119,16 +159,32 @@ class OverlayService : Service() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        VcLog.d(TAG, "onConfigurationChanged orientation=${newConfig.orientation}")
-        // Give the window manager a moment to report the new metrics, then re-add everything.
-        handler.removeCallbacks(rebuild)
-        handler.postDelayed(rebuild, 150)
+        VcLog.d(TAG, "onConfigurationChanged orientation=${newConfig.orientation} " +
+            "${newConfig.screenWidthDp}x${newConfig.screenHeightDp}dp")
+        onScreenSignal("configuration")
+    }
+
+    /** Something about the screen may have changed: re-check it soon, and again while it settles. */
+    private fun onScreenSignal(reason: String) {
+        if (windows == null) return
+        screenReason = reason
+        // A first check already pending: let it run (a steady stream of display events must not postpone it
+        // forever). Otherwise (re)start the schedule from the first check.
+        if (screenCheckStep == 0 && handler.hasCallbacks(screenCheck)) return
+        screenCheckStep = 0
+        handler.removeCallbacks(screenCheck)
+        handler.postDelayed(screenCheck, SCREEN_CHECK_AT_MS[0])
     }
 
     override fun onDestroy() {
         VcLog.i(TAG, "onDestroy")
         scope.cancel()
         handler.removeCallbacksAndMessages(null)
+        try {
+            getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener)
+            windows?.unregisterWindowCallbacks(windowCallbacks)
+        } catch (_: Exception) {
+        }
         windows?.destroy()
         windows = null
         // Without the overlay there is no way to see or end a voice session, so close it.
@@ -333,6 +389,11 @@ class OverlayService : Service() {
         const val CHANNEL_ID = "overlay"
         const val NOTIFICATION_ID = 1
         private const val REPEATED_ERROR_CHECK_MS = 1_500L
+        /**
+         * When to re-check the screen after a size-change signal (ms after the last signal of a burst). The first
+         * check is the debounce; the later ones catch window metrics that lag behind the display after a fold.
+         */
+        private val SCREEN_CHECK_AT_MS = longArrayOf(100, 400, 1_000, 2_500)
         /** Stops the overlay (and with it any voice session). */
         const val ACTION_STOP = "com.brainstormity.voicecontrol.overlay.STOP"
         /** Notification "Stop": also stops a running task. */

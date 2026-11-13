@@ -176,6 +176,7 @@ have 20, the oldest one goes when the next task starts.
 | The assistant says "on it" but nothing happens | Sometimes GPT doesn't hand the task over. Say it again, a bit more directly: "open the clock app". |
 | The agent taps the wrong thing or gives up | Be more specific: name the app and the setting. Check what it saw in *Runs & costs* (section 5). |
 | The bubble is gone after a while | Turn off battery optimisation for the app (Setup list), then tap *Start overlay* again. |
+| Foldable phone: the bubble is in an odd place after folding or unfolding | It moves to the same edge of the new screen once the screen has settled (about a second). If it still looks wrong, touch it once: that makes it re-measure the screen. |
 
 **Costs.** JEV is billed by TypeSafe to the account that owns your API key: $42 per billion input tokens,
 which is about $0.0002 per step, so a typical task costs $0.001–$0.003. Checking a key costs about
