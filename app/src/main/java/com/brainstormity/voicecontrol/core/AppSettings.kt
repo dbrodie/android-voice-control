@@ -13,6 +13,12 @@ object AppSettings {
     private const val KEY_JEV = "jev_api_key"
     private const val KEY_OPENAI = "openai_api_key"
     private const val KEY_MODEL = "realtime_model"
+    private const val KEY_BACKEND = "voice_backend"
+
+    /** Which GPT-Live transport to use. */
+    const val BACKEND_AUTO = "auto"          // ChatGPT sign-in if signed in, else OpenAI API key if set
+    const val BACKEND_CHATGPT = "chatgpt"    // unofficial Codex GPT-Live route (WebRTC), needs Sign in with ChatGPT
+    const val BACKEND_OPENAI_KEY = "openai_key" // official GPT-Live API over WebSocket, needs an OpenAI API key
 
     private fun prefs(ctx: Context): SharedPreferences =
         ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -32,4 +38,7 @@ object AppSettings {
 
     fun realtimeModel(ctx: Context): String = get(ctx, KEY_MODEL, BuildConfig.OPENAI_REALTIME_MODEL)
     fun setRealtimeModel(ctx: Context, v: String) = set(ctx, KEY_MODEL, v)
+
+    fun voiceBackend(ctx: Context): String = get(ctx, KEY_BACKEND, BACKEND_AUTO)
+    fun setVoiceBackend(ctx: Context, v: String) = set(ctx, KEY_BACKEND, v)
 }

@@ -48,7 +48,7 @@ android {
         buildConfigField("String", "OPENAI_API_KEY", envValue("OPENAI_API_KEY").asBuildConfigString())
         buildConfigField(
             "String", "OPENAI_REALTIME_MODEL",
-            envValue("OPENAI_REALTIME_MODEL", "gpt-realtime").asBuildConfigString()
+            envValue("OPENAI_REALTIME_MODEL", "gpt-live-1").asBuildConfigString()
         )
     }
 
