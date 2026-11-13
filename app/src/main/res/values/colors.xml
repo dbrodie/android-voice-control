@@ -22,5 +22,30 @@
     <color name="vc_pill_text">#FFFFFF</color>
     <color name="vc_pill_error">#FF8A80</color>
     <color name="vc_pill_success">#8EE3B0</color>
+    <!-- Pill text per voice state (light tints of the bubble colours, readable on the dark pill) -->
+    <color name="vc_pill_connecting">#FFD08A</color>
+    <color name="vc_pill_listening">#86EFAC</color>
+    <color name="vc_pill_speaking">#9CC3FF</color>
     <color name="vc_stop">#E53935</color>
+    <!-- Mic bubble per state (overlay/OverlayUi BubbleLook): top / bottom gradient + pulsing ring -->
+    <color name="vc_look_idle">#6B7684</color>
+    <color name="vc_look_idle_dark">#4A535F</color>
+    <color name="vc_look_idle_ring">#996B7684</color>
+    <color name="vc_look_connecting">#FFA21F</color>
+    <color name="vc_look_connecting_dark">#E67700</color>
+    <color name="vc_look_connecting_ring">#99FFA21F</color>
+    <color name="vc_look_listening">#1DB954</color>
+    <color name="vc_look_listening_dark">#12923F</color>
+    <color name="vc_look_listening_ring">#9922C55E</color>
+    <color name="vc_look_user_said">#2CD267</color>
+    <color name="vc_look_user_said_dark">#17A84B</color>
+    <color name="vc_look_speaking">#2F7BF6</color>
+    <color name="vc_look_speaking_dark">#1A5AD6</color>
+    <color name="vc_look_speaking_ring">#992F7BF6</color>
+    <color name="vc_look_error">#EF4134</color>
+    <color name="vc_look_error_dark">#C62828</color>
+    <color name="vc_look_error_ring">#99EF4134</color>
+    <!-- Task strip tint while a task runs: green (working / listening) or blue (GPT speaking) -->
+    <color name="vc_strip_listening">#FF146C36</color>
+    <color name="vc_strip_speaking">#FF1747B0</color>
 </resources>
