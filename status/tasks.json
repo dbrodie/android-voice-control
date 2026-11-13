@@ -1,5 +1,5 @@
 {
-  "overall": "COMPLETE \u2014 all 12 tasks merged; release set v0.1.0 built (per-ABI + universal)",
+  "overall": "Phase 5 \u2014 T13 GitHub repo, release workflow on version tags, publish v0.1.1",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot\u2192action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [],
   "tasks": [
@@ -116,6 +116,13 @@
       "owner": "Opus 5.5 agent: voice-cost",
       "status": "done",
       "summary": "Merged to main. Per-call voice records (files/voice/*.json) with billed seconds from the server's usage events, $0.05/min equivalent (per-second, session time incl. silence; source: developers.openai.com pricing), turns and delegated tasks linked to runs. Runs & costs: voice totals + All-in, Voice tab, 'Triggered by voice session' in run detail. Also fixed a native crash on audio drop and a call left open on OpenAI's side. 105 JVM tests pass."
+    },
+    {
+      "id": "T13",
+      "title": "GitHub: create public repo dbrodie/android-voice-control, push, Actions workflow that builds + signs (separate CI key) + publishes per-ABI APKs on v* tags; release v0.1.1",
+      "owner": "Opus 5.5 agent: github-release",
+      "status": "running",
+      "summary": "Running in its own worktree; publishes from GitHub Actions."
     }
   ],
   "notes": [
