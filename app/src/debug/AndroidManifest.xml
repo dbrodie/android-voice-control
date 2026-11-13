@@ -22,5 +22,17 @@
             android:name=".debug.DebugReceiverInstaller"
             android:authorities="${applicationId}.debug-receiver-installer"
             android:exported="false" />
+        <!-- Hands/Screen test hooks for control/ (see HandsTestReceiver.kt for usage). -->
+        <receiver
+            android:name=".debug.HandsTestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.HANDS" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.HandsTestReceiverInstaller"
+            android:authorities="${applicationId}.hands-test-receiver-installer"
+            android:exported="false" />
     </application>
 </manifest>
