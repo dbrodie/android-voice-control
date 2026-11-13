@@ -44,5 +44,25 @@
             android:name=".debug.AuthDebugReceiverInstaller"
             android:authorities="${applicationId}.auth-debug-receiver-installer"
             android:exported="false" />
+        <!-- GPT-Live debug hooks (voice/live): LIVE_START / LIVE_STOP / LIVE_TEXT / LIVE_SAY / LIVE_INJECT. -->
+        <receiver
+            android:name=".debug.LiveDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.LIVE_START" />
+                <action android:name="com.brainstormity.voicecontrol.LIVE_STOP" />
+                <action android:name="com.brainstormity.voicecontrol.LIVE_TEXT" />
+                <action android:name="com.brainstormity.voicecontrol.LIVE_SAY" />
+                <action android:name="com.brainstormity.voicecontrol.LIVE_INJECT" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.LiveDebugInstaller"
+            android:authorities="${applicationId}.live-debug-installer"
+            android:exported="false" />
+        <service
+            android:name=".debug.LiveDebugMicService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
     </application>
 </manifest>

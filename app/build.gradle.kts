@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
+    implementation(libs.stream.webrtc.android)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
