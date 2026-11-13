@@ -1,5 +1,5 @@
 {
-  "overall": "Phase 5 \u2014 T13 GitHub repo, release workflow on version tags, publish v0.1.1",
+  "overall": "COMPLETE \u2014 published: github.com/dbrodie/android-voice-control, release v0.1.1 built by GitHub Actions",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot\u2192action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [],
   "tasks": [
@@ -121,8 +121,8 @@
       "id": "T13",
       "title": "GitHub: create public repo dbrodie/android-voice-control, push, Actions workflow that builds + signs (separate CI key) + publishes per-ABI APKs on v* tags; release v0.1.1",
       "owner": "Opus 5.5 agent: github-release",
-      "status": "running",
-      "summary": "Running in its own worktree; publishes from GitHub Actions."
+      "status": "done",
+      "summary": "Public repo dbrodie/android-voice-control created and pushed (history rewritten first to drop a debug APK that embedded the JEV key; verified no object contains it). release.yml on v* tags builds, signs with a separate CI key (secrets), verifies, and attaches 5 APKs + mapping; ci.yml runs tests on main. v0.1.1 released and verified (CI signer, no keys)."
     }
   ],
   "notes": [
@@ -138,6 +138,7 @@
     "Release build (2026-11-13 12:54): dist/voice-control-release.apk, v0.1.0, signed with a locally generated key (keystore/voice-control-release.jks + keystore.properties, gitignored). Built from main at fdfabee + signing config; excludes the in-progress T6 login work. Not installed on the emulator (T6 is using it).",
     "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup \u2192 JEV API key) and sign in with ChatGPT or enter an OpenAI key.",
     "MIT license chosen (matches both MIT upstreams); LICENSE, NOTICE (credits), README added.",
-    "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a."
+    "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a.",
+    "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe."
   ]
 }
