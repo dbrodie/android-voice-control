@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Runs & costs screens (T9): RunsActivity, RunDetailActivity, the Runs row in MainActivity. Own file for easy merging. -->
+<resources>
+    <string name="runs_title">Runs &amp; costs</string>
+    <string name="runs_back">Back</string>
+    <string name="runs_tab_runs">Runs</string>
+    <string name="runs_tab_trash">Trash</string>
+    <string name="runs_stop">Stop</string>
+    <string name="runs_select_all">Select all</string>
+    <string name="runs_restore">Restore</string>
+    <string name="runs_delete_forever">Delete forever</string>
+    <string name="runs_move_to_trash">Move to trash</string>
+    <string name="runs_empty">No runs yet. Ask the bubble to do something, or use Test without voice.</string>
+    <string name="runs_trash_empty">Trash is empty.</string>
+    <string name="runs_stat_runs">Runs</string>
+    <string name="runs_stat_cost">Total cost</string>
+    <string name="runs_stat_tokens">JEV tokens</string>
+    <string name="runs_stat_success">Success</string>
+
+    <string name="run_title">Run</string>
+    <string name="run_share">Share report</string>
+    <string name="run_in_trash">In trash</string>
+    <string name="run_step_image">Screenshot JEV saw, with what it chose marked in red. Tap to enlarge.</string>
+    <string name="run_other_options">Other options JEV considered</string>
+
+    <string name="main_runs_title">Runs &amp; costs</string>
+    <string name="main_runs_detail">Every task the agent ran: each step\'s screenshot, what JEV chose and how sure it was, and what it cost.</string>
+    <string name="main_runs_open">Open</string>
+</resources>

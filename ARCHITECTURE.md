@@ -25,6 +25,7 @@ control/     PhoneAccessibilityService: implements Screen + Hands.              
 overlay/     OverlayService (foreground) + bubble/status UI (WindowManager views).  [Agent: overlay-ui]
 voice/       RealtimeVoiceClient: OpenAI Realtime WS, mic in, speaker out, tool call.[Agent: voice]
 ui/          MainActivity: permission setup checklist, settings (API keys), test box.[Agent: overlay-ui]
+             ui/runs/: Runs & costs screens (port of upstream dashboard) + RunStore (list/trash/restore). [T9]
 debug/       DebugReceiver: adb broadcast hooks for emulator testing (debug builds). [skeleton]
 ```
 
