@@ -1,12 +1,14 @@
 package com.brainstormity.voicecontrol.overlay
 
 import android.animation.Animator
+import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
 import android.view.Display
 import android.view.Gravity
@@ -20,6 +22,7 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.widget.ImageView
 import android.widget.TextView
 import android.view.ContextThemeWrapper
 import androidx.core.animation.doOnEnd
@@ -108,7 +111,7 @@ internal class OverlayWindows(
             is OverlayUi.Strip -> {
                 removeBubble()
                 removePill()
-                showStrip(a, ui.text)
+                showStrip(a, ui.text, ui.look)
             }
             is OverlayUi.Bubble -> {
                 removeStrip()
@@ -148,10 +151,11 @@ internal class OverlayWindows(
             ringView = root.findViewById(R.id.bubbleRing)
             bubbleView = root.findViewById(R.id.bubble)
         }
-        setRing(ui.sessionActive)
-        setConnecting(ui.connecting)
+        applyLook(ui.look)
+        setRing(ui.look.pulsing)
+        setConnecting(ui.look.fading)
         bubbleView?.contentDescription = res.getString(
-            if (ui.sessionActive || ui.connecting) R.string.overlay_bubble_description_active
+            if (ui.look.active) R.string.overlay_bubble_description_active
             else R.string.overlay_bubble_description
         )
     }
@@ -160,8 +164,43 @@ internal class OverlayWindows(
         snapAnim?.cancel(); snapAnim = null
         ringAnim?.cancel(); ringAnim = null
         connectAnim?.cancel(); connectAnim = null
+        lookAnim?.cancel(); lookAnim = null
         remove(bubbleRoot)
         bubbleRoot = null; bubbleParams = null; ringView = null; bubbleView = null
+        bubbleLook = null; bubbleColors = null
+    }
+
+    /** Bubble gradient (top, bottom) + ring colour currently on screen; animated towards the target look. */
+    private var bubbleLook: BubbleLook? = null
+    private var bubbleColors: IntArray? = null
+    private var lookAnim: ValueAnimator? = null
+
+    private fun applyLook(look: BubbleLook) {
+        if (look == bubbleLook) return
+        val b = bubbleView as? ImageView ?: return
+        val bg = (b.background.mutate() as? GradientDrawable) ?: return
+        val ring = ringView?.background?.mutate() as? GradientDrawable
+        if (bubbleLook?.icon != look.icon) b.setImageResource(look.icon)
+        bubbleLook = look
+        val target = intArrayOf(ctx.getColor(look.top), ctx.getColor(look.bottom), ctx.getColor(look.ring))
+        val from = bubbleColors
+        lookAnim?.cancel(); lookAnim = null
+        fun paint(c: IntArray) {
+            bg.colors = intArrayOf(c[0], c[1])
+            ring?.setColor(c[2])
+            bubbleColors = c
+        }
+        if (from == null) {   // first show: no animation
+            paint(target); return
+        }
+        lookAnim = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = LOOK_ANIM_MS
+            addUpdateListener { va ->
+                val f = va.animatedFraction
+                paint(IntArray(3) { i -> ARGB.evaluate(f, from[i], target[i]) as Int })
+            }
+            start()
+        }
     }
 
     private fun setRing(on: Boolean) {
@@ -304,15 +343,7 @@ internal class OverlayWindows(
         val existing = pillView
         val tv = existing ?: (inflater.inflate(R.layout.overlay_pill, null) as TextView)
         tv.text = pill.text
-        tv.setTextColor(
-            ctx.getColor(
-                when (pill.tone) {
-                    Tone.NORMAL -> R.color.vc_pill_text
-                    Tone.ERROR -> R.color.vc_pill_error
-                    Tone.SUCCESS -> R.color.vc_pill_success
-                }
-            )
-        )
+        tv.setTextColor(ctx.getColor(pill.tone.textColor))
         if (existing == null) {
             val p = params(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, false, "pill")
             layoutPill(tv, p, bubbleParams ?: return, a)
@@ -357,7 +388,7 @@ internal class OverlayWindows(
 
     // ---------------------------------------------------------------- strip
 
-    private fun showStrip(a: Area, text: String) {
+    private fun showStrip(a: Area, text: String, look: BubbleLook) {
         val h = res.getDimensionPixelSize(R.dimen.vc_strip_height)
         val w = (a.width * STRIP_WIDTH_FRACTION).roundToInt()
         val x = (a.width - w) / 2
@@ -372,6 +403,7 @@ internal class OverlayWindows(
             stripParams = p
         }
         stripText?.text = text
+        applyStripLook(look)
         if (stopView == null) {
             val sw = res.getDimensionPixelSize(R.dimen.vc_strip_stop_width)
             val v = inflater.inflate(R.layout.overlay_stop, null)
@@ -388,8 +420,40 @@ internal class OverlayWindows(
     }
 
     private fun removeStrip() {
+        stripAnim?.cancel(); stripAnim = null
         remove(stripView); remove(stopView)
         stripView = null; stripText = null; stripParams = null; stopView = null; stopParams = null
+        stripLook = null; stripColors = null
+    }
+
+    /** Strip background + dot colour currently on screen; animated like the bubble. */
+    private var stripLook: BubbleLook? = null
+    private var stripColors: IntArray? = null
+    private var stripAnim: ValueAnimator? = null
+
+    private fun applyStripLook(look: BubbleLook) {
+        if (look == stripLook) return
+        val v = stripView ?: return
+        val bg = v.background?.mutate() as? GradientDrawable ?: return
+        val dot = v.findViewById<View>(R.id.stripDot)?.background?.mutate() as? GradientDrawable
+        stripLook = look
+        val target = intArrayOf(ctx.getColor(look.strip), ctx.getColor(look.accent))
+        val from = stripColors
+        stripAnim?.cancel(); stripAnim = null
+        fun paint(c: IntArray) {
+            bg.setColor(c[0]); dot?.setColor(c[1]); stripColors = c
+        }
+        if (from == null) {
+            paint(target); return
+        }
+        stripAnim = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = LOOK_ANIM_MS
+            addUpdateListener { va ->
+                val f = va.animatedFraction
+                paint(IntArray(2) { i -> ARGB.evaluate(f, from[i], target[i]) as Int })
+            }
+            start()
+        }
     }
 
     // ---------------------------------------------------------------- helpers
@@ -456,5 +520,8 @@ internal class OverlayWindows(
         private const val SIDE_RIGHT = 1
         const val STRIP_WIDTH_FRACTION = 0.6f
         const val PASS_THROUGH_ALPHA = 0.8f
+        /** Colour cross-fade between bubble / strip looks. */
+        private const val LOOK_ANIM_MS = 150L
+        private val ARGB = ArgbEvaluator()
     }
 }
