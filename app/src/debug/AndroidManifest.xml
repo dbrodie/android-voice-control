@@ -13,6 +13,9 @@
                 <action android:name="com.brainstormity.voicecontrol.VOICE_START" />
                 <action android:name="com.brainstormity.voicecontrol.VOICE_STOP" />
                 <action android:name="com.brainstormity.voicecontrol.VOICE_TEXT" />
+                <action android:name="com.brainstormity.voicecontrol.OVERLAY_START" />
+                <action android:name="com.brainstormity.voicecontrol.OVERLAY_STOP" />
+                <action android:name="com.brainstormity.voicecontrol.OVERLAY_DEMO" />
             </intent-filter>
         </receiver>
         <!-- Registers a runtime copy of DebugReceiver at process start so IMPLICIT broadcasts

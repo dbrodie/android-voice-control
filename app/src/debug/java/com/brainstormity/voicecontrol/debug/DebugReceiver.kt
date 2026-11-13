@@ -11,6 +11,8 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import com.brainstormity.voicecontrol.agent.TaskController
 import com.brainstormity.voicecontrol.core.VcLog
+import com.brainstormity.voicecontrol.overlay.OverlayDemo
+import com.brainstormity.voicecontrol.overlay.OverlayService
 import com.brainstormity.voicecontrol.voice.VoiceController
 
 /**
@@ -20,6 +22,9 @@ import com.brainstormity.voicecontrol.voice.VoiceController
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_START
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_STOP
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_TEXT --es text "open settings"
+ *   adb shell am broadcast -a com.brainstormity.voicecontrol.OVERLAY_START   (or OVERLAY_STOP)
+ *   adb shell am broadcast -a com.brainstormity.voicecontrol.OVERLAY_DEMO --es voice "'said:turn on wifi'" --es agent "'running:3:TAP:Wi-Fi toggle'"
+ *     (display-only fake states for the overlay; see overlay/OverlayDemo; "off" clears)
  *
  * Two instances exist: the manifest one (gets explicit broadcasts, e.g. with `-p <pkg>`, and can cold-start
  * the process) and a runtime-registered one (gets implicit broadcasts while the process is alive, which it
@@ -49,6 +54,11 @@ class DebugReceiver(private val runtimeRegistered: Boolean) : BroadcastReceiver(
                 if (text.isNullOrBlank()) VcLog.w(TAG, "VOICE_TEXT without --es text \"...\"")
                 else VoiceController.sendText(text)
             }
+            OVERLAY_START -> if (!OverlayService.start(context.applicationContext)) {
+                VcLog.w(TAG, "OVERLAY_START refused (background FGS start); open MainActivity and tap Start overlay")
+            }
+            OVERLAY_STOP -> OverlayService.stop(context.applicationContext)
+            OVERLAY_DEMO -> OverlayDemo.apply(intent.getStringExtra("voice"), intent.getStringExtra("agent"))
             else -> VcLog.w(TAG, "unknown action $action")
         }
     }
@@ -61,7 +71,10 @@ class DebugReceiver(private val runtimeRegistered: Boolean) : BroadcastReceiver(
         const val VOICE_START = P + "VOICE_START"
         const val VOICE_STOP = P + "VOICE_STOP"
         const val VOICE_TEXT = P + "VOICE_TEXT"
-        val ACTIONS = listOf(RUN_TASK, STOP, VOICE_START, VOICE_STOP, VOICE_TEXT)
+        const val OVERLAY_START = P + "OVERLAY_START"
+        const val OVERLAY_STOP = P + "OVERLAY_STOP"
+        const val OVERLAY_DEMO = P + "OVERLAY_DEMO"
+        val ACTIONS = listOf(RUN_TASK, STOP, VOICE_START, VOICE_STOP, VOICE_TEXT, OVERLAY_START, OVERLAY_STOP, OVERLAY_DEMO)
     }
 }
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="vc_accent">#3F51F5</color>
+    <color name="vc_accent_dark">#2F3DCB</color>
+    <color name="vc_accent_ring">#993F51F5</color>
+    <color name="vc_bg">#F5F6F8</color>
+    <color name="vc_card">#FFFFFF</color>
+    <color name="vc_card_stroke">#E3E6EB</color>
+    <color name="vc_text">#1B1E24</color>
+    <color name="vc_text_secondary">#5F6672</color>
+    <color name="vc_ok">#1E9E5A</color>
+    <color name="vc_warn">#E59A12</color>
+    <color name="vc_optional">#A3A9B3</color>
+    <color name="vc_error">#D93025</color>
+    <color name="vc_log_bg">#14171C</color>
+    <color name="vc_log_text">#D7DCE3</color>
+    <!-- Overlay pill / strip (dark glass) -->
+    <color name="vc_pill_bg">#FF1B1E24</color>
+    <color name="vc_strip_bg">#FF1B1E24</color>
+    <color name="vc_pill_text">#FFFFFF</color>
+    <color name="vc_pill_error">#FF8A80</color>
+    <color name="vc_pill_success">#8EE3B0</color>
+    <color name="vc_stop">#E53935</color>
+</resources>

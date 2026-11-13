@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.VoiceControl" parent="Theme.AppCompat.DayNight.DarkActionBar" />
+    <style name="Theme.VoiceControl" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/vc_accent</item>
+        <item name="colorPrimaryDark">@color/vc_accent_dark</item>
+        <item name="colorAccent">@color/vc_accent</item>
+        <item name="android:windowBackground">@color/vc_bg</item>
+        <item name="android:textColorPrimary">@color/vc_text</item>
+        <item name="android:textColorSecondary">@color/vc_text_secondary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="VC.SectionTitle" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/vc_text_secondary</item>
+    </style>
+
+    <style name="VC.Card" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <style name="VC.FieldLabel" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/vc_text_secondary</item>
+    </style>
+
+    <style name="VC.Button" parent="Widget.AppCompat.Button.Colored">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="VC.Button.Borderless" parent="Widget.AppCompat.Button.Borderless.Colored">
+        <item name="android:textAllCaps">false</item>
+    </style>
 </resources>

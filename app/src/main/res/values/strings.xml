@@ -4,6 +4,52 @@
     <string name="accessibility_service_label">Android Voice Control</string>
     <string name="accessibility_service_description">Lets Android Voice Control see the screen (screenshots) and tap, swipe and type for you when you ask it to do something by voice.</string>
     <string name="start_overlay">Start overlay</string>
+    <string name="stop_overlay">Stop overlay</string>
     <string name="overlay_channel_name">Voice control bubble</string>
     <string name="overlay_notification_text">Tap the bubble to talk</string>
+    <string name="overlay_notification_stop">Stop</string>
+    <string name="overlay_bubble_description">Voice control: tap to talk, drag to move</string>
+    <string name="overlay_bubble_description_active">Voice control: listening, tap to stop</string>
+    <string name="overlay_stop_description">Stop the running task</string>
+    <string name="overlay_need_mic">Microphone permission needed: opening setup</string>
+
+    <!-- MainActivity -->
+    <string name="main_title">Voice Control</string>
+    <string name="main_subtitle">Talk to your phone. It does the tapping.</string>
+    <string name="how_to_title">How to use</string>
+    <string name="how_to_body">Grant the permissions below, then tap Start overlay. A blue mic bubble floats over every app. Tap it and say what you want done, for example \"turn on Wi-Fi\" or \"search Chrome for the weather in Berlin\". The assistant may ask a quick question, then it operates the phone for you. While it works, the bubble shrinks to a thin bar at the top of the screen; tap ■ there to stop it. Drag the bubble anywhere and it snaps to the nearest edge. Tap it again to end the conversation.</string>
+    <string name="section_setup">Setup</string>
+    <string name="section_settings">Settings</string>
+    <string name="section_test">Test without voice</string>
+
+    <string name="check_overlay_title">Display over other apps</string>
+    <string name="check_overlay_detail">Needed to show the floating mic bubble.</string>
+    <string name="check_accessibility_title">Accessibility service</string>
+    <string name="check_accessibility_detail">Lets the app see the screen and tap, swipe and type. Enable \"Android Voice Control\".</string>
+    <string name="check_mic_title">Microphone</string>
+    <string name="check_mic_detail">To hear what you say.</string>
+    <string name="check_notif_title">Notifications</string>
+    <string name="check_notif_detail">Shows the persistent \"bubble running\" notification with a Stop button.</string>
+    <string name="check_notif_detail_old">Not needed on this Android version.</string>
+    <string name="check_battery_title">Ignore battery optimisation (optional)</string>
+    <string name="check_battery_detail">Keeps the bubble alive in the background on aggressive devices.</string>
+    <string name="action_grant">Grant</string>
+    <string name="action_open">Open</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_done">Done</string>
+
+    <string name="settings_jev_key">JEV API key</string>
+    <string name="settings_openai_key">OpenAI API key</string>
+    <string name="settings_model">Realtime model</string>
+    <string name="settings_key_hint">Empty = default from .env</string>
+    <string name="settings_show_keys">Show keys</string>
+    <string name="settings_saved_note">Changes are saved as you type.</string>
+
+    <string name="test_task_hint">Task, e.g. Open Settings and turn on Wi-Fi</string>
+    <string name="test_run">Run</string>
+    <string name="test_stop">Stop</string>
+    <string name="test_clear">Clear log</string>
+    <string name="test_log_empty">State changes appear here.</string>
+    <string name="toast_need_overlay">Allow \"Display over other apps\" first</string>
+    <string name="toast_enter_task">Type a task first</string>
 </resources>
