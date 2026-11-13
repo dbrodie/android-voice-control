@@ -5,14 +5,18 @@ GPT-Live (OpenAI's voice model) listens and hands the request to the on-phone ag
 screenshot, asks JEV (TypeSafe System One) what to do next, then taps, types or swipes through Android's
 accessibility service. It repeats this until the task is done, and then GPT tells you the result.
 
-The debug APK is `dist/voice-control-debug.apk`. It needs Android 11 (API 30) or newer and was tested on
-Android 16.
+Download `voice-control-<version>-arm64-v8a-release.apk` from
+[GitHub Releases](https://github.com/dbrodie/android-voice-control/releases/latest) (the universal APK if your
+phone is 32-bit or you're not sure). It needs Android 11 (API 30) or newer and was tested on Android 16.
 
 ## 1. Install
 
 ```bash
-adb install -r dist/voice-control-debug.apk
+adb install -r voice-control-<version>-arm64-v8a-release.apk
+# or a debug build from this repo: adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
+Release APKs from GitHub and builds you make yourself are signed with different keys: uninstall the app
+before switching from one to the other.
 You can also copy the APK to the phone and open it there. The phone will ask you to allow installs from that
 source. The app is called **Android Voice Control**.
 

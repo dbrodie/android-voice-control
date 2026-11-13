@@ -26,7 +26,9 @@ The ChatGPT sign-in and GPT-Live call handling follow
 
 ## Install and set up
 
-1. `adb install dist/voice-control-<version>-arm64-v8a-release.apk` (or build it, see below).
+1. Download `voice-control-<version>-arm64-v8a-release.apk` from
+   [GitHub Releases](https://github.com/dbrodie/android-voice-control/releases/latest) and install it
+   (`adb install voice-control-<version>-arm64-v8a-release.apk`, or open it on the phone). Or build it, see below.
 2. Open **Voice Control** and work through the setup checklist: display over other apps, the
    accessibility service, microphone, notifications.
 3. Sign in with ChatGPT (opens the OpenAI login in your browser) or enter an OpenAI API key.
@@ -52,6 +54,16 @@ Release builds come as one APK per CPU architecture plus a universal one:
 `voice-control-<version>-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk`. Almost every phone
 needs **arm64-v8a** (about 13 MB). Use the universal APK (about 43 MB) for anything else: old 32-bit
 phones, x86 emulators, or if you're not sure. Keep `dist/mapping-<version>.txt` to decode crash stack traces.
+
+**Releases.** Signed builds are on [GitHub Releases](https://github.com/dbrodie/android-voice-control/releases):
+download the **arm64-v8a** APK (or the universal one, as above); each release also carries its R8 mapping.
+To cut a release: bump `versionName` and `versionCode` in `app/build.gradle.kts`, add a `## <version>`
+section to [CHANGELOG.md](CHANGELOG.md), commit and push, then `git tag v0.1.2 && git push --tags`. The
+release workflow checks that the tag matches `versionName`, builds and verifies the APKs, and publishes them
+with that CHANGELOG section as the notes (details in [docs/SKELETON.md](docs/SKELETON.md#ci-github-actions)).
+GitHub Releases APKs are signed with the CI key, `scripts/release.sh` builds with your local key. Android
+won't update an app signed with one key from an APK signed with the other, so uninstall first when switching
+(this clears the app's settings and sign-in).
 
 `scripts/emulator.sh`, `scripts/install.sh` and `scripts/logs.sh` cover the emulator workflow.
 Architecture notes are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/SKELETON.md](docs/SKELETON.md).

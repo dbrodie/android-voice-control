@@ -71,8 +71,8 @@ android {
         applicationId = "com.brainstormity.voicecontrol"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
 
         // Keys: see embedKeys above. defaultConfig = debug; the release build type overrides both with "".
         buildConfigField("String", "JEV_KEY", debugKey("JEV_KEY").asBuildConfigString())

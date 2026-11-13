@@ -34,11 +34,12 @@ and `D/VC/Debug: runtime DebugReceiver registered`.
 
 ## Release build: ABI splits + R8 (T11)
 ```bash
-scripts/release.sh           # assembleRelease -PabiSplits=true, apksigner verify, apikey_ check, copy to dist/
+scripts/release.sh           # assembleRelease -PabiSplits=true, then scripts/package-release.sh dist/
+scripts/package-release.sh [out-dir]   # apksigner verify + apikey_ check + rename/copy (also used by CI)
 ```
 - **Per-ABI APKs.** `libjingle_peerconnection_so.so` (stream-webrtc-android) is 6.5-12.8 MB per ABI, so a
   4-ABI APK is ~43 MB. With splits on, Gradle writes `app/build/outputs/apk/release/app-<abi>-release.apk`
-  for arm64-v8a, armeabi-v7a, x86_64, x86 plus `app-universal-release.apk`; release.sh copies them to
+  for arm64-v8a, armeabi-v7a, x86_64, x86 plus `app-universal-release.apk`; package-release.sh copies them to
   `dist/voice-control-<versionName>-<abi|universal>-release.apk` (AGP's public variant API can't rename
   outputs) and the R8 mapping to `dist/mapping-<versionName>.txt` (gitignored, keep it per release).
   Sizes for 0.1.0: arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB
@@ -47,7 +48,7 @@ scripts/release.sh           # assembleRelease -PabiSplits=true, apksigner verif
   (`./gradlew :app:assembleRelease`), off otherwise, so `scripts/build.sh` still produces the single
   universal `app-debug.apk` that `install.sh` installs. AGP's `splits` block is per module, not per build type.
 - **versionCode** = `defaultConfig.versionCode * 10 + ABI digit`: universal (or unsplit, incl. debug) 0,
-  armeabi-v7a 1, x86 2, arm64-v8a 3, x86_64 4. So versionCode 1 → 10..14; bump `defaultConfig.versionCode`
+  armeabi-v7a 1, x86 2, arm64-v8a 3, x86_64 4. So versionCode 1 → 10..14, 2 (0.1.1) → 20..24; bump `defaultConfig.versionCode`
   as before and every APK of the new release updates every APK of the old one.
 - **R8** (`isMinifyEnabled` + `isShrinkResources` on release): dex 8 MB → 1.6 MB. Rules in
   `app/proguard-rules.pro`; the libraries' consumer rules do the rest (stream-webrtc-android ships
@@ -65,6 +66,53 @@ scripts/release.sh           # assembleRelease -PabiSplits=true, apksigner verif
   to get the normal debug APK back. The debug manifest also exports `ui.JevKeyActivity` and
   `voice.auth.LoginActivity` so `adb shell am start -n` can open them.
 - Release signing key: `keystore/` + `keystore.properties` (gitignored); updates need the same key.
+
+## CI (GitHub Actions)
+Repo: https://github.com/dbrodie/android-voice-control (public).
+- **`.github/workflows/ci.yml`**: on push / PR to `main`, `./gradlew :app:testDebugUnitTest :app:assembleDebug`.
+  No secrets: without `.env` the BuildConfig keys are empty and `JevLiveTest` skips itself (no `JEV_KEY`).
+- **`.github/workflows/release.yml`**: on a pushed `v*` tag. Fails unless the tag is `v<versionName>` from
+  `app/build.gradle.kts` and `CHANGELOG.md` has a `## <versionName>` section. Writes the CI keystore and
+  `keystore.properties` from the secrets, runs `./gradlew :app:assembleRelease -PabiSplits=true`, then
+  `scripts/package-release.sh dist` (the same verify step as local: `apksigner verify`, no `apikey_` in any
+  APK, rename), and publishes a GitHub release named "Voice Control <version>" with the five APKs and
+  `mapping-<version>.txt`, the CHANGELOG section as notes. `workflow_dispatch` on a tag rebuilds and
+  re-publishes it (`gh workflow run release.yml --ref v0.1.1`); on a branch it is a dry run that only
+  uploads the files as a workflow artifact.
+- **Cutting a release**: bump `versionName` + `versionCode` in `app/build.gradle.kts`, add the CHANGELOG
+  section, commit and push `main`, then `git tag -a v0.1.2 -m "Voice Control 0.1.2" && git push origin v0.1.2`.
+  A failed run before publishing can be retried by moving the tag:
+  `git tag -d v0.1.2 && git push origin :refs/tags/v0.1.2`, fix, re-tag, push.
+- **Secrets** (repo Settings > Secrets and variables > Actions):
+  | Secret | Value |
+  |---|---|
+  | `KEYSTORE_BASE64` | `base64 < keystore/ci-release.jks` |
+  | `KEYSTORE_PASSWORD` | `storePassword` from `keystore/ci-release.properties` |
+  | `KEY_ALIAS` | `voicecontrol-ci` |
+  | `KEY_PASSWORD` | `keyPassword` from `keystore/ci-release.properties` (same as the store password: PKCS12) |
+- **CI key ≠ local key.** CI signs with its own key (`keystore/ci-release.jks`, alias `voicecontrol-ci`,
+  RSA 2048, valid 10000 days, cert SHA-256 `db82451a…0d18b721`); `scripts/release.sh` signs with
+  `keystore/voice-control-release.jks`. Android refuses to update an app with an APK signed by the other key,
+  so switching a phone between GitHub Releases builds and local release builds needs an uninstall (the app's
+  settings, sign-in and run history go with it). Both keystores and `keystore/ci-release.properties`
+  (the CI password, same format as `keystore.properties`) are gitignored and live only on the dev machine:
+  back them up. Losing the CI key means users must uninstall to get the next release.
+- **Rotating the CI key** (also breaks updates for existing installs, so only if it leaked or is lost):
+  ```bash
+  mv keystore/ci-release.jks keystore/ci-release.old.jks
+  export CI_KS_PW="$(LC_ALL=C tr -dc A-Za-z0-9 < /dev/urandom | head -c 24)"
+  keytool -genkeypair -keystore keystore/ci-release.jks -storetype PKCS12 -alias voicecontrol-ci \
+    -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Voice Control CI" \
+    -storepass:env CI_KS_PW -keypass:env CI_KS_PW
+  # put CI_KS_PW into storePassword/keyPassword of keystore/ci-release.properties, then:
+  base64 < keystore/ci-release.jks | tr -d '\n' | gh secret set KEYSTORE_BASE64
+  sed -n 's/^storePassword=//p' keystore/ci-release.properties | tr -d '\n' | gh secret set KEYSTORE_PASSWORD
+  sed -n 's/^keyPassword=//p' keystore/ci-release.properties | tr -d '\n' | gh secret set KEY_PASSWORD
+  printf voicecontrol-ci | gh secret set KEY_ALIAS
+  unset CI_KS_PW
+  ```
+  and say in the CHANGELOG that this release needs an uninstall.
+  Check the cert of a downloaded APK with `apksigner verify --print-certs <apk>`.
 
 ## BuildConfig / .env
 `app/build.gradle.kts` parses the project-root `.env`: `KEY=VALUE`, optional `export `, single or
@@ -180,5 +228,6 @@ app/src/main/res/drawable/ic_mic.xml   (also used as the launcher icon)
 app/src/debug/AndroidManifest.xml
 app/src/debug/java/com/brainstormity/voicecontrol/debug/DebugReceiver.kt  (DebugReceiver + DebugReceiverInstaller)
 scripts/env.sh scripts/emulator.sh scripts/build.sh scripts/install.sh scripts/logs.sh scripts/release.sh
+scripts/package-release.sh .github/workflows/ci.yml .github/workflows/release.yml CHANGELOG.md
 docs/SKELETON.md
 ```
