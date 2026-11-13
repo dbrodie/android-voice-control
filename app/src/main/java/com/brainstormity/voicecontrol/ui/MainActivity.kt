@@ -21,6 +21,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -37,7 +38,11 @@ import com.brainstormity.voicecontrol.core.Device
 import com.brainstormity.voicecontrol.core.VcLog
 import com.brainstormity.voicecontrol.core.VoiceState
 import com.brainstormity.voicecontrol.overlay.OverlayService
+import com.brainstormity.voicecontrol.voice.VoiceBackends
 import com.brainstormity.voicecontrol.voice.VoiceController
+import com.brainstormity.voicecontrol.voice.auth.AuthState
+import com.brainstormity.voicecontrol.voice.auth.ChatGptAuth
+import com.brainstormity.voicecontrol.voice.auth.LoginActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,11 +56,15 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private class CheckRow(
-        val optional: Boolean,
+        val optional: () -> Boolean,
         val isOk: () -> Boolean,
         val actionLabel: Int,
         val action: () -> Unit,
         val view: View,
+        /** Detail text computed on refresh (null = keep the static one). */
+        val detail: (() -> String?)? = null,
+        /** Label for the button when ok; null = "Done" and disabled. */
+        val okLabel: Int? = null,
     )
 
     private val rows = mutableListOf<CheckRow>()
@@ -102,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 
         buildChecklist()
         setupOverlayButton()
+        setupBackend()
         setupSettings()
         setupTestBox()
         logText.text = logBuffer.joinToString("\n")
@@ -114,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         scope.launch { TaskController.state.collect { log("agent  " + describe(it)) } }
         scope.launch { VoiceController.state.collect { log("voice  " + describe(it)) } }
         scope.launch { OverlayService.running.collect { updateOverlayButton(it) } }
+        // Sign-in finishes in the browser / LoginActivity: refresh the ChatGPT row and the backend line live.
+        scope.launch { ChatGptAuth.state.collect { refreshChecklist() } }
     }
 
     override fun onResume() {
@@ -131,12 +143,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun buildChecklist() {
         val container = findViewById<LinearLayout>(R.id.checklist)
-        fun add(title: Int, detail: Int, optional: Boolean, actionLabel: Int, isOk: () -> Boolean, action: () -> Unit) {
+        fun add(
+            title: Int, detail: Int, optional: Boolean, actionLabel: Int, isOk: () -> Boolean,
+            dynamicDetail: (() -> String?)? = null, okLabel: Int? = null, isOptional: (() -> Boolean)? = null,
+            action: () -> Unit,
+        ) {
             val v = layoutInflater.inflate(R.layout.item_check_row, container, false)
             v.findViewById<TextView>(R.id.checkTitle).setText(title)
             v.findViewById<TextView>(R.id.checkDetail).setText(detail)
             container.addView(v)
-            rows += CheckRow(optional, isOk, actionLabel, action, v)
+            rows += CheckRow(isOptional ?: { optional }, isOk, actionLabel, action, v, dynamicDetail, okLabel)
         }
         add(R.string.check_overlay_title, R.string.check_overlay_detail, false, R.string.action_grant,
             { Settings.canDrawOverlays(this) }) { openOverlaySettings() }
@@ -148,6 +164,13 @@ class MainActivity : AppCompatActivity() {
             { hasPermission(Manifest.permission.RECORD_AUDIO) }) {
             micPermission.launch(Manifest.permission.RECORD_AUDIO)
         }
+        // Voice needs either this sign-in or an OpenAI API key: the row is optional once a key is set.
+        add(R.string.check_chatgpt_title, R.string.check_chatgpt_detail, false, R.string.action_sign_in,
+            { ChatGptAuth.isSignedIn(this) },
+            dynamicDetail = ::chatGptDetail,
+            okLabel = R.string.action_manage,
+            isOptional = { AppSettings.openAiApiKey(this).isNotBlank() },
+        ) { LoginActivity.start(this, autoStart = false) }
         add(
             R.string.check_notif_title,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.check_notif_detail else R.string.check_notif_detail_old,
@@ -176,16 +199,57 @@ class MainActivity : AppCompatActivity() {
     private fun refreshChecklist() {
         for (row in rows) {
             val ok = row.isOk()
+            val optional = row.optional()
             val status = row.view.findViewById<TextView>(R.id.checkStatus)
             val button = row.view.findViewById<Button>(R.id.checkButton)
-            status.text = if (ok) "✓" else if (row.optional) "–" else "!"
+            status.text = if (ok) "✓" else if (optional) "–" else "!"
             status.backgroundTintList = ColorStateList.valueOf(
-                getColor(if (ok) R.color.vc_ok else if (row.optional) R.color.vc_optional else R.color.vc_warn)
+                getColor(if (ok) R.color.vc_ok else if (optional) R.color.vc_optional else R.color.vc_warn)
             )
-            button.setText(if (ok) R.string.action_done else row.actionLabel)
-            button.isEnabled = !ok
+            row.detail?.invoke()?.let { row.view.findViewById<TextView>(R.id.checkDetail).text = it }
+            button.setText(if (ok) row.okLabel ?: R.string.action_done else row.actionLabel)
+            button.isEnabled = !ok || row.okLabel != null
             button.setOnClickListener { row.action() }
         }
+        refreshBackend()
+    }
+
+    private fun chatGptDetail(): String? = when (val s = ChatGptAuth.state.value) {
+        is AuthState.SignedIn -> "Signed in" + (s.email?.let { " as $it" } ?: "") + (s.plan?.let { " ($it)" } ?: "") + "."
+        AuthState.SigningIn -> "Signing in… finish in the browser."
+        is AuthState.Error -> "Sign-in problem: ${s.message}"
+        AuthState.SignedOut -> getString(R.string.check_chatgpt_detail)
+    }
+
+    // ---------------------------------------------------------------- voice backend
+
+    private val backendIds by lazy {
+        mapOf(
+            R.id.backendAuto to AppSettings.BACKEND_AUTO,
+            R.id.backendChatGpt to AppSettings.BACKEND_CHATGPT,
+            R.id.backendOpenAiKey to AppSettings.BACKEND_OPENAI_KEY,
+        )
+    }
+
+    private fun setupBackend() {
+        val group = findViewById<RadioGroup>(R.id.backendGroup)
+        val current = AppSettings.voiceBackend(this)
+        group.check(backendIds.entries.firstOrNull { it.value == current }?.key ?: R.id.backendAuto)
+        group.setOnCheckedChangeListener { _, id ->
+            val v = backendIds[id] ?: return@setOnCheckedChangeListener
+            if (v != AppSettings.voiceBackend(this)) {
+                VcLog.d(TAG, "voice backend -> $v")
+                AppSettings.setVoiceBackend(this, v)
+            }
+            refreshBackend()
+        }
+    }
+
+    private fun refreshBackend() {
+        val text = findViewById<TextView>(R.id.backendDescription)
+        val desc = try { VoiceBackends.describe(this) } catch (e: Exception) { "Unknown (${e.message})" }
+        text.text = "In use now: $desc"
+        text.setTextColor(getColor(if (VoiceBackends.resolve(this).isEmpty()) R.color.vc_warn else R.color.vc_text_secondary))
     }
 
     private fun isAccessibilityEnabled(): Boolean {
@@ -264,7 +328,7 @@ class MainActivity : AppCompatActivity() {
         openAi.setText(AppSettings.openAiApiKey(this))
         model.setText(AppSettings.realtimeModel(this))
         jev.addTextChangedListener(saver { AppSettings.setJevApiKey(this, it) })
-        openAi.addTextChangedListener(saver { AppSettings.setOpenAiApiKey(this, it) })
+        openAi.addTextChangedListener(saver { AppSettings.setOpenAiApiKey(this, it); refreshChecklist() })
         model.addTextChangedListener(saver { AppSettings.setRealtimeModel(this, it) })
 
         findViewById<CheckBox>(R.id.showKeysCheck).setOnCheckedChangeListener { _, show ->

@@ -25,7 +25,8 @@ internal class TextEntry(private val service: AccessibilityService) {
 
     // ---------------------------------------------------------------- typeText
 
-    suspend fun typeText(text: String) {
+    /** [replace]: the field's current content is replaced instead of appended to. */
+    suspend fun typeText(text: String, replace: Boolean = false) {
         if (text.isEmpty()) {
             VcLog.d(TAG, "typeText(\"\"): nothing to type")
             return
@@ -33,16 +34,18 @@ internal class TextEntry(private val service: AccessibilityService) {
         val node = awaitFocusedEditable()
         if (node == null) VcLog.w(TAG, "typeText: no focused editable node found")
 
-        if (node != null && setTextAppend(node, text)) return
+        if (node != null && setTextAppend(node, text, replace)) return
         // A field that has only just gained focus sometimes rejects SET_TEXT for a moment; retry once
         // before falling back to the clipboard (which overwrites the user's clipboard).
         var target = node
         if (node != null) {
             delay(300)
             target = focusedEditable() ?: node
-            if (setTextAppend(target, text)) return
+            if (setTextAppend(target, text, replace)) return
         }
-        if (pasteInto(target ?: service.findFocus(AccessibilityNodeInfo.FOCUS_INPUT), text)) return
+        val pasteTarget = target ?: service.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        if (replace && pasteTarget != null) selectAll(pasteTarget)  // paste / commit then replace the selection
+        if (pasteInto(pasteTarget, text)) return
         if (commitViaInputMethod(text)) return
 
         throw IllegalStateException(
@@ -60,14 +63,24 @@ internal class TextEntry(private val service: AccessibilityService) {
         return t
     }
 
-    private suspend fun setTextAppend(node: AccessibilityNodeInfo, text: String): Boolean {
+    private fun selectAll(node: AccessibilityNodeInfo) {
+        val len = currentText(node).length
+        if (len == 0) return
+        node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, Bundle().apply {
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, 0)
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, len)
+        })
+    }
+
+    private suspend fun setTextAppend(node: AccessibilityNodeInfo, text: String, replace: Boolean = false): Boolean {
         val supported = node.actionList.any { it.id == AccessibilityNodeInfo.ACTION_SET_TEXT }
         if (!supported) {
             VcLog.d(TAG, "typeText: focused node (${describe(node)}) has no ACTION_SET_TEXT")
             return false
         }
         val old = currentText(node)
-        val wanted = old + text
+        val wanted = if (replace) text else old + text
+        if (replace && old.isNotEmpty()) VcLog.d(TAG, "typeText: replacing ${old.length} chars already in the field")
         val args = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, wanted)
         }
@@ -86,7 +99,8 @@ internal class TextEntry(private val service: AccessibilityService) {
             if (now != old) break
         }
         when {
-            now == wanted -> VcLog.i(TAG, "typeText: SET_TEXT ok (${old.length}+${text.length} chars) on ${describe(node)}")
+            now == wanted -> VcLog.i(TAG, "typeText: SET_TEXT ok (${if (replace) "replaced ${old.length} with " else "${old.length}+"}" +
+                "${text.length} chars) on ${describe(node)}")
             now != old -> VcLog.i(TAG, "typeText: SET_TEXT ok but reads back differently (masked/filtered?): " +
                 "${now.length} chars, wanted ${wanted.length} on ${describe(node)}")
             else -> VcLog.w(TAG, "typeText: SET_TEXT accepted but not visible yet (async field?) on ${describe(node)}")

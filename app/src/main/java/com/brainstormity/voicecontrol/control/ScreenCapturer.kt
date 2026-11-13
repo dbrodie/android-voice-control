@@ -38,6 +38,7 @@ internal class ScreenCapturer(private val service: AccessibilityService) {
     suspend fun capture(): Bitmap = mutex.withLock {
         val t0 = SystemClock.elapsedRealtime()
         var rateLimited = 0
+        var internalErrors = 0
         while (true) {
             val wait = lastRequestAt + MIN_INTERVAL_MS - SystemClock.elapsedRealtime()
             if (wait > 0) delay(wait)
@@ -65,7 +66,23 @@ internal class ScreenCapturer(private val service: AccessibilityService) {
                         delay(RETRY_DELAY_MS)
                         continue
                     }
-                    val msg = "takeScreenshot failed: ${errorName(outcome.code)} (code ${outcome.code})"
+                    // INTERNAL_ERROR can be a passing glitch (display transition): try a couple more times.
+                    if (outcome.code == AccessibilityService.ERROR_TAKE_SCREENSHOT_INTERNAL_ERROR &&
+                        internalErrors < MAX_INTERNAL_ERROR_RETRIES
+                    ) {
+                        internalErrors++
+                        VcLog.w(TAG, "screenshot INTERNAL_ERROR, retry #$internalErrors in ${INTERNAL_ERROR_RETRY_MS}ms")
+                        delay(INTERNAL_ERROR_RETRY_MS)
+                        continue
+                    }
+                    val hint = when (outcome.code) {
+                        // Seen on the emulator after reinstalling the app while the service was enabled: every
+                        // request fails until the service is re-bound.
+                        AccessibilityService.ERROR_TAKE_SCREENSHOT_INTERNAL_ERROR, -2 ->
+                            ". Turn Voice Control's accessibility service off and on again (Settings > Accessibility)."
+                        else -> ""
+                    }
+                    val msg = "Can't take a screenshot: ${errorName(outcome.code)} (code ${outcome.code})$hint"
                     VcLog.e(TAG, msg)
                     throw IllegalStateException(msg)
                 }
@@ -136,6 +153,8 @@ internal class ScreenCapturer(private val service: AccessibilityService) {
         const val MIN_INTERVAL_MS = 345L
         private const val RETRY_DELAY_MS = 120L
         private const val MAX_RATE_LIMIT_RETRIES = 10
+        private const val MAX_INTERNAL_ERROR_RETRIES = 2
+        private const val INTERNAL_ERROR_RETRY_MS = 400L
         private const val REQUEST_TIMEOUT_MS = 5000L
     }
 }

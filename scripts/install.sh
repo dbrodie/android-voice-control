@@ -25,6 +25,40 @@ adb shell appops set "$VC_PKG" SYSTEM_ALERT_WINDOW allow
 adb shell pm grant "$VC_PKG" android.permission.RECORD_AUDIO
 adb shell pm grant "$VC_PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 
-adb shell settings put secure enabled_accessibility_services "${others:+$others:}$SVC"
-adb shell settings put secure accessibility_enabled 1
+enable_service() {
+  adb logcat -c
+  adb shell settings put secure enabled_accessibility_services "${others:+$others:}$SVC"
+  adb shell settings put secure accessibility_enabled 1
+  for _ in $(seq 1 20); do
+    sleep 1
+    adb logcat -d -s VC/Hands | grep -q onServiceConnected && return 0
+  done
+  echo "WARNING: no onServiceConnected within 20 s"
+  return 1
+}
+
+# Give the package manager a moment to finish with the new APK before binding (enabling the service right
+# after `adb install` sometimes produced a binding whose takeScreenshot always failed with INTERNAL_ERROR).
+sleep 2
+enable_service || true
+# Debug builds: verify the new binding really works (HANDS screenshot); re-bind once if it doesn't.
+for attempt in 1 2; do
+  adb logcat -c
+  adb shell am broadcast -a "$VC_PKG.HANDS" --es op screenshot >/dev/null
+  ok=""
+  for _ in $(seq 1 8); do
+    sleep 1
+    if adb logcat -d -s VC/HandsTest | grep -q "op=screenshot n=.* OK"; then ok=1; break; fi
+    if adb logcat -d -s VC/HandsTest | grep -q "op=screenshot FAILED"; then break; fi
+  done
+  [ -n "$ok" ] && { echo "accessibility service connected; screenshot OK"; break; }
+  echo "screenshot check failed (attempt $attempt); re-binding the accessibility service"
+  if [ -n "$others" ]; then
+    adb shell settings put secure enabled_accessibility_services "$others"
+  else
+    adb shell settings delete secure enabled_accessibility_services >/dev/null
+  fi
+  sleep 2
+  enable_service || true
+done
 echo "enabled_accessibility_services = $(adb shell settings get secure enabled_accessibility_services | tr -d '\r')"

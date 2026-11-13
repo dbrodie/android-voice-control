@@ -19,4 +19,14 @@ data class OverlayRegion(val name: String, val rect: Rect, val touchable: Boolea
  */
 object OverlayInfo {
     val regions: MutableStateFlow<List<OverlayRegion>> = MutableStateFlow(emptyList())
+
+    /**
+     * Set by control/ while the accessibility service is connected: true if the overlay windows are really on
+     * screen now, false if Android is hiding them (it hides other apps' overlays while Settings and some
+     * permission screens are in front), null if unknown. [regions] doesn't change when that happens.
+     */
+    @Volatile var visibilityProbe: (() -> Boolean?)? = null
+
+    /** [visibilityProbe]'s answer; null when there is no probe or it can't tell. */
+    fun isShowing(): Boolean? = try { visibilityProbe?.invoke() } catch (_: Exception) { null }
 }

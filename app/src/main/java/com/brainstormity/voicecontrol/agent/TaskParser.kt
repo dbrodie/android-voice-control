@@ -36,6 +36,22 @@ object TaskParser {
         "photos" to "com.google.android.apps.photos",
     )
 
+    /**
+     * Not in upstream (phone.py only knew KNOWN_APPS): common built-in apps, so "Open the Clock app" opens the
+     * app directly instead of hunting through the app drawer. Pairs, because a name can have several packages
+     * (AOSP vs Google builds); only installed ones count. Packages here are deliberately not in KNOWN_APPS.
+     */
+    val EXTRA_APPS: List<Pair<String, String>> = listOf(
+        // Only names that are rarely ordinary words in a task ("keep", "drive", "files", "alarm" are left out).
+        "clock" to "com.google.android.deskclock", "clock" to "com.android.deskclock",
+        "calculator" to "com.google.android.calculator", "calculator" to "com.android.calculator2",
+        "contacts" to "com.google.android.contacts", "contacts" to "com.android.contacts",
+        "camera" to "com.android.camera2", "camera" to "com.google.android.GoogleCamera",
+        "phone" to "com.android.dialer", "messages" to "com.android.messaging",
+        "youtube music" to "com.google.android.apps.youtube.music", "google drive" to "com.google.android.apps.docs",
+        "google keep" to "com.google.android.keep",
+    )
+
     /** An app named in the task: [name] as in KNOWN_APPS (lowercase), [packageName] to launch. */
     data class App(val name: String, val packageName: String)
 
@@ -98,7 +114,7 @@ object TaskParser {
     fun appsInTask(task: String, installed: Set<String>): List<App> {
         data class Hit(val start: Int, val name: String, val pkg: String)
         val found = mutableListOf<Hit>()
-        for ((name, pkg) in KNOWN_APPS) {
+        for ((name, pkg) in KNOWN_APPS.entries.map { it.key to it.value } + EXTRA_APPS) {
             val regex = if (name == "x") Regex(B_BEFORE + "X" + B_AFTER)
             else Regex(B_BEFORE + Regex.escape(name) + B_AFTER, RegexOption.IGNORE_CASE)
             val match = regex.find(task)

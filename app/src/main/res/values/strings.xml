@@ -12,13 +12,23 @@
     <string name="overlay_bubble_description_active">Voice control: listening, tap to stop</string>
     <string name="overlay_stop_description">Stop the running task</string>
     <string name="overlay_need_mic">Microphone permission needed: opening setup</string>
+    <string name="overlay_need_voice_setup">Voice isn\'t set up: sign in with ChatGPT or add an OpenAI API key</string>
+    <string name="overlay_mic_fgs_denied">Android didn\'t allow the microphone right now. Open Voice Control once, then tap the bubble again.</string>
 
     <!-- MainActivity -->
     <string name="main_title">Voice Control</string>
     <string name="main_subtitle">Talk to your phone. It does the tapping.</string>
     <string name="how_to_title">How to use</string>
-    <string name="how_to_body">Grant the permissions below, then tap Start overlay. A blue mic bubble floats over every app. Tap it and say what you want done, for example \"turn on Wi-Fi\" or \"search Chrome for the weather in Berlin\". The assistant may ask a quick question, then it operates the phone for you. While it works, the bubble shrinks to a thin bar at the top of the screen; tap ■ there to stop it. Drag the bubble anywhere and it snaps to the nearest edge. Tap it again to end the conversation.</string>
+    <string name="how_to_body">Work through the setup list below from top to bottom, then tap Start overlay. A blue mic bubble floats over every app. Tap it and say what you want done, for example \"turn on Bluetooth\" or \"search Chrome for the weather in Berlin\". The assistant may ask a quick question, then it operates the phone for you and tells you how it went. While it works, the bubble turns into a thin bar at the top of the screen; tap ■ there to stop it. Drag the bubble anywhere and it snaps to the nearest edge. Tap it again to end the conversation.\n\nGood to know: Android hides every floating bubble while the Settings app (and some permission screens) are in front. That is a system rule; the assistant keeps working there and the bubble comes back when you leave Settings. The phone only types words that are part of your request: say exactly what to search for or write.</string>
     <string name="section_setup">Setup</string>
+    <string name="section_voice">Voice</string>
+    <string name="backend_auto">Automatic (ChatGPT sign-in if available, else API key)</string>
+    <string name="backend_chatgpt">ChatGPT sign-in (uses your ChatGPT plan)</string>
+    <string name="backend_openai_key">OpenAI API key (pay per use)</string>
+    <string name="check_chatgpt_title">Sign in with ChatGPT</string>
+    <string name="check_chatgpt_detail">Voice runs on your ChatGPT Plus/Pro plan. Optional if you use an OpenAI API key instead (Settings).</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_manage">Manage</string>
     <string name="section_settings">Settings</string>
     <string name="section_test">Test without voice</string>
 

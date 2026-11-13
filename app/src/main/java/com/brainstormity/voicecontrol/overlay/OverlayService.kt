@@ -24,6 +24,7 @@ import com.brainstormity.voicecontrol.core.AgentState
 import com.brainstormity.voicecontrol.core.VcLog
 import com.brainstormity.voicecontrol.core.VoiceState
 import com.brainstormity.voicecontrol.ui.MainActivity
+import com.brainstormity.voicecontrol.voice.VoiceBackends
 import com.brainstormity.voicecontrol.voice.VoiceController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,8 @@ class OverlayService : Service() {
     private var agent: AgentState = AgentState.Idle
     private var voiceChangedAt = 0L
     private var transient: Transient? = null
+    private var micForeground = false   // the FGS currently carries the microphone type
+    private var micDenied = false       // adding it failed during this session; don't retry on every update
     private val rerender = Runnable { render() }
     private val rebuild = Runnable { windows?.rebuild(); render() }
 
@@ -142,6 +145,11 @@ class OverlayService : Service() {
 
     private fun onVoice(v: VoiceState, initial: Boolean) {
         voice = v
+        // Keep the microphone FGS type only while a session is open (also covers sessions started elsewhere,
+        // e.g. the debug VOICE_START hook); drop it as soon as the session ends.
+        if (OverlayDemo.voice.value == null) {
+            if (isSessionState(v)) setMicForeground(true) else setMicForeground(false)
+        }
         if (initial) {
             render(); return   // don't replay a stale error left over from before the overlay started
         }
@@ -189,7 +197,9 @@ class OverlayService : Service() {
             return
         }
         try {
-            if (VoiceController.isActive) {
+            // VoiceController.start() is asynchronous: isActive turns true only once its worker thread has
+            // created the session, so also treat the session-ish states as "on" (tap = hang up).
+            if (VoiceController.isActive || isSessionState(VoiceController.state.value)) {
                 VcLog.i(TAG, "bubble tap -> VoiceController.stop()")
                 VoiceController.stop()
                 return
@@ -197,23 +207,74 @@ class OverlayService : Service() {
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 VcLog.w(TAG, "bubble tap without RECORD_AUDIO; opening setup")
                 showTransient(Pill(getString(R.string.overlay_need_mic), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
-                startActivity(
-                    Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+                openSetup()
+                return
+            }
+            if (VoiceBackends.resolve(this).isEmpty()) {
+                VcLog.w(TAG, "bubble tap but no voice backend is configured (${VoiceBackends.describe(this)}); opening setup")
+                showTransient(Pill(getString(R.string.overlay_need_voice_setup), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
+                openSetup()
+                return
+            }
+            // Android 14+: mic capture from the background needs the microphone FGS type, and that type can only
+            // be added while we count as foreground. A tap on our visible overlay is the best moment to ask.
+            if (!setMicForeground(true)) {
+                showTransient(Pill(getString(R.string.overlay_mic_fgs_denied), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
                 return
             }
             VcLog.i(TAG, "bubble tap -> VoiceController.start()")
+            val tappedAt = now()
             VoiceController.start(applicationContext)
-            // StateFlow drops equal values, so a repeated identical Error wouldn't re-emit: show it explicitly.
-            val s = VoiceController.state.value
-            if (s is VoiceState.Error) {
-                voice = s
-                voiceChangedAt = now()
-                showTransient(Pill(voiceErrorText(s), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
-            }
+            // StateFlow drops equal values, so failing again with the *same* Error wouldn't re-emit: if nothing
+            // changed shortly after the tap and we're still in that Error, show it again.
+            handler.postDelayed({
+                val s = VoiceController.state.value
+                if (windows != null && !isSessionState(s) && !VoiceController.isActive) setMicForeground(false)
+                if (s is VoiceState.Error && voiceChangedAt <= tappedAt && windows != null) {
+                    voice = s
+                    voiceChangedAt = now()
+                    showTransient(Pill(voiceErrorText(s), Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
+                }
+            }, REPEATED_ERROR_CHECK_MS)
         } catch (t: Throwable) {
             VcLog.e(TAG, "voice toggle failed", t)
             showTransient(Pill("Voice failed: ${t.message ?: t.javaClass.simpleName}", Tone.ERROR), OverlayPresenter.ERROR_SHOW_MS)
+        }
+    }
+
+    private fun openSetup() {
+        try {
+            startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (e: Exception) {
+            VcLog.w(TAG, "can't open setup: ${e.message}")
+        }
+    }
+
+    private fun isSessionState(v: VoiceState) = v is VoiceState.Connecting || v is VoiceState.Listening ||
+        v is VoiceState.UserSaid || v is VoiceState.AssistantSaying
+
+    /**
+     * Adds (or drops) the `microphone` foreground-service type next to `specialUse`. Adding it is only allowed
+     * while the app counts as foreground (Android 14+ while-in-use rule) and with RECORD_AUDIO granted;
+     * otherwise Android throws (ForegroundServiceStartNotAllowedException / SecurityException) and we return
+     * false. One failed attempt per session: transcript updates don't retry it.
+     */
+    private fun setMicForeground(on: Boolean): Boolean {
+        if (on == micForeground) return true
+        if (on && micDenied) return false
+        if (!on) micDenied = false
+        val types = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE or
+            (if (on) ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0)
+        return try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), types)
+            micForeground = on
+            VcLog.i(TAG, "foreground service types -> ${if (on) "specialUse|microphone" else "specialUse"}")
+            true
+        } catch (e: Exception) {
+            if (on) micDenied = true
+            VcLog.w(TAG, "startForeground(${if (on) "with" else "without"} microphone) refused: " +
+                "${e.javaClass.simpleName}: ${e.message}")
+            false
         }
     }
 
@@ -260,6 +321,7 @@ class OverlayService : Service() {
         private const val TAG = "Overlay"
         const val CHANNEL_ID = "overlay"
         const val NOTIFICATION_ID = 1
+        private const val REPEATED_ERROR_CHECK_MS = 1_500L
         /** Stops the overlay (and with it any voice session). */
         const val ACTION_STOP = "com.brainstormity.voicecontrol.overlay.STOP"
         /** Notification "Stop": also stops a running task. */

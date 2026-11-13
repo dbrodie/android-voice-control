@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Path
+import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.net.Uri
 import android.os.SystemClock
@@ -14,6 +15,7 @@ import android.view.Display
 import android.view.accessibility.AccessibilityWindowInfo
 import com.brainstormity.voicecontrol.core.Device
 import com.brainstormity.voicecontrol.core.Hands
+import com.brainstormity.voicecontrol.core.OverlayInfo
 import com.brainstormity.voicecontrol.core.Screen
 import com.brainstormity.voicecontrol.core.ScreenSize
 import com.brainstormity.voicecontrol.core.SwipeDirection
@@ -152,12 +154,18 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     override suspend fun typeText(text: String) = withContext(Dispatchers.Default) { textEntry.typeText(text) }
 
+    override suspend fun replaceText(text: String) =
+        withContext(Dispatchers.Default) { textEntry.typeText(text, replace = true) }
+
     // ------------------------------------------------------------------ apps / urls
 
     override suspend fun openApp(packageName: String) {
         val intent = service.packageManager.getLaunchIntentForPackage(packageName)
             ?: throw IllegalArgumentException("openApp: $packageName is not installed or has no launcher activity")
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        // Start the app on its main screen (upstream: `am start -n <launcher activity>`), not wherever the user
+        // left it: with RESET_TASK_IF_NEEDED, "Open Settings" resumed a stale Settings search page and JEV was
+        // lost from step 1. CLEAR_TASK gives every task the same, predictable starting point.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         launch("openApp($packageName)", intent, packageName)
     }
 
@@ -204,6 +212,9 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     /** Called by the service for TYPE_WINDOW_STATE_CHANGED events (the only events it subscribes to). */
     fun onWindowStateChanged(packageName: CharSequence?) {
+        // Our own overlay (the strip appearing as a task starts) is not the launched app showing up: seen as
+        // "openApp(com.android.chrome): window from com.brainstormity.voicecontrol after 235ms".
+        if (packageName?.toString() == service.packageName) return
         lastWindowPackage = packageName?.toString()
         lastWindowAt = SystemClock.elapsedRealtime()
     }
@@ -218,6 +229,26 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
     } catch (e: Exception) {
         null
     } ?: service.rootInActiveWindow?.packageName?.toString()
+
+    /**
+     * Whether our overlay is on screen right now. Android hides other apps' overlays while Settings and some
+     * permission screens are in front, and hidden windows are missing from [AccessibilityService.getWindows].
+     * Our touchable overlay windows (bubble, stop button) are listed there when visible, so look for a window
+     * whose bounds equal one of the touchable [OverlayInfo] regions. Null if there's nothing to look for or the
+     * window list is unavailable. Uses only window bounds (no node IPC).
+     */
+    fun overlayVisible(): Boolean? = try {
+        val ours = OverlayInfo.regions.value.filter { it.touchable }.map { it.rect }
+        if (ours.isEmpty()) null else {
+            val b = Rect()
+            service.windows.any { w ->
+                if (w.type == AccessibilityWindowInfo.TYPE_APPLICATION) false
+                else { w.getBoundsInScreen(b); b in ours }
+            }
+        }
+    } catch (e: Exception) {
+        null
+    }
 
     /** Debug aid: one line per window (type, layer, package, active/focused). */
     fun describeWindows(): String = try {

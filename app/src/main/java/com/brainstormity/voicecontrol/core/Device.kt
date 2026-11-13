@@ -23,6 +23,12 @@ interface Hands {
     suspend fun home()
     suspend fun enter()
     suspend fun typeText(text: String)                  // into the focused field
+    /**
+     * Additive (T5): replace the focused field's whole content with [text], for a field the agent has just
+     * tapped (a search box still holding an old query). typeText appends at the cursor like a keyboard, which
+     * produced "weather in Berlinbest pizza in Rome". Default: plain [typeText].
+     */
+    suspend fun replaceText(text: String) = typeText(text)
     suspend fun openApp(packageName: String)
     suspend fun openUrl(url: String)
     fun installedApps(): Set<String>                    // launchable package names

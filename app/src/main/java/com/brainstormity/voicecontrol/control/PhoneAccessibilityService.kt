@@ -5,6 +5,7 @@ import android.content.Intent
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import com.brainstormity.voicecontrol.core.Device
+import com.brainstormity.voicecontrol.core.OverlayInfo
 import com.brainstormity.voicecontrol.core.VcLog
 
 /**
@@ -24,6 +25,7 @@ class PhoneAccessibilityService : AccessibilityService() {
         device = d
         Device.screen.value = d
         Device.hands.value = d
+        OverlayInfo.visibilityProbe = d::overlayVisible
         val size = d.screenSize()
         val wm = getSystemService(WindowManager::class.java).maximumWindowMetrics.bounds
         VcLog.i(
@@ -57,6 +59,7 @@ class PhoneAccessibilityService : AccessibilityService() {
         // Only clear what we registered (a re-bound instance may already have replaced it).
         Device.screen.compareAndSet(d, null)
         Device.hands.compareAndSet(d, null)
+        if (Device.hands.value == null) OverlayInfo.visibilityProbe = null
         device = null
     }
 
