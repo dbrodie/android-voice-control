@@ -105,5 +105,12 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Floating voice-assistant bubble that lets the user control the phone by voice." />
         </service>
+
+        <!-- The user's own JEV (TypeSafe System One) API key: explanation, verify & save, remove. -->
+        <activity
+            android:name=".ui.JevKeyActivity"
+            android:exported="false"
+            android:label="JEV API key"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>

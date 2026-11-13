@@ -6,11 +6,19 @@ import com.brainstormity.voicecontrol.BuildConfig
 
 /**
  * SharedPreferences-backed settings. A blank/unset stored value falls back to the BuildConfig default
- * (which comes from the project-root `.env` at build time).
+ * (which comes from the project-root `.env` at build time; always "" for keys in release builds).
+ *
+ * The JEV API key is stored encrypted ([SecurePrefs], Keystore alias `vc_jev_key`) under `jev_api_key_enc`;
+ * a plain `jev_api_key` value left by older versions is migrated on first read.
  */
 object AppSettings {
     private const val PREFS = "vc_settings"
-    private const val KEY_JEV = "jev_api_key"
+    private const val KEY_JEV_PLAIN = "jev_api_key"        // pre-T7: plain text, migrated + removed
+    private const val KEY_JEV_ENC = "jev_api_key_enc"
+    private const val KEY_JEV_CHECK = "jev_key_check"       // last verification result, human readable
+    private const val KEY_JEV_CHECK_AT = "jev_key_check_at"
+    private const val KEY_JEV_PROMPTED = "jev_key_prompted" // first-run routing to JevKeyActivity done
+    private const val JEV_ALIAS = "vc_jev_key"
     private const val KEY_OPENAI = "openai_api_key"
     private const val KEY_MODEL = "realtime_model"
     private const val KEY_BACKEND = "voice_backend"
@@ -30,8 +38,57 @@ object AppSettings {
         prefs(ctx).edit().putString(key, v.trim()).apply()
     }
 
-    fun jevApiKey(ctx: Context): String = get(ctx, KEY_JEV, BuildConfig.JEV_KEY)
-    fun setJevApiKey(ctx: Context, v: String) = set(ctx, KEY_JEV, v)
+    /** The key the agent uses: the one the user entered, else the debug build's `.env` key, else "". */
+    fun jevApiKey(ctx: Context): String = storedJevApiKey(ctx) ?: BuildConfig.JEV_KEY
+
+    /** Stores the user's key encrypted (all whitespace removed); blank removes it. */
+    fun setJevApiKey(ctx: Context, v: String) {
+        val key = v.filterNot { it.isWhitespace() }
+        synchronized(this) {
+            val edit = prefs(ctx).edit().remove(KEY_JEV_PLAIN)
+            if (key.isEmpty()) edit.remove(KEY_JEV_ENC).remove(KEY_JEV_CHECK).remove(KEY_JEV_CHECK_AT)
+            else edit.putString(KEY_JEV_ENC, SecurePrefs.encrypt(JEV_ALIAS, key))
+            edit.commit()
+            jevCache = key.ifEmpty { null }
+            jevLoaded = true
+        }
+    }
+
+    /** The user-entered key only (null if none), decrypted. */
+    fun storedJevApiKey(ctx: Context): String? {
+        if (jevLoaded) return jevCache
+        synchronized(this) {
+            if (jevLoaded) return jevCache
+            val p = prefs(ctx)
+            val plain = p.getString(KEY_JEV_PLAIN, null)?.filterNot { it.isWhitespace() }
+            jevCache = if (!plain.isNullOrEmpty()) {
+                VcLog.i("Settings", "migrating the plain-text JEV key to encrypted storage")
+                p.edit().putString(KEY_JEV_ENC, SecurePrefs.encrypt(JEV_ALIAS, plain)).remove(KEY_JEV_PLAIN).commit()
+                plain
+            } else {
+                if (plain != null) p.edit().remove(KEY_JEV_PLAIN).commit()
+                p.getString(KEY_JEV_ENC, null)?.let { SecurePrefs.decrypt(JEV_ALIAS, it) }?.ifBlank { null }
+            }
+            jevLoaded = true
+            return jevCache
+        }
+    }
+
+    @Volatile private var jevCache: String? = null
+    @Volatile private var jevLoaded = false
+
+    /** Last "Verify & save" result shown on the key screen, with when it happened (ms), or null. */
+    fun jevKeyCheck(ctx: Context): Pair<String, Long>? {
+        val text = prefs(ctx).getString(KEY_JEV_CHECK, null) ?: return null
+        return text to prefs(ctx).getLong(KEY_JEV_CHECK_AT, 0L)
+    }
+    fun setJevKeyCheck(ctx: Context, text: String) {
+        prefs(ctx).edit().putString(KEY_JEV_CHECK, text).putLong(KEY_JEV_CHECK_AT, System.currentTimeMillis()).apply()
+    }
+
+    /** First-run routing to the key screen happens once; after that the Setup row is the way in. */
+    fun jevKeyPrompted(ctx: Context): Boolean = prefs(ctx).getBoolean(KEY_JEV_PROMPTED, false)
+    fun setJevKeyPrompted(ctx: Context) { prefs(ctx).edit().putBoolean(KEY_JEV_PROMPTED, true).apply() }
 
     fun openAiApiKey(ctx: Context): String = get(ctx, KEY_OPENAI, BuildConfig.OPENAI_API_KEY)
     fun setOpenAiApiKey(ctx: Context, v: String) = set(ctx, KEY_OPENAI, v)

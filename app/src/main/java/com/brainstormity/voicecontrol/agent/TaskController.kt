@@ -56,6 +56,14 @@ object TaskController : TaskControllerApi {
         // Always pass through Running first, so every runTask() is a visible state change (a StateFlow
         // doesn't re-emit an equal Finished value).
         _state.value = AgentState.Running(task, 0, "START", "", 0f)
+        val ctx = context()
+        if (jevKey(ctx).isBlank()) {
+            // No key entered in the app and none built in (release builds never embed one).
+            VcLog.w(TAG, "runTask(\"$task\"): no JEV API key")
+            _state.value = AgentState.Finished(task, "error", JevClient.NO_KEY_MESSAGE, 0, 0.0)
+            busy.set(false)
+            return
+        }
         val screen = Device.screen.value
         val hands = Device.hands.value
         if (screen == null || hands == null) {
@@ -72,8 +80,7 @@ object TaskController : TaskControllerApi {
         job = scope.launch {
             var finished: AgentState.Finished? = null
             try {
-                val ctx = context()
-                val jev = JevClient({ ctx?.let { AppSettings.jevApiKey(it) } ?: BuildConfig.JEV_KEY })
+                val jev = JevClient({ jevKey(ctx) })
                 val report = RunReport.create(ctx?.filesDir)
                 val runner = TaskRunner(task, jev, screen, hands, report, { stopRequested.get() }) { running ->
                     _state.value = running
@@ -87,6 +94,9 @@ object TaskController : TaskControllerApi {
             } finally {
                 val f = finished ?: AgentState.Finished(task, "stopped", "Stopped by you.", 0, 0.0)
                 VcLog.i(TAG, "Finished: ${f.status} after ${f.steps} step(s), $${AgentRules.usd(f.costUsd)}: ${f.message}")
+                if (f.message == JevClient.KEY_REJECTED_MESSAGE) {
+                    ctx?.let { AppSettings.setJevKeyCheck(it, "Rejected by JEV during a task (HTTP 401/403)") }
+                }
                 job = null
                 busy.set(false)
                 _state.value = f
@@ -99,6 +109,8 @@ object TaskController : TaskControllerApi {
         VcLog.i(TAG, "stop requested")
         stopRequested.set(true)
     }
+
+    private fun jevKey(ctx: Context?): String = ctx?.let { AppSettings.jevApiKey(it) } ?: BuildConfig.JEV_KEY
 
     private fun context(): Context? = appContext ?: try {
         // The app's own Application object; avoids requiring every caller (e.g. DebugReceiver) to call init().

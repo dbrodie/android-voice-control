@@ -188,7 +188,7 @@ class TaskRunner(
         log("Task: $task\nQuoted text: ${quoted.ifEmpty { "-" }}\nWebsites: ${urls.ifEmpty { "-" }}\n" +
             "Report: ${report.dir ?: "(not saved)"}/")
         try {
-            if (!jev.hasKey()) throw JevException("No JEV API key: set JEV_KEY in .env or in the app's settings.")
+            if (!jev.hasKey()) throw JevException(JevClient.NO_KEY_MESSAGE)
             val size = screen.screenSize()  // taps use real screen pixels
             val screenW = size.width
             val screenH = size.height

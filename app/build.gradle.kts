@@ -35,6 +35,15 @@ val dotEnv = readDotEnv(rootProject.file(".env"))
 fun envValue(key: String, default: String = ""): String = dotEnv[key] ?: default
 fun String.asBuildConfigString(): String = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
+/**
+ * API keys from `.env` are embedded into DEBUG builds only (developer convenience), and only while
+ * EMBED_KEYS isn't "false" (in `.env` or the environment). Release builds never embed keys: users enter
+ * their JEV key in the app (JevKeyActivity) and voice uses ChatGPT sign-in or an OpenAI key from Settings.
+ */
+val embedKeys: Boolean = (System.getenv("EMBED_KEYS") ?: envValue("EMBED_KEYS", "true")).trim().lowercase() !in
+    setOf("false", "0", "no", "off")
+fun debugKey(key: String): String = if (embedKeys) envValue(key) else ""
+
 android {
     namespace = "com.brainstormity.voicecontrol"
     compileSdk = 36
@@ -46,8 +55,9 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        buildConfigField("String", "JEV_KEY", envValue("JEV_KEY").asBuildConfigString())
-        buildConfigField("String", "OPENAI_API_KEY", envValue("OPENAI_API_KEY").asBuildConfigString())
+        // Keys: see embedKeys above. defaultConfig = debug; the release build type overrides both with "".
+        buildConfigField("String", "JEV_KEY", debugKey("JEV_KEY").asBuildConfigString())
+        buildConfigField("String", "OPENAI_API_KEY", debugKey("OPENAI_API_KEY").asBuildConfigString())
         buildConfigField(
             "String", "OPENAI_REALTIME_MODEL",
             envValue("OPENAI_REALTIME_MODEL", "gpt-live-1").asBuildConfigString()
@@ -75,6 +85,9 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+            // Never ship keys inside a release APK, whatever .env says.
+            buildConfigField("String", "JEV_KEY", "\"\"")
+            buildConfigField("String", "OPENAI_API_KEY", "\"\"")
         }
     }
 

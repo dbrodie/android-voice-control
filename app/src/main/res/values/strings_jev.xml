@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JEV API key (T7): Setup row in MainActivity + JevKeyActivity. Kept in its own file for easy merging. -->
+<resources>
+    <string name="check_jev_title">JEV API key</string>
+    <string name="check_jev_detail">JEV (TypeSafe AI) decides every tap. Add your own API key from console.typesafe.ai.</string>
+    <string name="check_jev_builtin">Using the key built into this debug build. Tap Change to use your own.</string>
+    <string name="action_add">Add</string>
+    <string name="action_change">Change</string>
+
+    <string name="jev_title">JEV API key</string>
+    <string name="jev_what_title">What is JEV?</string>
+    <string name="jev_what_body">JEV is TypeSafe AI\'s \"System One\" model. For every step, Voice Control sends it a screenshot and JEV decides what to do next: which button to tap, what to type, when the task is done. The app calls JEV with your own API key, so TypeSafe bills your account directly: about $0.0002 per step, so a typical task costs well under one cent ($42 per billion input tokens).</string>
+    <string name="jev_how_title">Get a key</string>
+    <string name="jev_how_body">1. Open the TypeSafe console and sign in (or create an account).\n2. On the API keys page, create a new key.\n3. Copy it, come back here and paste it below.</string>
+    <string name="jev_open_console">Open console.typesafe.ai/keys</string>
+    <string name="jev_open_site">About TypeSafe AI (typesafe.ai)</string>
+    <string name="jev_current_title">Current key</string>
+    <string name="jev_input_label">Paste your API key</string>
+    <string name="jev_input_hint">Your TypeSafe API key</string>
+    <string name="jev_show_key">Show key</string>
+    <string name="jev_paste">Paste</string>
+    <string name="jev_verify_save">Verify &amp; save</string>
+    <string name="jev_save_anyway">Save without verifying</string>
+    <string name="jev_remove">Remove key</string>
+    <string name="jev_privacy_note">The key is stored encrypted on this phone (Android Keystore) and is only sent to api.typesafe.ai.</string>
+</resources>

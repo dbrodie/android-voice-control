@@ -16,7 +16,9 @@ adb install -r dist/voice-control-debug.apk
 You can also copy the APK to the phone and open it there. The phone will ask you to allow installs from that
 source. The app is called **Android Voice Control**.
 
-The build includes the JEV key from `.env`. You can replace it in the app under Settings → JEV API key.
+You need your own **JEV API key** (step 6 below). Release APKs contain no keys at all. Debug builds made
+from this repo include the developer's key from `.env` unless they were built with `EMBED_KEYS=false`; you
+can still replace it with your own under *JEV API key → Change*.
 
 ## 2. First-run setup
 
@@ -52,7 +54,19 @@ The **Setup** list shows a green ✓ for each step that is done. Do the steps fr
    phone; if the Voice choice below was *ChatGPT sign-in*, it goes back to *Automatic*. If you use an **OpenAI
    API key** instead, this row is optional; you can also change the key under *Settings → OpenAI API key*.
 5. **Notifications**: tap *Allow*. You get the "bubble running" notification, which has a Stop button.
-6. *(Optional)* **Ignore battery optimisation**: this stops aggressive phones from killing the bubble.
+6. **JEV API key**: tap *Add*. (After you sign in, the app opens this screen once by itself.) JEV is
+   TypeSafe AI's "System One" model: for every step it looks at a screenshot and decides what to tap.
+   To get a key:
+   1. Open [console.typesafe.ai/keys](https://console.typesafe.ai/keys) (the button on the screen opens
+      it) and sign in or create an account.
+   2. Create an API key and copy it.
+   3. Back in the app, tap *Paste* (or long-press the field), then **Verify & save**. The app sends one tiny
+      test request to TypeSafe and tells you whether the key works (✓), is invalid (✗, nothing saved), or
+      couldn't be checked (no internet; you can *Save without verifying*).
+
+   The key is stored encrypted on the phone and only sent to `api.typesafe.ai`. The screen shows only the
+   first 12 characters. Use *Remove key* to delete it. More on what it costs under *Costs* below.
+7. *(Optional)* **Ignore battery optimisation**: this stops aggressive phones from killing the bubble.
 
 Under **Voice** you choose which backend to use:
 - *Automatic*: ChatGPT sign-in if you are signed in, otherwise the API key.
@@ -113,6 +127,8 @@ The log under the box shows each step.
 
 | Symptom | Fix |
 |---|---|
+| "Add your JEV API key in Voice Control" | No JEV key is saved. Open the app → *JEV API key* → *Add* (see setup step 6). |
+| "JEV rejected the API key — check it in Voice Control" | TypeSafe answered 401/403: the key is wrong, was deleted, or expired. The Setup row shows "!". Open *JEV API key*, paste a working key from console.typesafe.ai/keys and tap *Verify & save*. |
 | "Voice Control can't see or touch the screen yet" or "accessibility service is no longer connected" | Turn the accessibility service **off and on** again (Settings → Accessibility → Android Voice Control). This happens after you reinstall or update the app: Android keeps the switch on, but the old connection is dead. |
 | "Can't take a screenshot: INTERNAL_ERROR" | Same fix: turn the accessibility service off and on. |
 | The bubble disappears in Settings | This is normal. Android hides every app's floating windows while Settings and some permission screens are open. The agent keeps working, and the bubble comes back when you leave Settings. |
@@ -127,8 +143,9 @@ The log under the box shows each step.
 | The agent taps the wrong thing or gives up | Be more specific: name the app and the setting. Run reports are saved (see below). |
 | The bubble is gone after a while | Turn off battery optimisation for the app (Setup list), then tap *Start overlay* again. |
 
-**Costs.** JEV costs about $0.0002 per step, so a typical task costs $0.001–$0.003. The app shows the cost
-when the task finishes, and it is also in the run report. With ChatGPT sign-in, GPT-Live voice uses your
+**Costs.** JEV is billed by TypeSafe to the account that owns your API key: $42 per billion input tokens,
+which is about $0.0002 per step, so a typical task costs $0.001–$0.003. Checking a key costs about
+$0.00001. The app shows the cost when the task finishes, and it is also in the run report. With ChatGPT sign-in, GPT-Live voice uses your
 ChatGPT plan's allowance. With an API key, OpenAI bills your account per minute of audio.
 
 ## 6. Debug commands (debug build, over adb)
