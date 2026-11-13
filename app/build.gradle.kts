@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -52,10 +54,27 @@ android {
         )
     }
 
+    signingConfigs {
+        // Release signing: keystore/voice-control-release.jks + keystore.properties (both gitignored).
+        // Generated locally with keytool; keep them safe, updates must be signed with the same key.
+        val props = rootProject.file("keystore.properties")
+        if (props.exists()) {
+            val ks = Properties()
+            props.inputStream().use { stream -> ks.load(stream) }
+            create("release") {
+                storeFile = rootProject.file(ks.getProperty("storeFile"))
+                storePassword = ks.getProperty("storePassword")
+                keyAlias = ks.getProperty("keyAlias")
+                keyPassword = ks.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
