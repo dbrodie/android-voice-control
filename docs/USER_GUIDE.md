@@ -123,7 +123,41 @@ The log under the box shows each step.
   screens that block screenshots (banking apps, `FLAG_SECURE`).
 - Treat it as an assistant you watch, not one you leave alone. Don't ask it to do anything you can't undo.
 
-## 5. Troubleshooting
+## 5. Runs & costs
+
+Every task the agent runs is saved with a step-by-step report, like the upstream web dashboard. Open it from
+the app's main screen: **Runs & costs → Open** (below *Start overlay*).
+
+- **The list** shows the newest run first: the task, a coloured status (green *Done*; orange *Not sure*,
+  *Stopped*, *Gave up* or *Interrupted* (the app was closed mid-task); red *Error*), when it ran, the number
+  of steps, how long it took, what it cost (in US dollars, to 5 decimals) and how many JEV tokens it used.
+  The card on top adds up all listed runs: number of runs, total cost, total JEV tokens, and the success rate
+  (the share of finished runs that ended *Done*).
+- **While a task runs**, a blue-bordered card at the top shows it live (step, action, how sure JEV is, cost so
+  far) with a red **Stop** button. The screen refreshes by itself.
+- **Tap a run** to see its report. The header repeats the task, status and the agent's closing message (a
+  warning, if any, is in a red box), when it started and finished, the totals and the phone. Then each step
+  is a card:
+  - the screenshot JEV saw, with a **red box** around what it picked and a **red circle** where it tapped
+    (tap the picture to see it full screen; tap again to close);
+  - **[n] ACTION** and its detail, e.g. `[1] CLICK at (550, 1848)` or `TYPE_ENTER 'weather in Berlin'`;
+  - why: what that action means, plus any note (for example "Zoomed in to find exactly where to tap
+    (location confidence 43% → 67%)");
+  - **How sure JEV was**, as a bar, and the other options it weighed with their probabilities;
+  - the tap target's confidence;
+  - the result ("Executed.", "Executed, but nothing changed on screen.", or in red "Not executed: JEV wasn't
+    sure enough."), how long JEV and the screen took, and the step's tokens and cost.
+- **Share** (the arrow at the top of a report) sends its `report.json` to another app, for example Gmail or
+  Drive.
+- **Trash**: the bin icon on a run (or at the top of its report) moves it to the **Trash** tab. There you can
+  tick runs (or **Select all**) and **Restore** them, or **Delete forever** (asks first; screenshots and
+  report are gone for good).
+
+The app keeps the **last 20 runs** and deletes older ones as new tasks start. Runs in the Trash don't count
+towards the 20 and stay until you delete them forever. A run you restore counts again, so if you already
+have 20, the oldest one goes when the next task starts.
+
+## 6. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
@@ -140,15 +174,15 @@ The log under the box shows each step.
 | "Sign in again" / "ChatGPT rejected the sign-in" | Your sign-in expired or was revoked. Use *Sign in with ChatGPT* → *Manage*, then sign in again. |
 | "Your ChatGPT plan has no voice" / "Voice limit reached" | Your plan's voice allowance is used up. Wait, or switch to an OpenAI API key. |
 | The assistant says "on it" but nothing happens | Sometimes GPT doesn't hand the task over. Say it again, a bit more directly: "open the clock app". |
-| The agent taps the wrong thing or gives up | Be more specific: name the app and the setting. Run reports are saved (see below). |
+| The agent taps the wrong thing or gives up | Be more specific: name the app and the setting. Check what it saw in *Runs & costs* (section 5). |
 | The bubble is gone after a while | Turn off battery optimisation for the app (Setup list), then tap *Start overlay* again. |
 
 **Costs.** JEV is billed by TypeSafe to the account that owns your API key: $42 per billion input tokens,
 which is about $0.0002 per step, so a typical task costs $0.001–$0.003. Checking a key costs about
-$0.00001. The app shows the cost when the task finishes, and it is also in the run report. With ChatGPT sign-in, GPT-Live voice uses your
+$0.00001. The app shows the cost when the task finishes; *Runs & costs* (section 5) shows it per step, per run and in total. With ChatGPT sign-in, GPT-Live voice uses your
 ChatGPT plan's allowance. With an API key, OpenAI bills your account per minute of audio.
 
-## 6. Debug commands (debug build, over adb)
+## 7. Debug commands (debug build, over adb)
 
 ```bash
 P=com.brainstormity.voicecontrol
@@ -168,6 +202,9 @@ adb logcat -s VC/Agent VC/Hands VC/Overlay
 adb shell run-as $P ls files/runs
 adb exec-out run-as $P cat files/runs/<id>/report.json
 adb exec-out run-as $P cat files/runs/<id>/01-CLICK.jpg > 01.jpg
+adb shell run-as $P ls files/runs/.trash                       # runs in the Trash
+adb shell am start -n $P/.ui.runs.RunsActivity                 # the Runs & costs screen (exported in debug builds)
+adb shell am start -n $P/.ui.runs.RunDetailActivity --es id <id>   # one run's report
 
 # ChatGPT sign-in (see app/src/main/java/.../voice/auth/README.md)
 adb push ~/.codex/auth.json /data/local/tmp/codex-auth.json

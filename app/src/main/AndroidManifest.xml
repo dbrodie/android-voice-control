@@ -112,5 +112,27 @@
             android:exported="false"
             android:label="JEV API key"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- Runs & costs (T9): every run's status, cost and step-by-step report (port of upstream's dashboard).
+             Debug builds export both (src/debug manifest) so `adb shell am start -n` can open them. -->
+        <activity
+            android:name=".ui.runs.RunsActivity"
+            android:exported="false"
+            android:label="@string/runs_title" />
+        <activity
+            android:name=".ui.runs.RunDetailActivity"
+            android:exported="false"
+            android:label="@string/run_title" />
+
+        <!-- "Share report" on RunDetailActivity: read-only content:// URIs for files/runs/**. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.runs"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/run_file_paths" />
+        </provider>
     </application>
 </manifest>

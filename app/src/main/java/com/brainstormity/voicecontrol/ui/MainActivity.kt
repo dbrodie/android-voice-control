@@ -115,6 +115,7 @@ class MainActivity : AppCompatActivity() {
         setupBackend()
         setupSettings()
         setupTestBox()
+        listOf(R.id.runsRow, R.id.runsButton).forEach { findViewById<View>(it).setOnClickListener { com.brainstormity.voicecontrol.ui.runs.RunsActivity.start(this) } } // T9: Runs & costs
         logText.text = logBuffer.joinToString("\n")
         maybeShowOnboarding(savedInstanceState)
     }

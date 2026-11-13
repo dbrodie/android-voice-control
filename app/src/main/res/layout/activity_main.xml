@@ -100,6 +100,52 @@
             android:textColor="@color/vc_text_secondary"
             android:textSize="13sp" />
 
+        <!-- Runs & costs (T9): opens ui/runs/RunsActivity -->
+        <LinearLayout
+            android:id="@+id/runsRow"
+            style="@style/VC.Card"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/main_runs_title"
+                    android:textColor="@color/vc_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/main_runs_detail"
+                    android:textColor="@color/vc_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/runsButton"
+                style="@style/VC.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="72dp"
+                android:text="@string/main_runs_open" />
+        </LinearLayout>
+
         <!-- Voice backend -->
         <TextView
             style="@style/VC.SectionTitle"
