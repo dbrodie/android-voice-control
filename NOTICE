@@ -1,0 +1,28 @@
+Android Voice Control
+Copyright (c) 2026 Daniel Brodie
+Licensed under the MIT License (see LICENSE).
+
+This app is a native Android port of, and owes its design to:
+
+  System One Computer Use          MIT   https://github.com/brainstormity/System-One-Computer-Use
+    Copyright (c) 2026 System One Computer Use Contributors
+    The screenshot -> ask JEV -> act loop, the action vocabulary, confidence rules, zoom-in
+    refinement, screen-settle logic, task parsing and the run report format are ported from
+    jev_agent.py, phone.py and dashboard.py. Golden tests check the port against the original.
+
+  opencode-gpt-live                MIT   https://github.com/malhashemi/opencode-gpt-live
+    Copyright (c) 2026 M. Adel Alhashemi
+    The GPT-Live call setup with a ChatGPT sign-in, the control-channel event handling and the
+    WebRTC audio setup follow this project's TypeScript and Rust sources.
+
+Third-party libraries bundled in the APK, each under its own license:
+
+  stream-webrtc-android (libwebrtc)  BSD-3-Clause / Apache-2.0  https://github.com/GetStream/webrtc-android
+  OkHttp                             Apache-2.0                 https://square.github.io/okhttp/
+  kotlinx.coroutines                 Apache-2.0                 https://github.com/Kotlin/kotlinx.coroutines
+  AndroidX (core, appcompat, browser) Apache-2.0                https://developer.android.com/jetpack/androidx
+  Kotlin standard library            Apache-2.0                 https://kotlinlang.org
+
+JEV and System One are products of TypeSafe AI. ChatGPT, GPT-Live and OpenAI are trademarks of
+OpenAI. This project is not affiliated with or endorsed by TypeSafe AI, OpenAI, OpenCode or the
+authors of the projects above.
