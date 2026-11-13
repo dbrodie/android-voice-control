@@ -88,13 +88,28 @@ class JevClientTest {
     }
 
     @Test fun httpErrorIncludesTruncatedBody() {
-        server.enqueue(MockResponse().setResponseCode(401).setBody("{\"error\":\"bad key\"}" + "x".repeat(2000)))
+        server.enqueue(MockResponse().setResponseCode(500).setBody("{\"error\":\"boom\"}" + "x".repeat(2000)))
         try {
             client().ask("Open Settings", img, emptyList(), emptyList(), emptyList(), emptyList())
             fail("expected JevException")
         } catch (e: JevException) {
-            assertTrue(e.message!!, e.message!!.startsWith("JEV error 401: {\"error\":\"bad key\"}"))
-            assertEquals("JEV error 401: ".length + 500, e.message!!.length)
+            assertTrue(e.message!!, e.message!!.startsWith("JEV error 500: {\"error\":\"boom\"}"))
+            assertEquals("JEV error 500: ".length + 500, e.message!!.length)
+            assertEquals(500, e.httpCode)
+        }
+    }
+
+    @Test fun rejectedKeyGivesTheUserFacingMessage() {
+        for (code in listOf(401, 403)) {
+            server.enqueue(MockResponse().setResponseCode(code).setBody("{\"detail\":{\"error_type\":\"authentication_error\"}}"))
+            try {
+                client().ask("Open Settings", img, emptyList(), emptyList(), emptyList(), emptyList())
+                fail("expected JevException")
+            } catch (e: JevException) {
+                assertEquals(JevClient.KEY_REJECTED_MESSAGE, e.message)
+                assertEquals(code, e.httpCode)
+                assertTrue(e.cause!!.message!!.contains("authentication_error"))
+            }
         }
     }
 
@@ -103,7 +118,7 @@ class JevClientTest {
             client(key = " ").ask("Open Settings", img, emptyList(), emptyList(), emptyList(), emptyList())
             fail("expected JevException")
         } catch (e: JevException) {
-            assertTrue(e.message!!.contains("JEV_KEY"))
+            assertEquals(JevClient.NO_KEY_MESSAGE, e.message)
             assertEquals(0, server.requestCount)
         }
     }

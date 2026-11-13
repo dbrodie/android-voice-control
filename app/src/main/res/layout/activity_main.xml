@@ -181,20 +181,12 @@
             style="@style/VC.Card"
             android:visibility="gone">
 
-            <TextView
-                style="@style/VC.FieldLabel"
-                android:layout_marginTop="0dp"
-                android:text="@string/settings_jev_key" />
-
-            <EditText
-                android:id="@+id/jevKeyInput"
+            <!-- JEV API key: a Setup-style row (MainActivity.addJevKeyRow) that opens JevKeyActivity. -->
+            <LinearLayout
+                android:id="@+id/jevKeySettingsSlot"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/settings_key_hint"
-                android:importantForAutofill="no"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:textSize="15sp" />
+                android:orientation="vertical" />
 
             <TextView
                 style="@style/VC.FieldLabel"

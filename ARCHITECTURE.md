@@ -128,6 +128,9 @@ sends the tool result back and lets GPT speak a one-sentence summary. Overlay ob
 - `.env` in project root (gitignored) holds `JAVA_HOME`, `ANDROID_HOME`, `JEV_KEY`, and `OPENAI_API_KEY`
   (when provided). `app/build.gradle.kts` reads `.env` and exposes `BuildConfig.JEV_KEY`,
   `BuildConfig.OPENAI_API_KEY`, `BuildConfig.OPENAI_REALTIME_MODEL`. Settings screen can override at runtime.
+- Keys are embedded in **debug builds only** (and not with `EMBED_KEYS=false`); release builds always have
+  `""`. Users enter their JEV key in `ui/JevKeyActivity` (verified live, stored encrypted via
+  `core/SecurePrefs`). See docs/SKELETON.md "BuildConfig / .env".
 
 ## Emulator / testing conventions
 - AVD: `Medium_Phone_API_36.1` (Android 16, API 36.1). Start with

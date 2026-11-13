@@ -184,6 +184,9 @@ class MainActivity : AppCompatActivity() {
                 notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+        // T7: JEV API key row (see the JEV block near the end); a second copy sits in Settings where the plain key field was.
+        addJevKeyRow(container)
+        addJevKeyRow(findViewById(R.id.jevKeySettingsSlot))
         add(R.string.check_battery_title, R.string.check_battery_detail, true, R.string.action_allow,
             { getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName) }) {
             try {
@@ -320,21 +323,18 @@ class MainActivity : AppCompatActivity() {
             chevron.text = if (show) "▾" else "▸"
         }
 
-        val jev = findViewById<EditText>(R.id.jevKeyInput)
         val openAi = findViewById<EditText>(R.id.openAiKeyInput)
         val model = findViewById<EditText>(R.id.modelInput)
         // Prefill first, attach the save-watchers after, so prefilling doesn't write defaults into prefs.
-        jev.setText(AppSettings.jevApiKey(this))
         openAi.setText(AppSettings.openAiApiKey(this))
         model.setText(AppSettings.realtimeModel(this))
-        jev.addTextChangedListener(saver { AppSettings.setJevApiKey(this, it) })
         openAi.addTextChangedListener(saver { AppSettings.setOpenAiApiKey(this, it); refreshChecklist() })
         model.addTextChangedListener(saver { AppSettings.setRealtimeModel(this, it) })
 
         findViewById<CheckBox>(R.id.showKeysCheck).setOnCheckedChangeListener { _, show ->
             val type = InputType.TYPE_CLASS_TEXT or
                 if (show) InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD else InputType.TYPE_TEXT_VARIATION_PASSWORD
-            for (f in listOf(jev, openAi)) {
+            for (f in listOf(openAi)) {
                 val sel = f.selectionEnd
                 f.inputType = type
                 if (sel >= 0) f.setSelection(sel)
@@ -405,6 +405,34 @@ class MainActivity : AppCompatActivity() {
         is VoiceState.UserSaid -> "user said \"${s.transcript}\""
         is VoiceState.AssistantSaying -> "assistant: \"${s.transcript}\""
         is VoiceState.Error -> "ERROR ${s.message}"
+    }
+
+    // ---------------------------------------------------------------- JEV API key (T7)
+
+    private fun addJevKeyRow(container: LinearLayout) {
+        val v = layoutInflater.inflate(R.layout.item_check_row, container, false)
+        v.findViewById<TextView>(R.id.checkTitle).setText(R.string.check_jev_title)
+        v.findViewById<TextView>(R.id.checkDetail).setText(R.string.check_jev_detail)
+        container.addView(v)
+        rows += CheckRow(
+            optional = { false }, isOk = { JevKeyActivity.isKeyOk(this) },
+            actionLabel = R.string.action_add, action = { JevKeyActivity.start(this) }, view = v,
+            detail = { JevKeyActivity.statusLine(this) }, okLabel = R.string.action_change,
+        )
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+        maybeAskForJevKey()
+    }
+
+    /** First run: once voice is set up (ChatGPT sign-in done or an OpenAI key set), open the key screen once. */
+    private fun maybeAskForJevKey() {
+        if (JevKeyActivity.hasKey(this) || AppSettings.jevKeyPrompted(this)) return
+        if (!ChatGptAuth.isSignedIn(this) && AppSettings.openAiApiKey(this).isBlank()) return
+        AppSettings.setJevKeyPrompted(this)
+        VcLog.i(TAG, "first run: no JEV key yet, opening JevKeyActivity")
+        JevKeyActivity.start(this)
     }
 
     companion object {

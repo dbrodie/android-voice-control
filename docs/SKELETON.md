@@ -37,11 +37,42 @@ and `D/VC/Debug: runtime DebugReceiver registered`.
 double quotes, `#` comment lines, and ` #` inline comments on unquoted values. It exposes:
 - `BuildConfig.JEV_KEY` (`""` if absent)
 - `BuildConfig.OPENAI_API_KEY` (`""` if absent)
-- `BuildConfig.OPENAI_REALTIME_MODEL` (default `"gpt-realtime"`)
+- `BuildConfig.OPENAI_REALTIME_MODEL` (default `"gpt-live-1"`)
+
+**Keys are embedded in debug builds only.** The `release` build type overrides `JEV_KEY` and
+`OPENAI_API_KEY` with `""` whatever `.env` says, so a release APK never contains a key: users enter their
+own JEV key in the app (`ui/JevKeyActivity`) and voice uses ChatGPT sign-in or an OpenAI key from Settings.
+Debug builds embed the `.env` keys for convenience unless `EMBED_KEYS=false` (in `.env` or as an
+environment variable, e.g. `EMBED_KEYS=false ./gradlew :app:assembleDebug`). Use that to test the
+"no key yet" first-run path. To check an APK (prints counts, never the key):
+```bash
+d=$(mktemp -d) && unzip -q app/build/outputs/apk/release/app-release.apk -d $d && \
+  grep -r -l -a apikey_ $d | wc -l   # expect 0 (all JEV keys start with apikey_)
+```
 
 `AppSettings` (SharedPreferences `vc_settings`) returns the stored value, or the BuildConfig default when
 nothing is stored or the stored value is blank. It also has `setRealtimeModel(ctx, v)` in addition to the
 contract. If you edit `.env`, rebuild so BuildConfig picks up the change.
+
+The JEV key is special (T7):
+- Stored **encrypted** under `jev_api_key_enc` with `core/SecurePrefs` (AES-256-GCM, Android Keystore alias
+  `vc_jev_key`; the same scheme as `voice/auth/TokenStore`). A plain `jev_api_key` left by older builds is
+  migrated (encrypted, plain value removed) on first read. `AppSettings.jevApiKey()` = stored key, else
+  `BuildConfig.JEV_KEY`, else `""`. Extra helpers: `storedJevApiKey`, `jevKeyCheck`/`setJevKeyCheck` (last
+  verification text + time), `jevKeyPrompted`/`setJevKeyPrompted` (first-run routing done).
+- `ui/JevKeyActivity` verifies a pasted key with `agent/JevKeyProbe`: one text-only `choice` question
+  (~315 input tokens, ≈ $0.00001) to `/v1/systemone`. 200 (or 400/422: the server checks auth before the
+  body) = valid; 401/403 = invalid; anything else / network error = inconclusive ("Save without
+  verifying"). Logs `VC/JevKey: probe: HTTP <code>: <first 200 chars of the body>`, never the key; the UI
+  shows only `JevKeyProbe.mask()` (first 12 chars + "…").
+- No key → `TaskController.runTask` finishes at once with `error` / "Add your JEV API key in Voice Control".
+  JEV 401/403 mid-run → `error` / "JEV rejected the API key — check it in Voice Control" (the HTTP body is
+  in the exception's cause, logged by `VC/Agent`). Both reach the overlay pill and GPT through
+  `Finished.message`.
+- MainActivity: Setup row "JEV API key" (also mirrored in Settings, replacing the old plain-text field);
+  on first run, once ChatGPT sign-in is done or an OpenAI key is set, it opens JevKeyActivity once.
+- Debug: `adb exec-out run-as com.brainstormity.voicecontrol cat shared_prefs/vc_settings.xml` must show
+  only the encrypted blob.
 
 ## Gotchas
 - **Multi-word broadcast extras need nested quotes.** `adb shell` joins its arguments and the device shell
