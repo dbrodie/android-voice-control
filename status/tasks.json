@@ -1,5 +1,5 @@
 {
-  "overall": "COMPLETE \u2014 debug APK built from main, end-to-end verified on the emulator",
+  "overall": "Phase 3 \u2014 T6 and T7 merged; T8 bubble colours in progress",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot\u2192action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [],
   "tasks": [
@@ -67,6 +67,27 @@
       "owner": "Opus 5.5 agent: integration",
       "status": "done",
       "summary": "Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock\u2192Alarms (1), Dark theme (3). Voice path: spoken 'Open settings and turn on Bluetooth' \u2192 delegation \u2192 JEV loop \u2192 Bluetooth on \u2192 GPT said 'Done\u2014Bluetooth is on now.' Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035."
+    },
+    {
+      "id": "T6",
+      "title": "OpenAI (ChatGPT) login flow: onboarding/login screen, in-app browser, callback + token exchange, account display, sign-out, error handling; verified on the emulator",
+      "owner": "Opus 5.5 agent: login-flow",
+      "status": "done",
+      "summary": "Merged to main. Sign-in screen (ChatGPT or API key), Custom Tabs, waiting/success/error states, account mode with sign-out/switch, survives rotation and process death, port fallback 1457. 58 JVM tests pass incl. pinned token-exchange body. Real sign-in confirmed by the user on their phone."
+    },
+    {
+      "id": "T7",
+      "title": "JEV API key entered by the user instead of embedded at build time: key screen with live verification, checklist row, clear errors when missing, release builds never embed keys",
+      "owner": "Opus 5.5 agent: jev-key",
+      "status": "done",
+      "summary": "Merged to main. JEV key entered in-app (JevKeyActivity) with a live probe (200 = valid, 401/403 = rejected), stored encrypted via Keystore, checklist row, clear 'Add your JEV API key' errors in the pill and spoken by GPT. Release builds never embed keys (verified: no apikey_ string in the release APK). 66 JVM tests pass."
+    },
+    {
+      "id": "T8",
+      "title": "Bubble colours per state (grey idle, amber connecting, green listening, blue GPT speaking, red error) per user feedback",
+      "owner": "Opus 5.5 agent: bubble-colours",
+      "status": "running",
+      "summary": "Running in its own worktree; tests on emulator-5556."
     }
   ],
   "notes": [
@@ -78,6 +99,8 @@
     "Caution: the imported Codex token is shared with the Mac's Codex CLI. If the app ever refreshes it (401 or <5 min to expiry; current token expires 2026-11-19), the Mac's ~/.codex/auth.json becomes stale and needs `codex login`.",
     "Main at 0ac50bd builds a debug APK with all Phase 1 work merged.",
     "Deliverable: dist/voice-control-debug.apk (54 MB, built from main; embeds the JEV key from .env so it is NOT tracked in git). Guide: docs/USER_GUIDE.md.",
-    "Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio)."
+    "Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio).",
+    "Release build (2026-11-13 12:54): dist/voice-control-release.apk, v0.1.0, signed with a locally generated key (keystore/voice-control-release.jks + keystore.properties, gitignored). Built from main at fdfabee + signing config; excludes the in-progress T6 login work. Not installed on the emulator (T6 is using it).",
+    "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup \u2192 JEV API key) and sign in with ChatGPT or enter an OpenAI key."
   ]
 }
