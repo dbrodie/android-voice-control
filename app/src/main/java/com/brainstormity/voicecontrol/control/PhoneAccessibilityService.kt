@@ -1,75 +1,63 @@
 package com.brainstormity.voicecontrol.control
 
 import android.accessibilityservice.AccessibilityService
-import android.graphics.Bitmap
+import android.content.Intent
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import com.brainstormity.voicecontrol.core.Device
-import com.brainstormity.voicecontrol.core.Hands
-import com.brainstormity.voicecontrol.core.Screen
-import com.brainstormity.voicecontrol.core.ScreenSize
-import com.brainstormity.voicecontrol.core.SwipeDirection
 import com.brainstormity.voicecontrol.core.VcLog
 
 /**
- * STUB (skeleton). The accessibility agent replaces the stub Screen/Hands with real
- * takeScreenshot / dispatchGesture implementations. Registers itself into [Device] while connected.
+ * The phone's eyes and hands. While the user has this accessibility service enabled, it publishes an
+ * [AccessibilityDevice] (Screen + Hands) into [Device]; it clears them again when unbound/destroyed.
+ *
+ * Events: the config subscribes only to the rare window-state events, used just to note which package
+ * last showed a window (confirms openApp launches without blocking IPC).
  */
 class PhoneAccessibilityService : AccessibilityService() {
 
+    private var device: AccessibilityDevice? = null
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        VcLog.i(TAG, "onServiceConnected: PhoneAccessibilityService connected")
-        val stub = StubDevice(this)
-        Device.screen.value = stub
-        Device.hands.value = stub
+        val d = AccessibilityDevice(this)
+        device = d
+        Device.screen.value = d
+        Device.hands.value = d
+        val size = d.screenSize()
+        val wm = getSystemService(WindowManager::class.java).maximumWindowMetrics.bounds
+        VcLog.i(
+            TAG, "onServiceConnected: PhoneAccessibilityService connected, screen ${size.width}x${size.height}" +
+                " (window max ${wm.width()}x${wm.height()})"
+        )
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
-
-    override fun onInterrupt() {
-        VcLog.w(TAG, "onInterrupt")
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // Config subscribes only to TYPE_WINDOW_STATE_CHANGED; used to confirm app launches cheaply.
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            device?.onWindowStateChanged(event.packageName)
+        }
     }
 
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
+    override fun onInterrupt() {}
+
+    override fun onUnbind(intent: Intent?): Boolean {
         VcLog.i(TAG, "onUnbind: clearing Device")
-        Device.screen.value = null
-        Device.hands.value = null
+        clear()
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
-        Device.screen.value = null
-        Device.hands.value = null
+        clear()
         super.onDestroy()
     }
 
-    private class StubDevice(private val service: AccessibilityService) : Screen, Hands {
-        override fun screenSize(): ScreenSize {
-            val bounds = service.getSystemService(WindowManager::class.java).currentWindowMetrics.bounds
-            return ScreenSize(bounds.width(), bounds.height())
-        }
-
-        override suspend fun screenshot(): Bitmap {
-            VcLog.d(TAG, "screenshot() [stub: blank bitmap]")
-            val s = screenSize()
-            return Bitmap.createBitmap(s.width, s.height, Bitmap.Config.ARGB_8888)
-        }
-
-        override suspend fun tap(x: Int, y: Int) = VcLog.d(TAG, "tap($x, $y) [stub]")
-        override suspend fun longPress(x: Int, y: Int) = VcLog.d(TAG, "longPress($x, $y) [stub]")
-        override suspend fun swipe(direction: SwipeDirection) = VcLog.d(TAG, "swipe($direction) [stub]")
-        override suspend fun allApps() = VcLog.d(TAG, "allApps() [stub]")
-        override suspend fun back() = VcLog.d(TAG, "back() [stub]")
-        override suspend fun home() = VcLog.d(TAG, "home() [stub]")
-        override suspend fun enter() = VcLog.d(TAG, "enter() [stub]")
-        override suspend fun typeText(text: String) = VcLog.d(TAG, "typeText(\"$text\") [stub]")
-        override suspend fun openApp(packageName: String) = VcLog.d(TAG, "openApp($packageName) [stub]")
-        override suspend fun openUrl(url: String) = VcLog.d(TAG, "openUrl($url) [stub]")
-        override fun installedApps(): Set<String> {
-            VcLog.d(TAG, "installedApps() [stub]")
-            return emptySet()
-        }
+    private fun clear() {
+        val d = device ?: return
+        // Only clear what we registered (a re-bound instance may already have replaced it).
+        Device.screen.compareAndSet(d, null)
+        Device.hands.compareAndSet(d, null)
+        device = null
     }
 
     companion object {

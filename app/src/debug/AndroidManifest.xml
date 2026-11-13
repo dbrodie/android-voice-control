@@ -64,5 +64,17 @@
             android:name=".debug.LiveDebugMicService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+        <!-- Hands/Screen test hooks for control/ (see HandsTestReceiver.kt for usage). -->
+        <receiver
+            android:name=".debug.HandsTestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.HANDS" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.HandsTestReceiverInstaller"
+            android:authorities="${applicationId}.hands-test-receiver-installer"
+            android:exported="false" />
     </application>
 </manifest>
