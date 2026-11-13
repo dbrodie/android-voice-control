@@ -10,44 +10,54 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
 .ok{background:#e6f4ea;border-color:#a8dab5}
 </style></head><body>
 <h1>Android Voice Control — build status</h1>
-<div class=sub>Overall: <b>Phase 0 — scaffolding + research</b> · updated 2026-11-13 09:32:34 · page auto-refreshes every 30 s</div>
+<div class=sub>Overall: <b>COMPLETE — debug APK built from main, end-to-end verified on the emulator</b> · updated 2026-11-13 10:56:03 · page auto-refreshes every 30 s</div>
 <p>Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime (&#x27;GPT live&#x27;) voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.</p>
-<div class=box><b>Needs your input</b><ul><li>OpenAI API key for the Realtime API (ChatGPT login is not usable by third-party apps for the Realtime API). Add it to .env as OPENAI_API_KEY=...</li></ul></div>
+
 <table><tr><th>#</th><th>Task</th><th>Status</th><th>What is happening</th></tr><tr>
   <td><b>T0</b></td>
   <td>Project skeleton: Gradle project, core contracts, manifest, debug hooks, emulator boot, first build + install<div class=owner>Opus 5.5 agent: skeleton</div></td>
-  <td><span class=badge style="background:#1a73e8">RUNNING</span></td>
-  <td>Creating app module, core/ package per ARCHITECTURE.md, verifying gradlew build and emulator boot.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Gradle 8.13 / AGP 8.13.2 / Kotlin 2.1, core contracts, stubs, scripts/, debug broadcasts. Builds, installs, accessibility service connects on emulator-5554. See docs/SKELETON.md.</td>
 </tr><tr>
   <td><b>T0b</b></td>
   <td>Research: current OpenAI Realtime API protocol (model id, WS events, tool calling, audio formats)<div class=owner>Opus 5.5 agent: research</div></td>
-  <td><span class=badge style="background:#1a73e8">RUNNING</span></td>
-  <td>Producing docs/realtime-api-notes.md for the voice agent.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>docs/realtime-api-notes.md written. Key finding: OpenAI now has an official &#x27;GPT-Live&#x27; product (gpt-live-1, $0.05/min) separate from the Realtime API (gpt-realtime-2.1). Sign-in-with-ChatGPT officially does not cover audio.</td>
 </tr><tr>
   <td><b>T1</b></td>
   <td>AccessibilityService: screenshots + taps/swipes/typing/back/home/open app (control/)<div class=owner>Opus 5.5 agent: accessibility</div></td>
-  <td><span class=badge style="background:#9aa0a6">TODO</span></td>
-  <td>Starts after T0.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. takeScreenshot (~400 ms/shot under the OS rate limit), gestures with completion callbacks, typing via SET_TEXT→clipboard→IME fallbacks, openApp/openUrl with window wait, installedApps. All checks passed on emulator-5554. install.sh now disables/re-enables the service around reinstalls.</td>
 </tr><tr>
   <td><b>T2</b></td>
   <td>JEV agent loop port (agent/): JevClient, TaskParser, TaskRunner with confidence gating, zoom refine, screen-settle wait<div class=owner>Opus 5.5 agent: agent-loop</div></td>
-  <td><span class=badge style="background:#9aa0a6">TODO</span></td>
-  <td>Starts after T0.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. Faithful port of run_task(): golden tests vs upstream Python (21 JVM tests pass), request bodies byte-identical, live JEV call OK (ask ~0.4 s, refine ~0.3 s). Run reports saved to files/runs/. Not yet exercised end-to-end on a device (T5).</td>
 </tr><tr>
   <td><b>T3</b></td>
   <td>Overlay bubble + status UI, foreground service, MainActivity setup/permissions/settings (overlay/, ui/)<div class=owner>Opus 5.5 agent: overlay-ui</div></td>
-  <td><span class=badge style="background:#9aa0a6">TODO</span></td>
-  <td>Starts after T0.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. Draggable mic bubble + status pill, slim top strip with stop button while a task runs (reported via core/OverlayInfo.regions), setup checklist Activity with settings and text-task test box. Verified on emulator-5556. Caveat: the Settings app hides non-system overlays, so the strip is invisible there.</td>
 </tr><tr>
-  <td><b>T4</b></td>
-  <td>Voice: OpenAI Realtime WebSocket client, mic capture, speaker playback, control_phone tool (voice/)<div class=owner>Opus 5.5 agent: voice</div></td>
-  <td><span class=badge style="background:#9aa0a6">TODO</span></td>
-  <td>Starts after T0 + T0b.</td>
+  <td><b>T4a</b></td>
+  <td>Voice auth: Sign in with ChatGPT (Codex PKCE OAuth), token refresh, Codex auth.json import for testing (voice/auth/)<div class=owner>Opus 5.5 agent: voice-auth</div></td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. Codex PKCE OAuth (params verified against openai/codex source), loopback login on 127.0.0.1:1455, Keystore-encrypted token store, Codex auth.json import. AUTH_PROBE against chatgpt.com call endpoint: HTTP 400 &#x27;Offer did not have an audio media section&#x27; = auth and plan accepted (plan prolite). Refresh deliberately not exercised with the Mac&#x27;s token (OpenAI rotates refresh tokens; would force a Mac re-login).</td>
+</tr><tr>
+  <td><b>T4b</b></td>
+  <td>GPT-Live core: Live event protocol, Codex WebRTC call + control WebSocket, mic/speaker, delegation → TaskController (voice/live/, VoiceController)<div class=owner>Opus 5.5 agent: voice-live</div></td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. WebRTC call to chatgpt.com Codex GPT-Live (HTTP 201), control WS (101), delegation.created → TaskController → result appended → GPT speaks it. Verified with real spoken audio injected through a debug mic on emulator-5558. Adds stream-webrtc-android (APK ~54 MB).</td>
+</tr><tr>
+  <td><b>T4c</b></td>
+  <td>API-key fallback: official GPT-Live API (gpt-live-1) over WebSocket, selectable in settings<div class=owner>Opus 5.5 agent: voice-fallback</div></td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. OpenAiLiveWsTransport (wss://api.openai.com/v1/live/sessions, gpt-live-1, PCM 24 kHz) + PcmAudio; chooser in VoiceBackends (auto/chatgpt/openai_key). 12 new JVM tests; live negative test: bad key → clean 401 error; Codex route regression OK. Untested with a real key (none provided).</td>
 </tr><tr>
   <td><b>T5</b></td>
   <td>Integration + end-to-end emulator test: voice (text-injected) → task → JEV loop → actions; final APK<div class=owner>Opus 5.5 agent: integration</div></td>
-  <td><span class=badge style="background:#9aa0a6">TODO</span></td>
-  <td>Starts after T1–T4.</td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock→Alarms (1), Dark theme (3). Voice path: spoken &#x27;Open settings and turn on Bluetooth&#x27; → delegation → JEV loop → Bluetooth on → GPT said &#x27;Done—Bluetooth is on now.&#x27; Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035.</td>
 </tr></table>
-<h3>Notes</h3><ul><li>Upstream cloned to upstream/System-One-Computer-Use (gitignored).</li><li>Architecture contract for all agents: ARCHITECTURE.md.</li></ul>
+<h3>Notes</h3><ul><li>Upstream cloned to upstream/System-One-Computer-Use (gitignored).</li><li>Architecture contract for all agents: ARCHITECTURE.md.</li><li>Verified: opencode-gpt-live uses ChatGPT OAuth (Codex sign-in token) to open a GPT-Live WebRTC call via chatgpt.com/backend-api/codex/realtime/calls, model gpt-live-1-codex, control channel wss://api.openai.com/v1/live/&lt;call&gt;. Undocumented API; full reference incl. Rust WebRTC helper cloned to upstream/opencode-gpt-live.</li><li>Skeleton committed as the base commit so agents can work in isolated git worktrees.</li><li>Decision (user, 2026-11-13): voice = ChatGPT login via the unofficial Codex GPT-Live route, with official API-key GPT-Live as fallback. Codex token from ~/.codex/auth.json may be used for emulator testing.</li><li>Caution: the imported Codex token is shared with the Mac&#x27;s Codex CLI. If the app ever refreshes it (401 or &lt;5 min to expiry; current token expires 2026-11-19), the Mac&#x27;s ~/.codex/auth.json becomes stale and needs `codex login`.</li><li>Main at 0ac50bd builds a debug APK with all Phase 1 work merged.</li><li>Deliverable: dist/voice-control-debug.apk (54 MB, built from main; embeds the JEV key from .env so it is NOT tracked in git). Guide: docs/USER_GUIDE.md.</li><li>Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio).</li></ul>
 </body></html>

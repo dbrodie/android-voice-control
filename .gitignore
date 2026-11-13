@@ -2,7 +2,6 @@
 upstream/
 *.apk
 # The deliverable debug APK is committed on purpose.
-!dist/voice-control-debug.apk
 *.aab
 .gradle/
 build/
