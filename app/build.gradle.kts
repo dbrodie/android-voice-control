@@ -44,6 +44,25 @@ val embedKeys: Boolean = (System.getenv("EMBED_KEYS") ?: envValue("EMBED_KEYS", 
     setOf("false", "0", "no", "off")
 fun debugKey(key: String): String = if (embedKeys) envValue(key) else ""
 
+fun boolProperty(name: String): Boolean? =
+    (findProperty(name) as String?)?.trim()?.lowercase()?.let { it in setOf("true", "1", "yes", "on") }
+
+/**
+ * Per-ABI APKs (`-PabiSplits=true|false`). Default: on when the requested tasks build only release variants
+ * (`./gradlew :app:assembleRelease`, scripts/release.sh), off otherwise, so the debug build stays a single
+ * universal `app-debug.apk` for the emulator workflow. AGP's `splits` block is per module, not per build
+ * type, hence the switch.
+ */
+val abiSplits: Boolean = boolProperty("abiSplits") ?: gradle.startParameter.taskNames.let { tasks ->
+    tasks.any { it.contains("Release", ignoreCase = true) } && tasks.none { it.contains("Debug", ignoreCase = true) }
+}
+
+/** ABIs of the split APKs. Index + 1 is the last digit of each split's versionCode (universal = 0). */
+val splitAbis = listOf("armeabi-v7a", "x86", "arm64-v8a", "x86_64")
+
+/** `-PminifyDebug=true`: run R8 (same rules as release) on the debug build, to test the shrunk app with all debug hooks. */
+val minifyDebug: Boolean = boolProperty("minifyDebug") ?: false
+
 android {
     namespace = "com.brainstormity.voicecontrol"
     compileSdk = 36
@@ -82,12 +101,37 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: shrink, obfuscate and optimize the code, then drop unused resources. Rules: proguard-rules.pro
+            // plus the consumer rules shipped by OkHttp/Okio, coroutines, stream-webrtc-android and AndroidX.
+            // Keep app/build/outputs/mapping/release/mapping.txt (scripts/release.sh copies it to dist/) to
+            // decode stack traces from that release.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
             // Never ship keys inside a release APK, whatever .env says.
             buildConfigField("String", "JEV_KEY", "\"\"")
             buildConfigField("String", "OPENAI_API_KEY", "\"\"")
+        }
+        debug {
+            if (minifyDebug) {
+                // R8 skips optimization and obfuscation for debuggable builds, so this build is not debuggable
+                // (BuildConfig.DEBUG = false, no `run-as`) to get exactly the release R8 output. The debug
+                // source set (DebugReceiver & co.), debug signing and the embedded .env keys stay.
+                isDebuggable = false
+                isMinifyEnabled = true
+                isShrinkResources = true
+                proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            }
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = abiSplits
+            reset()
+            include(*splitAbis.toTypedArray())
+            isUniversalApk = true
         }
     }
 
@@ -101,6 +145,22 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+}
+
+// Every APK gets versionCode = defaultConfig.versionCode * 10 + ABI digit (universal or unsplit = 0), so the
+// per-ABI APKs of one release never share a versionCode and a newer release always updates an older one.
+// (AGP's public variant API can't rename outputs: Gradle writes app-<abi>-release.apk and scripts/release.sh
+// copies them to dist/ as voice-control-<versionName>-<abi|universal>-release.apk.)
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val abi = output.filters
+                .find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
+                ?.identifier
+            val digit = abi?.let { splitAbis.indexOf(it) + 1 } ?: 0
+            output.versionCode.set(android.defaultConfig.versionCode!! * 10 + digit)
+        }
     }
 }
 

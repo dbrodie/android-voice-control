@@ -102,5 +102,15 @@
             android:name=".ui.runs.RunDetailActivity"
             android:exported="true"
             tools:replace="android:exported" />
+        <!-- Same for the JEV key and ChatGPT sign-in screens (`am start -n .../.ui.JevKeyActivity`,
+             `.../.voice.auth.LoginActivity`), e.g. to smoke-test a -PminifyDebug=true build. -->
+        <activity
+            android:name=".ui.JevKeyActivity"
+            android:exported="true"
+            tools:replace="android:exported" />
+        <activity
+            android:name=".voice.auth.LoginActivity"
+            android:exported="true"
+            tools:replace="android:exported" />
     </application>
 </manifest>

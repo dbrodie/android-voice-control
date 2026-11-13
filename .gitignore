@@ -14,3 +14,6 @@ local.properties
 .claude/
 keystore/
 keystore.properties
+
+# Release outputs (scripts/release.sh); APKs are covered by *.apk above.
+dist/mapping-*.txt
