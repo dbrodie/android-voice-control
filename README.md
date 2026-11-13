@@ -26,7 +26,7 @@ The ChatGPT sign-in and GPT-Live call handling follow
 
 ## Install and set up
 
-1. `adb install dist/voice-control-release.apk` (or build it, see below).
+1. `adb install dist/voice-control-<version>-arm64-v8a-release.apk` (or build it, see below).
 2. Open **Voice Control** and work through the setup checklist: display over other apps, the
    accessibility service, microphone, notifications.
 3. Sign in with ChatGPT (opens the OpenAI login in your browser) or enter an OpenAI API key.
@@ -45,8 +45,13 @@ The full guide, including troubleshooting and the debug commands, is in [docs/US
 cp .env.example .env     # set JAVA_HOME, ANDROID_HOME; optional JEV_KEY / OPENAI_API_KEY for debug builds
 source scripts/env.sh
 scripts/build.sh         # debug APK
-./gradlew :app:assembleRelease   # release APK, signed if keystore.properties exists; embeds no keys
+scripts/release.sh       # signed, R8-minified release APKs + mapping into dist/; embeds no keys
 ```
+
+Release builds come as one APK per CPU architecture plus a universal one:
+`voice-control-<version>-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk`. Almost every phone
+needs **arm64-v8a** (about 13 MB). Use the universal APK (about 43 MB) for anything else: old 32-bit
+phones, x86 emulators, or if you're not sure. Keep `dist/mapping-<version>.txt` to decode crash stack traces.
 
 `scripts/emulator.sh`, `scripts/install.sh` and `scripts/logs.sh` cover the emulator workflow.
 Architecture notes are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/SKELETON.md](docs/SKELETON.md).

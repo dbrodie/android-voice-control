@@ -32,6 +32,40 @@ adb shell am broadcast -a com.brainstormity.voicecontrol.RUN_TASK --es task "'Op
 Expected logcat after install: `I/VC/Hands: onServiceConnected: PhoneAccessibilityService connected`
 and `D/VC/Debug: runtime DebugReceiver registered`.
 
+## Release build: ABI splits + R8 (T11)
+```bash
+scripts/release.sh           # assembleRelease -PabiSplits=true, apksigner verify, apikey_ check, copy to dist/
+```
+- **Per-ABI APKs.** `libjingle_peerconnection_so.so` (stream-webrtc-android) is 6.5-12.8 MB per ABI, so a
+  4-ABI APK is ~43 MB. With splits on, Gradle writes `app/build/outputs/apk/release/app-<abi>-release.apk`
+  for arm64-v8a, armeabi-v7a, x86_64, x86 plus `app-universal-release.apk`; release.sh copies them to
+  `dist/voice-control-<versionName>-<abi|universal>-release.apk` (AGP's public variant API can't rename
+  outputs) and the R8 mapping to `dist/mapping-<versionName>.txt` (gitignored, keep it per release).
+  Sizes for 0.1.0: arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB
+  (was one 52 MB APK).
+- **Switch:** `-PabiSplits=true|false`. Default: on when the requested Gradle tasks are release-only
+  (`./gradlew :app:assembleRelease`), off otherwise, so `scripts/build.sh` still produces the single
+  universal `app-debug.apk` that `install.sh` installs. AGP's `splits` block is per module, not per build type.
+- **versionCode** = `defaultConfig.versionCode * 10 + ABI digit`: universal (or unsplit, incl. debug) 0,
+  armeabi-v7a 1, x86 2, arm64-v8a 3, x86_64 4. So versionCode 1 → 10..14; bump `defaultConfig.versionCode`
+  as before and every APK of the new release updates every APK of the old one.
+- **R8** (`isMinifyEnabled` + `isShrinkResources` on release): dex 8 MB → 1.6 MB. Rules in
+  `app/proguard-rules.pro`; the libraries' consumer rules do the rest (stream-webrtc-android ships
+  `-keep class org.webrtc.** { *; }`, OkHttp/Okio and coroutines ship theirs). The app itself needs no keep
+  rules for correctness: manifest classes are kept by aapt2's generated rules, `org.json` is the platform's,
+  `agent/Json.kt` doesn't reflect, and `TaskController` only reflects on the framework's `ActivityThread`.
+  Extra rules: line numbers kept (`-renamesourcefileattribute SourceFile`), an explicit copy of the webrtc
+  keep, and `-keepnames` for our own classes so logs and `javaClass.simpleName` stay readable.
+  Decode a release stack trace with `retrace dist/mapping-<v>.txt trace.txt` (Android SDK
+  cmdline-tools) or Android Studio's Code > Analyze Stack Trace with the mapping file.
+- **Testing R8 with the debug hooks:** `./gradlew :app:assembleDebug -PminifyDebug=true && scripts/install.sh`
+  builds the debug variant (debug receivers, embedded `.env` keys, debug signing) through the same R8 rules.
+  R8 doesn't optimize or obfuscate debuggable builds, so that build is **not debuggable**:
+  `BuildConfig.DEBUG` is false (no raw Live event logs) and `run-as` doesn't work. Rebuild without the flag
+  to get the normal debug APK back. The debug manifest also exports `ui.JevKeyActivity` and
+  `voice.auth.LoginActivity` so `adb shell am start -n` can open them.
+- Release signing key: `keystore/` + `keystore.properties` (gitignored); updates need the same key.
+
 ## BuildConfig / .env
 `app/build.gradle.kts` parses the project-root `.env`: `KEY=VALUE`, optional `export `, single or
 double quotes, `#` comment lines, and ` #` inline comments on unquoted values. It exposes:
@@ -46,8 +80,8 @@ Debug builds embed the `.env` keys for convenience unless `EMBED_KEYS=false` (in
 environment variable, e.g. `EMBED_KEYS=false ./gradlew :app:assembleDebug`). Use that to test the
 "no key yet" first-run path. To check an APK (prints counts, never the key):
 ```bash
-d=$(mktemp -d) && unzip -q app/build/outputs/apk/release/app-release.apk -d $d && \
-  grep -r -l -a apikey_ $d | wc -l   # expect 0 (all JEV keys start with apikey_)
+unzip -p app/build/outputs/apk/release/app-universal-release.apk | grep -a -c apikey_
+# expect 0 (all JEV keys start with apikey_); scripts/release.sh runs this on every APK
 ```
 
 `AppSettings` (SharedPreferences `vc_settings`) returns the stored value, or the BuildConfig default when
@@ -126,7 +160,7 @@ gradlew
 gradlew.bat
 local.properties                      (gitignored)
 app/build.gradle.kts
-app/proguard-rules.pro                (empty)
+app/proguard-rules.pro                (R8 rules, T11)
 app/src/main/AndroidManifest.xml
 app/src/main/java/com/brainstormity/voicecontrol/core/Device.kt         (SwipeDirection, ScreenSize, Screen, Hands, Device)
 app/src/main/java/com/brainstormity/voicecontrol/core/AgentState.kt     (AgentState, TaskControllerApi)
@@ -145,6 +179,6 @@ app/src/main/res/layout/activity_main.xml
 app/src/main/res/drawable/ic_mic.xml   (also used as the launcher icon)
 app/src/debug/AndroidManifest.xml
 app/src/debug/java/com/brainstormity/voicecontrol/debug/DebugReceiver.kt  (DebugReceiver + DebugReceiverInstaller)
-scripts/env.sh scripts/emulator.sh scripts/build.sh scripts/install.sh scripts/logs.sh
+scripts/env.sh scripts/emulator.sh scripts/build.sh scripts/install.sh scripts/logs.sh scripts/release.sh
 docs/SKELETON.md
 ```
