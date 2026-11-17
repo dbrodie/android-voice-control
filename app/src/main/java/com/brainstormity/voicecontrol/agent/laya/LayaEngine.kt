@@ -145,6 +145,8 @@ class LayaEngine private constructor(private val app: Context) {
     private var backend = Backend.CPU
     private var compiled: CompiledModel? = null
     private var interpreter: Interpreter? = null
+    /** CPU_REF on the single-window fp32 file: its only signature. */
+    private var refSignature: String? = null
     private var threads = 1
     private val runners = HashMap<Int, Runner>()
     private val extraOwned = ArrayList<Runner>()
@@ -216,11 +218,11 @@ class LayaEngine private constructor(private val app: Context) {
             }
             val answers = LinkedHashMap<String, LayaDecoder.Answer>()
             val times = LinkedHashMap<String, Long>()
-            var window = plan.window
+            var window = maxOf(plan.window, backendMinWindow())
             for (e in plan.questions) {
                 val q = questions.getValue(e.qid)
                 val s = System.nanoTime()
-                val (raw, w) = runMarkers(e.ids, e.markers, plan.window)
+                val (raw, w) = runMarkers(e.ids, e.markers, maxOf(plan.window, backendMinWindow()))
                 window = w
                 times[e.qid] = (System.nanoTime() - s) / 1_000_000
                 answers[e.qid] = LayaDecoder.decode(q.keys, raw, temperatureFor(q.size))
@@ -246,7 +248,14 @@ class LayaEngine private constructor(private val app: Context) {
      * The reference-kernel backend dequantizes every signature's fp16 weights into its own fp32 copy (~0.45 GB
      * each, and s256 is allocated when the Interpreter is created): cap it at 512 so at most two copies exist.
      */
-    private fun backendMaxWindow(): Int = if (backend == Backend.CPU_REF) CPU_REF_MAX_WINDOW else LayaSequence.MAX_WINDOW
+    private fun backendMaxWindow(): Int = if (backend == Backend.CPU_REF) CPU_REF_WINDOW else LayaSequence.MAX_WINDOW
+
+    /**
+     * The reference kernels materialise fp32 weights for a signature the first time it runs (~0.45 GB each): on a
+     * 2 GB emulator s256 + s512 got the app killed by lmkd. So CPU_REF runs every step on ONE signature (s512);
+     * shorter sequences are just padded (identical ids, HOST_CONTRACT section 4).
+     */
+    fun backendMinWindow(): Int = if (backend == Backend.CPU_REF) CPU_REF_WINDOW else 0
 
     private fun temperatureFor(k: Int): Double = temperatureByOptions[LayaDecoder.bucket(k)] ?: temperature
 
@@ -288,7 +297,7 @@ class LayaEngine private constructor(private val app: Context) {
         val tok = LayaTokenizer.load(File(dir, LayaModelFiles.TOKENIZER))
         val tokenizerMs = (System.nanoTime() - tStart) / 1_000_000
         readConfig(File(dir, LayaModelFiles.CONFIG))
-        table = mapTable(File(dir, LayaModelFiles.TABLE), File(dir, LayaModelFiles.TABLE_META))
+        table = mapTable(File(dir, LayaModelFiles.TABLE), File(dir, LayaModelFiles.TABLE_META).takeIf { it.isFile })
         tokenizer = tok
 
         val cStart = System.nanoTime()
@@ -330,7 +339,14 @@ class LayaEngine private constructor(private val app: Context) {
         val t = System.nanoTime()
         threads = Runtime.getRuntime().availableProcessors().coerceIn(1, MAX_THREADS)
         when (b) {
-            Backend.CPU_REF -> interpreter = interpreterFor(file)
+            Backend.CPU_REF -> {
+                // fp32-weight single-window graph if present (dev / emulator): its weights stay mmapped file pages
+                // instead of a dequantized anonymous copy. Else the multi graph (one signature, CPU_REF_WINDOW).
+                val fp32 = File(file.parentFile, LayaModelFiles.CPU_REF_GRAPH)
+                refSignature = if (fp32.isFile) "serving_default" else null
+                interpreter = interpreterFor(if (fp32.isFile) fp32 else file)
+                if (fp32.isFile) VcLog.i(TAG, "reference kernels use ${fp32.name}")
+            }
             else -> compiled = compile(file, b)
         }
         VcLog.i(TAG, "opened ${file.name} on ${b.label} in ${(System.nanoTime() - t) / 1_000_000} ms")
@@ -361,12 +377,18 @@ class LayaEngine private constructor(private val app: Context) {
             .associate { it.key as String to LayaDecoder.clampTemperature((it.value as? Number)?.toDouble()) }
     }
 
-    private fun mapTable(bin: File, meta: File): ShortBuffer {
-        @Suppress("UNCHECKED_CAST")
-        val m = meta.reader().use { LayaJsonReader(it).readValue() } as Map<String, Any?>
-        val shape = (m["shape"] as List<*>).map { (it as Number).toInt() }
-        require(shape == listOf(VOCAB, WIDTH) && m["dtype"] == "float16" && m["byte_order"] == "little") {
-            "unexpected token table $shape ${m["dtype"]}"
+    /**
+     * Maps the [VOCAB] x [WIDTH] fp16 table. `token_embeddings.json` is optional (the published model release
+     * doesn't carry it; the table's sha256 in the MANIFEST already pins its content): checked when present.
+     */
+    private fun mapTable(bin: File, meta: File?): ShortBuffer {
+        if (meta != null) {
+            @Suppress("UNCHECKED_CAST")
+            val m = meta.reader().use { LayaJsonReader(it).readValue() } as Map<String, Any?>
+            val shape = (m["shape"] as List<*>).map { (it as Number).toInt() }
+            require(shape == listOf(VOCAB, WIDTH) && m["dtype"] == "float16" && m["byte_order"] == "little") {
+                "unexpected token table $shape ${m["dtype"]}"
+            }
         }
         val bytes = VOCAB.toLong() * WIDTH * 2
         require(bin.length() == bytes) { "token table is ${bin.length()} bytes, expected $bytes" }
@@ -396,7 +418,7 @@ class LayaEngine private constructor(private val app: Context) {
     }
 
     private fun bindShared(sig: String, window: Int): Runner = when (backend) {
-        Backend.CPU_REF -> InterpreterRunner(interpreter ?: error("not loaded"), sig, window, owned = false)
+        Backend.CPU_REF -> InterpreterRunner(interpreter ?: error("not loaded"), refSignature ?: sig, window, owned = false)
         else -> CompiledRunner(compiled ?: error("not loaded"), sig, window, owned = false)
     }
 
@@ -465,7 +487,7 @@ class LayaEngine private constructor(private val app: Context) {
         const val VOCAB = 256000
         const val WIDTH = 768
         private const val MAX_THREADS = 4
-        const val CPU_REF_MAX_WINDOW = 512
+        const val CPU_REF_WINDOW = 512
         private val INPUTS = listOf("inputs_embeds", "attention_mask", "qtype_onehot")
         private val OUTPUTS = listOf("token_logits", "pooled_cls")
 

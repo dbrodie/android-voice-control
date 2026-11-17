@@ -20,7 +20,7 @@ import java.util.zip.ZipInputStream
 /**
  * The Laya-Android model files on the phone (not in the APK): `files/models/laya-android/`.
  *
- * The set ([REQUIRED], ~703 MB) is T14's recommended phone set plus the 611-byte table metadata; sizes and
+ * The set ([REQUIRED], 703 MB) is T14's recommended phone set (= the files of the models-v1 release); sizes and
  * sha256 come from `assets/laya/MANIFEST.json` (a copy of `tools/laya/out/MANIFEST.json`, regenerate both with
  * `tools/laya/manifest.py`). Single-window graphs (`laya_android_s{256,512,1024}_embeds_wfp16.tflite`) are optional
  * fallbacks the engine uses only if the multi-signature graph can't be compiled.
@@ -43,8 +43,12 @@ object LayaModelFiles {
     const val TABLE_META = "token_embeddings.json"
     const val TOKENIZER = "tokenizer.json"
     const val CONFIG = "rl_agent_config.json"
-    val REQUIRED = listOf(GRAPH_MULTI, TABLE, TABLE_META, TOKENIZER, CONFIG)
+    val REQUIRED = listOf(GRAPH_MULTI, TABLE, TOKENIZER, CONFIG)
+    /** Optional extras copied by import if present (table metadata; the engine checks it when there). */
+    val OPTIONAL = listOf(TABLE_META, CPU_REF_GRAPH)
     /** Optional single-window graphs (signature `serving_default`), by window. */
+    /** Optional, dev/emulator only: fp32-weight s512 graph for the reference-kernel backend (no dequantized copy). */
+    const val CPU_REF_GRAPH = "laya_android_s512_embeds_fp32.tflite"
     val SINGLE_GRAPHS = linkedMapOf(
         256 to "laya_android_s256_embeds_wfp16.tflite",
         512 to "laya_android_s512_embeds_wfp16.tflite",
@@ -182,7 +186,7 @@ object LayaModelFiles {
 
     /** Copies the known files found in [src] (debug IMPORT_LAYA / adb push path). Returns the names copied. */
     fun importDir(ctx: Context, src: File): List<String> {
-        val known = REQUIRED + SINGLE_GRAPHS.values
+        val known = REQUIRED + OPTIONAL + SINGLE_GRAPHS.values
         val out = ArrayList<String>()
         for (name in known) {
             val f = File(src, name)
@@ -198,7 +202,7 @@ object LayaModelFiles {
      * known names (any folder). Returns the names installed. Blocking (copying 700 MB takes a while).
      */
     fun importUris(ctx: Context, uris: List<Uri>): List<String> {
-        val known = (REQUIRED + SINGLE_GRAPHS.values).toSet()
+        val known = (REQUIRED + OPTIONAL + SINGLE_GRAPHS.values).toSet()
         val out = ArrayList<String>()
         for (uri in uris) {
             val name = displayName(ctx, uri) ?: uri.lastPathSegment?.substringAfterLast('/') ?: continue

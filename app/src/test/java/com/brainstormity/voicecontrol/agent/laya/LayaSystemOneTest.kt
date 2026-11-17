@@ -182,8 +182,8 @@ class LayaSystemOneTest {
         assertEquals(tools.readText(), asset.readText())
         val m = asset.inputStream().use { LayaModelFiles.parseManifest(it) }
         val req = LayaModelFiles.requiredSpecs(m)
-        assertEquals(5, req.size)
-        assertEquals(702_945_081L, req.sumOf { it.bytes }) // T14's recommended set + token_embeddings.json (611 B)
+        assertEquals(4, req.size)
+        assertEquals(702_944_470L, req.sumOf { it.bytes }) // T14 recommended_phone_set_bytes
         for (g in LayaModelFiles.SINGLE_GRAPHS.values) assertNotNull(m[g])
     }
 
