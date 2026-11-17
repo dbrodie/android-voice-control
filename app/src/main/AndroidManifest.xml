@@ -36,6 +36,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VoiceControl">
 
+        <!-- LiteRT GPU accelerator (on-device Laya, agent/laya/LayaEngine): apps targeting Android 12+ must declare the
+             vendor OpenCL libraries they open. Not required: without them the engine runs on the CPU. -->
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
+        <uses-native-library android:name="libOpenCL-car.so" android:required="false" />
+        <uses-native-library android:name="libOpenCL-pixel.so" android:required="false" />
+        <uses-native-library android:name="libvndksupport.so" android:required="false" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"

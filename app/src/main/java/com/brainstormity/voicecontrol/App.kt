@@ -1,7 +1,9 @@
 package com.brainstormity.voicecontrol
 
 import android.app.Application
+import com.brainstormity.voicecontrol.agent.SystemOneBackends
 import com.brainstormity.voicecontrol.agent.TaskController
+import com.brainstormity.voicecontrol.agent.laya.LayaSystemOne
 import com.brainstormity.voicecontrol.core.VcLog
 import com.brainstormity.voicecontrol.voice.VoiceBackends
 import com.brainstormity.voicecontrol.voice.auth.ChatGptAuth
@@ -17,6 +19,8 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         TaskController.init(this)
+        // The on-device Laya model (T17) replaces T15's placeholder under the same id "laya".
+        SystemOneBackends.register(LayaSystemOne(this))
         try {
             ChatGptAuth.init(this)
         } catch (e: Exception) {   // a corrupt store is handled inside ChatGptAuth; never crash process start here

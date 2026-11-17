@@ -135,6 +135,15 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            // LiteRT (on-device Laya) runs on 64-bit phones only (LayaModelFiles.SUPPORTED_ABIS; its x86 build doesn't
+            // exist anyway): keep its ~6 MB of armeabi-v7a libraries out of the APK.
+            excludes += listOf("lib/armeabi-v7a/libLiteRt.so", "lib/armeabi-v7a/libLiteRtClGlAccelerator.so",
+                "lib/armeabi-v7a/liblitert_jni.so")
+        }
+    }
+
     buildFeatures {
         buildConfig = true
     }

@@ -103,6 +103,22 @@
             android:name=".debug.TreeDebugInstaller"
             android:authorities="${applicationId}.tree-debug-installer"
             android:exported="false" />
+        <!-- On-device Laya model hooks (agent/laya): IMPORT_LAYA / LAYA_CONFIG / LAYA_STATUS / LAYA_PARITY / LAYA_RELEASE. -->
+        <receiver
+            android:name=".debug.LayaDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.IMPORT_LAYA" />
+                <action android:name="com.brainstormity.voicecontrol.LAYA_CONFIG" />
+                <action android:name="com.brainstormity.voicecontrol.LAYA_STATUS" />
+                <action android:name="com.brainstormity.voicecontrol.LAYA_PARITY" />
+                <action android:name="com.brainstormity.voicecontrol.LAYA_RELEASE" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.LayaDebugInstaller"
+            android:authorities="${applicationId}.laya-debug-installer"
+            android:exported="false" />
         <!-- Runs & costs screens: exported in debug builds only, for
              `adb shell am start -n com.brainstormity.voicecontrol/.ui.runs.RunsActivity`
              (and .ui.runs.RunDetailActivity with the string extra "id" = a run folder name). -->
