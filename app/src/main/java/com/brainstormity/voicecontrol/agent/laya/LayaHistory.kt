@@ -61,6 +61,12 @@ class LayaHistory {
             return LayaCandidates.historyEntry(op, target)
         }
         TYPE.matchEntire(s)?.let { m -> return LayaCandidates.historyEntry("INPUT_TEXT", text = unRepr(m.groupValues[2])) }
+        // TaskRunner writes TaskParser's lowercase key ("OPEN_APP settings"); AndroidControl uses the app's display
+        // name ("OPEN_APP Settings", "OPEN_APP Google Maps"): title-case it.
+        if (s.startsWith("OPEN_APP ")) {
+            return LayaCandidates.historyEntry("OPEN_APP", appName = s.removePrefix("OPEN_APP ").split(' ')
+                .joinToString(" ") { w -> w.replaceFirstChar { it.uppercaseChar() } })
+        }
         return when (s) {
             "SWIPE_LEFT" -> "SCROLL_RIGHT"
             "SWIPE_RIGHT" -> "SCROLL_LEFT"

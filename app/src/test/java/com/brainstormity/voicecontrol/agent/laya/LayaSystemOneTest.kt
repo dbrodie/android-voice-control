@@ -213,6 +213,8 @@ class LayaSystemOneTest {
         assertEquals(listOf(LayaEngine.Backend.CPU), LayaEngine.backendOrder(AppSettings.LAYA_ACCEL_CPU, false))
         assertEquals(listOf(LayaEngine.Backend.CPU_REF), LayaEngine.backendOrder(AppSettings.LAYA_ACCEL_CPU_REF, false))
         assertEquals(listOf(LayaEngine.Backend.GPU), LayaEngine.backendOrder(AppSettings.LAYA_ACCEL_GPU, true))
+        assertEquals(listOf(LayaEngine.Backend.CPU_REF), LayaEngine.backendOrder(AppSettings.LAYA_ACCEL_AUTO, true, emulator = true))
+        assertEquals(listOf(LayaEngine.Backend.GPU), LayaEngine.backendOrder(AppSettings.LAYA_ACCEL_GPU, false, emulator = true))
         assertTrue(LayaEngine.cpuFeaturesHaveSme("Features\t: fp asimd bf16 smei16i64 sme2 sme2p1"))
         assertFalse(LayaEngine.cpuFeaturesHaveSme("Features\t: fp asimd bf16 smei16i64 asimddp"))
     }

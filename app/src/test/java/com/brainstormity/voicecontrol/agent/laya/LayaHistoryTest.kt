@@ -38,6 +38,7 @@ class LayaHistoryTest {
     fun aNewRunStartsOver() {
         val h = LayaHistory()
         h.convert("a", listOf("OPEN_APP Clock", "BACK"))
+        assertEquals(listOf("OPEN_APP Settings", "OPEN_APP Google Maps"), LayaHistory().convert("c", listOf("OPEN_APP settings", "OPEN_APP google maps")))
         assertEquals(listOf("HOME"), h.convert("a", listOf("HOME")))
         assertEquals(listOf("OPEN_APP Clock"), h.convert("b", listOf("OPEN_APP Clock")))
     }

@@ -305,7 +305,7 @@ class LayaEngine private constructor(private val app: Context) {
         val crashMarker = File(dir, "compiling.txt")
         val crashedLast = if (crashMarker.isFile) crashMarker.readText().trim() else null
         if (crashedLast != null) VcLog.w(TAG, "the last load died while compiling on $crashedLast: skipping it")
-        val order = backendOrder(AppSettings.layaAccelerator(app), xnnpackUnsafe()).filter { it.name != crashedLast }
+        val order = backendOrder(AppSettings.layaAccelerator(app), xnnpackUnsafe(), isEmulator()).filter { it.name != crashedLast }
         var lastError: Throwable? = null
         for (b in order) {
             try {
@@ -492,25 +492,32 @@ class LayaEngine private constructor(private val app: Context) {
         private val INPUTS = listOf("inputs_embeds", "attention_mask", "qtype_onehot")
         private val OUTPUTS = listOf("token_logits", "pooled_cls")
 
-        /** Backends to try, in order, for the accelerator setting (pure; unit-tested). */
-        fun backendOrder(setting: String, xnnpackUnsafe: Boolean): List<Backend> {
+        /**
+         * Backends to try, in order, for the accelerator setting (pure; unit-tested). `auto` skips the GPU on an
+         * emulator: its gfxstream OpenGL can't run the model ("max allocation size 0"), and the failed delegate
+         * init left the process's GL client state corrupt, so the next screenshot readback crashed HWUI's
+         * RenderThread (SIGSEGV in gfxstream::GLClientState::attachTextureObject, seen T17).
+         */
+        fun backendOrder(setting: String, xnnpackUnsafe: Boolean, emulator: Boolean = false): List<Backend> {
             val cpu = if (xnnpackUnsafe) Backend.CPU_REF else Backend.CPU
             return when (setting) {
                 AppSettings.LAYA_ACCEL_GPU -> listOf(Backend.GPU)
                 AppSettings.LAYA_ACCEL_CPU -> listOf(cpu)
                 AppSettings.LAYA_ACCEL_CPU_REF -> listOf(Backend.CPU_REF)
-                else -> listOf(Backend.GPU, cpu)
+                else -> if (emulator) listOf(cpu) else listOf(Backend.GPU, cpu)
             }
         }
+
+        fun isEmulator(): Boolean = Build.HARDWARE in setOf("ranchu", "goldfish") ||
+            Build.PRODUCT.startsWith("sdk_gphone") || Build.FINGERPRINT.contains("emulator") ||
+            Build.FINGERPRINT.startsWith("generic")
 
         /**
          * True on an emulator whose virtual CPU advertises SME (Apple M4/M5 hosts): XNNPACK would execute SME
          * instructions there and die with SIGILL. Real phones that report SME support it.
          */
         fun xnnpackUnsafe(): Boolean {
-            val emulator = Build.HARDWARE in setOf("ranchu", "goldfish") || Build.PRODUCT.startsWith("sdk_gphone") ||
-                Build.FINGERPRINT.contains("emulator") || Build.FINGERPRINT.startsWith("generic")
-            if (!emulator) return false
+            if (!isEmulator()) return false
             val features = runCatching { File("/proc/cpuinfo").readLines().firstOrNull { it.startsWith("Features") } }
                 .getOrNull() ?: return false
             return cpuFeaturesHaveSme(features)
