@@ -40,7 +40,7 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     private val capturer = ScreenCapturer(service)
     private val textEntry = TextEntry(service)
-    internal val treeCapture = UiTreeCapture(service, ::screenSize) { lastWindowState }
+    internal val treeCapture = UiTreeCapture(service, ::screenSize) { pkg -> lastActivity[pkg] }
     private val gestureMutex = Mutex()
 
     @Volatile private var appsCache: Set<String>? = null
@@ -214,8 +214,8 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     @Volatile private var lastWindowPackage: String? = null
     @Volatile private var lastWindowAt = 0L
-    /** (package, class name) of the last window-state event from another app: the activity for [uiTree]. */
-    @Volatile private var lastWindowState: Pair<String, String>? = null
+    /** Per package, the class name of its last activity-like window-state event: the activity for [uiTree]. */
+    private val lastActivity = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     /** Called by the service for TYPE_WINDOW_STATE_CHANGED events (the only events it subscribes to). */
     fun onWindowStateChanged(packageName: CharSequence?, className: CharSequence? = null) {
@@ -228,7 +228,7 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
         // show as "activity".
         val cls = className?.toString()
         if (packageName != null && cls != null && !cls.startsWith("android.widget.") && !cls.startsWith("android.view.")) {
-            lastWindowState = packageName.toString() to cls
+            lastActivity[packageName.toString()] = cls
         }
     }
 

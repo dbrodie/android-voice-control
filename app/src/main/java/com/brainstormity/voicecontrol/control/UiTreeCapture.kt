@@ -33,8 +33,8 @@ import com.brainstormity.voicecontrol.core.VcLog
 internal class UiTreeCapture(
     private val service: AccessibilityService,
     private val screenSize: () -> ScreenSize,
-    /** (package, class) of the last TYPE_WINDOW_STATE_CHANGED event from another app, or null. */
-    private val lastWindowState: () -> Pair<String, String>?,
+    /** Class name of the last activity-like TYPE_WINDOW_STATE_CHANGED event from this package, or null. */
+    private val lastActivity: (String) -> String?,
 ) {
 
     /** Last capture's stats, for logs/debug hooks. */
@@ -105,7 +105,7 @@ internal class UiTreeCapture(
         val pkg = activePkg ?: firstAppPkg ?: try {
             service.rootInActiveWindow?.let { r -> r.packageName?.toString().also { r.recycleCompat() } }
         } catch (e: Exception) { null } ?: ""
-        val activity = lastWindowState()?.takeIf { it.first == pkg }?.second ?: ""
+        val activity = if (pkg.isEmpty()) "" else lastActivity(pkg) ?: ""
         val ms = SystemClock.elapsedRealtime() - t0
         lastStats = "pkg=$pkg windows=${windows.size} nodes=${nodes.size} ms=$ms keyboard=$keyboard" +
             (if (droppedOverlay > 0) " overlayWindowsDropped=$droppedOverlay" else "") +
