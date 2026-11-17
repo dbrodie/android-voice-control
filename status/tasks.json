@@ -123,6 +123,18 @@
       "owner": "Opus 5.5 agent: github-release",
       "status": "done",
       "summary": "Public repo dbrodie/android-voice-control created and pushed (history rewritten first to drop a debug APK that embedded the JEV key; verified no object contains it). release.yml on v* tags builds, signs with a separate CI key (secrets), verifies, and attaches 5 APKs + mapping; ci.yml runs tests on main. v0.1.1 released and verified (CI signer, no keys)."
+    },
+    {
+      "id": "T15",
+      "title": "System One backend seam: SystemOne interface, JevSystemOne adapter, backend registry + 'Next-step model' setting, TaskRunner/TaskController refactor, report + Runs fields",
+      "owner": "Opus 5.5 agent: backend-seam",
+      "status": "done",
+      "summary": "Branch worktree-agent-a07526bc03629bce0 (not merged). agent/SystemOne.kt (interface, StepInput, StepDecision, Availability, Refinement, SystemOneException; JevChoice/JevTarget/JevUsage moved here), JevSystemOne over the unchanged JevClient (golden bodies identical), SystemOneBackends registry + PlaceholderLayaSystemOne (T17 calls SystemOneBackends.register(LayaSystemOne(...)) from App.onCreate), AppSettings.systemOneBackend auto|jev|laya, TaskRunner/TaskController on SystemOne, report fields backend/latency_ms/target_node_id/backend_extras, backend chip + latency on Runs, 'Next-step model' card in MainActivity, core/UiTree + Screen.uiTree() (identical to T16). JVM tests 105 -> 124 green. Emulator: Dark theme/Clock/Chrome done via JEV; Bluetooth turns BT on then ends 'unsure' exactly like the pre-T15 build (A/B); On-device -> 'On-device model not installed in this build'.",
+      "log": [
+        "Seam + adapter + registry committed (dd0581c); Runs/settings/tests (3c96783); debug RUN_TASK --es system_one (83fab1b).",
+        "Emulator shared with another agent (it reinstalled its APK mid-session); runs were guarded by APK hash checks.",
+        "Deviation: refine returns Refinement(target, usage, latencyMs)? instead of JevTarget? so JEV's zoom cost stays counted."
+      ]
     }
   ],
   "notes": [

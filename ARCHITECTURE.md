@@ -20,7 +20,8 @@ and `phone.py`) to a native Android app. The phone controls **itself**: no adb, 
 ```
 core/        Shared contracts + state. Owned by the skeleton; others only ADD, never change signatures
              without telling the orchestrator.
-agent/       JEV client + task loop (TaskRunner, TaskParser, JevClient).           [Agent: agent-loop]
+agent/       Task loop (TaskRunner, TaskParser) + the System One seam: SystemOne (interface), JevSystemOne
+             (adapter over JevClient), SystemOneBackends (registry + "Next-step model" chooser). [agent-loop, T15]
 control/     PhoneAccessibilityService: implements Screen + Hands.                   [Agent: accessibility]
 overlay/     OverlayService (foreground) + bubble/status UI (WindowManager views).  [Agent: overlay-ui]
 voice/       RealtimeVoiceClient: OpenAI Realtime WS, mic in, speaker out, tool call.[Agent: voice]
@@ -40,6 +41,7 @@ data class ScreenSize(val width: Int, val height: Int)
 interface Screen {
     suspend fun screenshot(): android.graphics.Bitmap
     fun screenSize(): ScreenSize
+    suspend fun uiTree(): UiTree? = null                // additive (T15/T16): accessibility tree, core/UiTree.kt
 }
 
 /** The hands. Coordinates are real screen pixels. Each call returns when the gesture has been dispatched. */
@@ -114,6 +116,34 @@ Wiring: `App` (Application) calls `TaskController.init`, `ChatGptAuth.init`, `Vo
 `OverlayService` tap → `VoiceController.start()` (and adds the `microphone` FGS type for the session). `VoiceController` on tool call
 `control_phone(task)` → `TaskController.runTask(task)` and, when `TaskController.state` becomes `Finished`,
 sends the tool result back and lets GPT speak a one-sentence summary. Overlay observes both state flows.
+
+## System One backends (T15) — `agent/SystemOne.kt`
+The model that decides each step sits behind one interface; `TaskRunner` knows nothing else.
+```kotlin
+interface SystemOne {
+    val id: String; val displayName: String; val pricePerMillionInput: Double   // 0.0 on-device
+    val wantsUiTree: Boolean get() = false        // true: StepInput.uiTree is captured in every grab()
+    fun availability(ctx: Context): Availability  // Ready | NeedsSetup(msg) | NeedsDownload(bytes) | Unsupported(reason)
+    fun preflight(): String? = null               // Context-free last check; non-null = run ends "error" with it
+    fun ask(input: StepInput): StepDecision       // blocking, background thread
+    fun refine(input: StepInput, closeUp: CloseUp, closeupJpeg: ByteArray): Refinement? = null  // pixel backends
+}
+class StepInput(task, screenshotJpeg, screenshotW, screenshotH, uiTree: UiTree?, history, texts, urls, apps)
+data class StepDecision(action, target, text, app, website: JevChoice/JevTarget?, usage, latencyMs, backend,
+                        targetNodeId: Int?, extras: Map<String, Any?>)
+open class SystemOneException(message, cause, httpCode)   // JevException extends it
+```
+- `JevChoice`/`JevTarget`/`JevUsage`/`Box` are the shared answer vocabulary (choice keys = PHONE_ACTIONS names or
+  option indexes; boxes 0..1 of the screenshot). `JevSystemOne` wraps the unchanged `JevClient` (golden bodies).
+- `SystemOneBackends`: registry (`register(backend)` replaces by id; JEV + `PlaceholderLayaSystemOne` built in)
+  and `current(ctx)`. Setting `AppSettings.systemOneBackend`: `auto` (default; Laya if Ready, else JEV) | `jev` |
+  `laya`; an explicit choice wins even when not available. `TaskController.runTask` refuses a backend whose
+  availability isn't Ready with status "error" and the availability message (JEV without key: NO_KEY_MESSAGE).
+- The runner zooms in (`refine`) only for CLICKS with low target confidence or a repeated miss, and skips the zoom
+  when `refine` returns null. User-facing sentences use `displayName` ("JEV was only 40% sure ...").
+- Reports: run-level `backend`, `backend_name`, `ui_tree_nodes`; per step `latency_ms` (alongside the kept
+  `jev_seconds`), `backend`, `backend_latency_ms`, `target_node_id`, `backend_extras`. Runs screens show a backend
+  chip and per-step latency; MainActivity has the "Next-step model" card. Debug: `RUN_TASK --es system_one laya`.
 
 ## JEV API (TypeSafe System One) — port exactly from `jev_agent.py`
 - `POST https://api.typesafe.ai/v1/systemone`, headers `Authorization: Bearer <JEV_KEY>`,
