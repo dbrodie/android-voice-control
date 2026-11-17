@@ -1,5 +1,5 @@
 {
-  "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
+  "overall": "Phase 2: selectable System One backend DONE on branch plan-on-device-system1-alternatives (JEV cloud or Laya on-device). T18 verification on a real phone + release pending.",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [
     "Which phone will validate the on-device backend (model/RAM)? The emulator can only exercise the CPU path."
@@ -166,16 +166,20 @@
       "id": "T17",
       "title": "LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya",
       "owner": "Opus 5.5 agent: laya-engine",
-      "status": "running",
-      "summary": "Depends on T14, T15, T16.",
-      "log": []
+      "status": "done",
+      "summary": "Merged. LiteRT 2.3.2 engine (GPU→CPU→reference-kernel fallback), tokenizer + sequence builder parity-tested against the 24 T14 fixtures (JVM) and on-device (46/46 argmax, max diff 0.00000); LayaSystemOne maps the 12 Laya ops to PHONE_ACTIONS (INPUT_TEXT on a search field → TYPE_ENTER); Next-step model card with Download (models-v1 release, resumable, SHA-256 verified)/Import/Delete; 179 JVM tests pass. Emulator (2 GB, cpu_ref, ~40 s/step): Bluetooth, Clock, Chrome search done with Laya; Dark theme: correct when already on, false DONE when off (see docs/EVAL.md). JEV regression OK. Opus agent hit its rate limit twice; orchestrator finished verification.",
+      "log": [
+        "23:25 parity 46/46 argmax, diff 0.00000, load 7.0 s, 19 s/question on emulator reference kernels",
+        "23:31 Dark theme (already on) → done in 2 steps",
+        "23:33 Dark theme (off) → false DONE at 67% after correct first tap; logged in docs/EVAL.md"
+      ]
     },
     {
       "id": "T18",
       "title": "Verification: reference tasks with JEV vs Laya on emulator (and user's phone), latency/accuracy table, docs + USER_GUIDE update, release",
       "owner": "orchestrator",
-      "status": "todo",
-      "summary": "",
+      "status": "running",
+      "summary": "docs/EVAL.md started with the emulator table. Remaining: real-phone validation (speed, GPU path), decide DONE-confidence rule, release build size check, then a release.",
       "log": []
     }
   ],
