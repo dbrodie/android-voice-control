@@ -86,6 +86,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
+                    <!-- T15: which next-step model ran it (JEV / Laya) -->
+                    <TextView
+                        android:id="@+id/detailBackendChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp" />
+
                     <TextView
                         android:id="@+id/detailInTrash"
                         android:layout_width="wrap_content"

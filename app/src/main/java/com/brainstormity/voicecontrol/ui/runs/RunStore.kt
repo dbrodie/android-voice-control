@@ -121,6 +121,8 @@ class RunStore(val root: File, private val activeId: () -> String? = { null }) {
                 outputTokens = output,
                 costUsd = o.optDoubleOrNull("cost_usd") ?: (input * PRICE_PER_INPUT_TOKEN),
                 steps = steps,
+                backend = o.str("backend").ifEmpty { null },
+                backendName = o.str("backend_name").ifEmpty { null },
             )
         }
 
@@ -160,6 +162,12 @@ class RunStore(val root: File, private val activeId: () -> String? = { null }) {
                 lateBy = wait?.optDoubleOrNull("late_by"),
                 reacted = wait?.let { if (it.has("reacted")) it.optBoolean("reacted") else null },
                 seconds = s.optDoubleOrNull("seconds"),
+                latencyMs = s.optDoubleOrNull("latency_ms")?.let { Math.round(it) },
+                targetNodeId = if (s.has("target_node_id") && !s.isNull("target_node_id"))
+                    s.optInt("target_node_id") else null,
+                backendExtras = s.optJSONObject("backend_extras")?.let { x ->
+                    x.keys().asSequence().associateWith { k -> x.str(k) }
+                } ?: emptyMap(),
             )
         }
 
@@ -223,6 +231,10 @@ data class Run(
     val outputTokens: Long,
     val costUsd: Double,
     val steps: List<Step>,
+    /** T15: the System One backend id ("jev", "laya"); null in reports written before T15 (all JEV). */
+    val backend: String? = null,
+    /** T15: the backend's display name ("JEV", "Laya"). */
+    val backendName: String? = null,
 ) {
     val tokens: Long get() = inputTokens + outputTokens
 }
@@ -252,6 +264,12 @@ data class Step(
     val lateBy: Double?,
     val reacted: Boolean?,
     val seconds: Double?,
+    /** T15: time spent asking the backend (incl. any zoom-in), ms; null before T15 (see [jevSeconds]). */
+    val latencyMs: Long? = null,
+    /** T15: tree backends' chosen UiNode id. */
+    val targetNodeId: Int? = null,
+    /** T15: the backend's free-form details (`backend_extras`), as text. */
+    val backendExtras: Map<String, String> = emptyMap(),
 )
 
 data class TargetBox(val left: Double, val top: Double, val right: Double, val bottom: Double)
