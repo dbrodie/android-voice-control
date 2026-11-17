@@ -40,6 +40,7 @@ data class ScreenSize(val width: Int, val height: Int)
 interface Screen {
     suspend fun screenshot(): android.graphics.Bitmap
     fun screenSize(): ScreenSize
+    suspend fun uiTree(): UiTree? = null   // (Phase 2, additive) raw accessibility tree, see core/UiTree.kt
 }
 
 /** The hands. Coordinates are real screen pixels. Each call returns when the gesture has been dispatched. */
@@ -109,6 +110,10 @@ object AppSettings {       // SharedPreferences-backed; defaults from BuildConfi
 Also in core (additive): `OverlayInfo.regions` (overlay windows in screen pixels, published by overlay/) and
 `OverlayInfo.visibilityProbe` (set by control/: is the overlay really on screen, or hidden by Settings?).
 agent/ uses both to paint the overlay out of every screenshot (`agent/OverlayMask`) and to never tap it.
+Also in core (Phase 2): `UiTree` / `UiWindow` / `UiNode` (raw accessibility snapshot; JSON schema in its KDoc) and
+`UiTreeJson` (encode/decode). control/`UiTreeCapture` implements `Screen.uiTree()` (all windows, pre-order nodes,
+3000-node / 300 ms budget, our overlay windows dropped); agent/laya/`LayaCandidates` is the byte-exact port of
+Byun11/laya-android's candidate extraction + `[i] label (class) flags` serialization (golden-tested against the Python).
 
 Wiring: `App` (Application) calls `TaskController.init`, `ChatGptAuth.init`, `VoiceBackends.install`.
 `OverlayService` tap → `VoiceController.start()` (and adds the `microphone` FGS type for the session). `VoiceController` on tool call
@@ -146,6 +151,10 @@ sends the tool result back and lets GPT speak a one-sentence summary. Overlay ob
   `adb shell am broadcast -a com.brainstormity.voicecontrol.STOP`
   `adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_START` / `VOICE_STOP`
   `adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_TEXT --es text "open settings and turn on wifi"`
+  `adb shell am broadcast -a com.brainstormity.voicecontrol.DUMP_TREE [--es name settings]` (`debug/TreeDebugReceiver`):
+  writes the current `UiTree` JSON to `files/trees/<yyyyMMdd-HHmmss>[-name].json` and logs path, counts, capture ms
+  and the Laya-Android candidate lines under `VC/Tree`; pull with
+  `adb exec-out run-as com.brainstormity.voicecontrol cat files/trees/<file>.json > tree.json`
 - Log tag prefix: `VC/` (e.g. `VC/Agent`, `VC/Voice`, `VC/Hands`, `VC/Overlay`). `adb logcat -s VC/Agent:V ...`
 - Toolchain: minSdk 30 (takeScreenshot needs API 30), targetSdk 36, compileSdk 36, Kotlin, no Compose
   (plain Views for the overlay; Activity may use Views too). Gradle wrapper; cached distributions available:

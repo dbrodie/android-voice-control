@@ -37,7 +37,7 @@ class PhoneAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         // Config subscribes only to TYPE_WINDOW_STATE_CHANGED; used to confirm app launches cheaply.
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            device?.onWindowStateChanged(event.packageName)
+            device?.onWindowStateChanged(event.packageName, event.className)
         }
     }
 

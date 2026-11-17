@@ -19,6 +19,7 @@ import com.brainstormity.voicecontrol.core.OverlayInfo
 import com.brainstormity.voicecontrol.core.Screen
 import com.brainstormity.voicecontrol.core.ScreenSize
 import com.brainstormity.voicecontrol.core.SwipeDirection
+import com.brainstormity.voicecontrol.core.UiTree
 import com.brainstormity.voicecontrol.core.VcLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -39,6 +40,7 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     private val capturer = ScreenCapturer(service)
     private val textEntry = TextEntry(service)
+    internal val treeCapture = UiTreeCapture(service, ::screenSize) { pkg -> lastActivity[pkg] }
     private val gestureMutex = Mutex()
 
     @Volatile private var appsCache: Set<String>? = null
@@ -48,6 +50,9 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     /** Software ARGB_8888 bitmap at full display resolution; the caller owns (and may recycle) it. */
     override suspend fun screenshot(): Bitmap = withContext(Dispatchers.Default) { capturer.capture() }
+
+    /** Raw accessibility tree of everything on screen (see [UiTreeCapture]); blocking IPC, so off the caller's thread. */
+    override suspend fun uiTree(): UiTree? = withContext(Dispatchers.Default) { treeCapture.capture() }
 
     override fun screenSize(): ScreenSize {
         val display = service.getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY)
@@ -209,14 +214,22 @@ internal class AccessibilityDevice(private val service: AccessibilityService) : 
 
     @Volatile private var lastWindowPackage: String? = null
     @Volatile private var lastWindowAt = 0L
+    /** Per package, the class name of its last activity-like window-state event: the activity for [uiTree]. */
+    private val lastActivity = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     /** Called by the service for TYPE_WINDOW_STATE_CHANGED events (the only events it subscribes to). */
-    fun onWindowStateChanged(packageName: CharSequence?) {
+    fun onWindowStateChanged(packageName: CharSequence?, className: CharSequence? = null) {
         // Our own overlay (the strip appearing as a task starts) is not the launched app showing up: seen as
         // "openApp(com.android.chrome): window from com.brainstormity.voicecontrol after 235ms".
         if (packageName?.toString() == service.packageName) return
         lastWindowPackage = packageName?.toString()
         lastWindowAt = SystemClock.elapsedRealtime()
+        // Only activity-like class names: dialogs/popups report widget classes (FrameLayout, ...) we'd rather not
+        // show as "activity".
+        val cls = className?.toString()
+        if (packageName != null && cls != null && !cls.startsWith("android.widget.") && !cls.startsWith("android.view.")) {
+            lastActivity[packageName.toString()] = cls
+        }
     }
 
     /**

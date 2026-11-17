@@ -91,6 +91,18 @@
             android:name=".debug.BackendDebugInstaller"
             android:authorities="${applicationId}.backend-debug-installer"
             android:exported="false" />
+        <!-- Accessibility-tree dump (control/UiTreeCapture + agent/laya/LayaCandidates): DUMP_TREE. -->
+        <receiver
+            android:name=".debug.TreeDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.brainstormity.voicecontrol.DUMP_TREE" />
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name=".debug.TreeDebugInstaller"
+            android:authorities="${applicationId}.tree-debug-installer"
+            android:exported="false" />
         <!-- Runs & costs screens: exported in debug builds only, for
              `adb shell am start -n com.brainstormity.voicecontrol/.ui.runs.RunsActivity`
              (and .ui.runs.RunDetailActivity with the string extra "id" = a run folder name). -->
