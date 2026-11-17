@@ -18,7 +18,7 @@ token ids and marker positions are identical to laya's on all 24 fixture rows / 
 | `rl_agent_config.json` | temperatures (and training budget) |
 | `laya_android_act_head_fp32.tflite` | **not needed** (see section 7) |
 
-Recommended phone set: multi wfp16 graph + token table + tokenizer.json + rl_agent_config.json, about 685 MB.
+Recommended phone set: multi wfp16 graph (275 MB) + token table (393 MB) + tokenizer.json (34 MB) + rl_agent_config.json = 702,944,470 bytes. Mac CPU cost per question: s256 94 ms, s512 194 ms, s1024 478 ms, s2048 1320 ms (README).
 
 ## 1. Request = Laya-Android's training format
 

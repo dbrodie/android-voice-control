@@ -1264,636 +1264,6 @@
    "max_abs_prob_diff": 3.3798232256798677e-06,
    "max_abs_act_probability_diff": 0.0
   },
-  "multi_wfp16_sig_s1024": {
-   "rows": [
-    {
-     "name": "article_carrington",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00029540111600445673,
-       "max_abs_logit_diff": 0.0018181800842285156,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.156374161201626e-05,
-       "max_abs_logit_diff": 0.002753913402557373,
-       "act_probability_diff": 0.0,
-       "k": 50,
-       "ref_choice": "39",
-       "graph_choice": "39"
-      }
-     }
-    },
-    {
-     "name": "article_scroll_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.472811189661698e-05,
-       "max_abs_logit_diff": 0.0011396408081054688,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00012180362486530205,
-       "max_abs_logit_diff": 0.0014178752899169922,
-       "act_probability_diff": 0.0,
-       "k": 50,
-       "ref_choice": "8",
-       "graph_choice": "8"
-      }
-     }
-    },
-    {
-     "name": "bt_rename",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.821273286337302e-05,
-       "max_abs_logit_diff": 0.0026917457580566406,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010994207527059707,
-       "max_abs_logit_diff": 0.00171661376953125,
-       "act_probability_diff": 0.0,
-       "k": 7,
-       "ref_choice": "5",
-       "graph_choice": "5"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001153364208792973,
-       "max_abs_logit_diff": 0.0010807514190673828,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "1",
-       "graph_choice": "1"
-      }
-     }
-    },
-    {
-     "name": "bt_toggle",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.595629443537863e-05,
-       "max_abs_logit_diff": 0.0024550706148147583,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.9382522584775472e-05,
-       "max_abs_logit_diff": 0.0007472038269042969,
-       "act_probability_diff": 0.0,
-       "k": 7,
-       "ref_choice": "3",
-       "graph_choice": "3"
-      }
-     }
-    },
-    {
-     "name": "chrome_feed_article",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0002108644737823795,
-       "max_abs_logit_diff": 0.0017902851104736328,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010472300011210578,
-       "max_abs_logit_diff": 0.0031987130641937256,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "18",
-       "graph_choice": "18"
-      }
-     }
-    },
-    {
-     "name": "chrome_open_youtube",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.056646311543453e-05,
-       "max_abs_logit_diff": 0.002240896224975586,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.975651442214792e-05,
-       "max_abs_logit_diff": 0.002122819423675537,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "9",
-       "graph_choice": "9"
-      }
-     }
-    },
-    {
-     "name": "chrome_search_weather",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.1107672678502554e-05,
-       "max_abs_logit_diff": 0.00153350830078125,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010289968358445645,
-       "max_abs_logit_diff": 0.0015619099140167236,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "3",
-       "graph_choice": "3"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.509674959567555e-05,
-       "max_abs_logit_diff": 0.00028336048126220703,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "0",
-       "graph_choice": "0"
-      }
-     }
-    },
-    {
-     "name": "clock_add_alarm",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.683852828706424e-05,
-       "max_abs_logit_diff": 0.0013946294784545898,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.7059217650116096e-05,
-       "max_abs_logit_diff": 0.002727985382080078,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "18",
-       "graph_choice": "18"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 7.793929667065935e-05,
-       "max_abs_logit_diff": 0.00048094987869262695,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "0",
-       "graph_choice": "0"
-      }
-     }
-    },
-    {
-     "name": "clock_enable_715",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.4872992549496153e-05,
-       "max_abs_logit_diff": 0.001425027847290039,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.032437867320439e-05,
-       "max_abs_logit_diff": 0.0017137527465820312,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "8",
-       "graph_choice": "8"
-      }
-     }
-    },
-    {
-     "name": "clock_open_timer",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.0785992151096657e-05,
-       "max_abs_logit_diff": 0.0005669593811035156,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.6709857460939226e-05,
-       "max_abs_logit_diff": 0.0020701587200164795,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "21",
-       "graph_choice": "21"
-      }
-     }
-    },
-    {
-     "name": "dialog_cancel",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.451606987500913e-05,
-       "max_abs_logit_diff": 0.0016999244689941406,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001686243970528134,
-       "max_abs_logit_diff": 0.002731606364250183,
-       "act_probability_diff": 0.0,
-       "k": 19,
-       "ref_choice": "9",
-       "graph_choice": "9"
-      }
-     }
-    },
-    {
-     "name": "dialog_two_minutes",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.526473925636765e-05,
-       "max_abs_logit_diff": 0.0016617774963378906,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.596348022073508e-05,
-       "max_abs_logit_diff": 0.0016736984252929688,
-       "act_probability_diff": 0.0,
-       "k": 19,
-       "ref_choice": "12",
-       "graph_choice": "12"
-      }
-     }
-    },
-    {
-     "name": "drawer_whatsapp",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.638680057558517e-05,
-       "max_abs_logit_diff": 0.0024313926696777344,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.663524237545012e-05,
-       "max_abs_logit_diff": 0.0020052194595336914,
-       "act_probability_diff": 0.0,
-       "k": 53,
-       "ref_choice": "44",
-       "graph_choice": "44"
-      }
-     }
-    },
-    {
-     "name": "drawer_zoom_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00027493817118551256,
-       "max_abs_logit_diff": 0.0021528005599975586,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.6882037543196624e-05,
-       "max_abs_logit_diff": 0.0018663406372070312,
-       "act_probability_diff": 0.0,
-       "k": 53,
-       "ref_choice": "48",
-       "graph_choice": "48"
-      }
-     }
-    },
-    {
-     "name": "empty_game",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.4246365498803842e-06,
-       "max_abs_logit_diff": 0.0004858970642089844,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "WAIT",
-       "graph_choice": "WAIT"
-      }
-     }
-    },
-    {
-     "name": "empty_game_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.57037913132352e-05,
-       "max_abs_logit_diff": 0.0011105537414550781,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      }
-     }
-    },
-    {
-     "name": "home_all_apps_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.665082432288916e-05,
-       "max_abs_logit_diff": 0.001414179801940918,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001839920966723585,
-       "max_abs_logit_diff": 0.002153843641281128,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "15",
-       "graph_choice": "15"
-      }
-     }
-    },
-    {
-     "name": "home_open_chrome",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.1691076004828604e-05,
-       "max_abs_logit_diff": 0.0012121200561523438,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.1606021790125662e-05,
-       "max_abs_logit_diff": 0.0010950565338134766,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "12",
-       "graph_choice": "12"
-      }
-     }
-    },
-    {
-     "name": "msg_call",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00023827946197185756,
-       "max_abs_logit_diff": 0.0014679431915283203,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0003644784572880422,
-       "max_abs_logit_diff": 0.0020475387573242188,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "11",
-       "graph_choice": "11"
-      }
-     }
-    },
-    {
-     "name": "msg_reply",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.409475148605459e-05,
-       "max_abs_logit_diff": 0.00115203857421875,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "INPUT_TEXT",
-       "graph_choice": "INPUT_TEXT"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00011832336588818437,
-       "max_abs_logit_diff": 0.0012900829315185547,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "11",
-       "graph_choice": "11"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.180507346720265e-05,
-       "max_abs_logit_diff": 0.0005814433097839355,
-       "act_probability_diff": 0.0,
-       "k": 3,
-       "ref_choice": "2",
-       "graph_choice": "2"
-      }
-     }
-    },
-    {
-     "name": "settings_bt_from_main",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00023510083763778056,
-       "max_abs_logit_diff": 0.0014281272888183594,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0004164562438875308,
-       "max_abs_logit_diff": 0.0024068355560302734,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "4",
-       "graph_choice": "4"
-      }
-     }
-    },
-    {
-     "name": "settings_dark_theme",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.701321943805347e-05,
-       "max_abs_logit_diff": 0.0011036992073059082,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.7833387726540195e-06,
-       "max_abs_logit_diff": 0.0009491443634033203,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "10",
-       "graph_choice": "10"
-      }
-     }
-    },
-    {
-     "name": "settings_de_bluetooth",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.037874282353249e-05,
-       "max_abs_logit_diff": 0.0009331703186035156,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00019372793224137208,
-       "max_abs_logit_diff": 0.0025824308395385742,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "4",
-       "graph_choice": "4"
-      }
-     }
-    },
-    {
-     "name": "settings_storage_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 9.365627547341937e-05,
-       "max_abs_logit_diff": 0.001945197582244873,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.4324086925764377e-06,
-       "max_abs_logit_diff": 0.001102447509765625,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "8",
-       "graph_choice": "8"
-      }
-     }
-    }
-   ],
-   "rows_checked": 24,
-   "questions_checked": 50,
-   "all_token_ids_identical": true,
-   "all_argmax_identical": true,
-   "max_abs_prob_diff": 0.0004164562438875308,
-   "max_abs_act_probability_diff": 0.0
-  },
   "s512_wfp16": {
    "rows": [
     {
@@ -3068,594 +2438,6 @@
    "all_token_ids_identical": true,
    "all_argmax_identical": true,
    "max_abs_prob_diff": 3.3798232256798677e-06,
-   "max_abs_act_probability_diff": 0.0
-  },
-  "multi_wfp16_sig_s512": {
-   "rows": [
-    {
-     "name": "article_carrington",
-     "skipped": "options do not fit the 512 window"
-    },
-    {
-     "name": "article_scroll_extra",
-     "skipped": "options do not fit the 512 window"
-    },
-    {
-     "name": "bt_rename",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.821273286337302e-05,
-       "max_abs_logit_diff": 0.0026917457580566406,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010994207527059707,
-       "max_abs_logit_diff": 0.00171661376953125,
-       "act_probability_diff": 0.0,
-       "k": 7,
-       "ref_choice": "5",
-       "graph_choice": "5"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001153364208792973,
-       "max_abs_logit_diff": 0.0010807514190673828,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "1",
-       "graph_choice": "1"
-      }
-     }
-    },
-    {
-     "name": "bt_toggle",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.595629443537863e-05,
-       "max_abs_logit_diff": 0.0024550706148147583,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.9382522584775472e-05,
-       "max_abs_logit_diff": 0.0007472038269042969,
-       "act_probability_diff": 0.0,
-       "k": 7,
-       "ref_choice": "3",
-       "graph_choice": "3"
-      }
-     }
-    },
-    {
-     "name": "chrome_feed_article",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0002108644737823795,
-       "max_abs_logit_diff": 0.0017902851104736328,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010472300011210578,
-       "max_abs_logit_diff": 0.0031987130641937256,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "18",
-       "graph_choice": "18"
-      }
-     }
-    },
-    {
-     "name": "chrome_open_youtube",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.056646311543453e-05,
-       "max_abs_logit_diff": 0.002240896224975586,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.975651442214792e-05,
-       "max_abs_logit_diff": 0.002122819423675537,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "9",
-       "graph_choice": "9"
-      }
-     }
-    },
-    {
-     "name": "chrome_search_weather",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.1107672678502554e-05,
-       "max_abs_logit_diff": 0.00153350830078125,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010289968358445645,
-       "max_abs_logit_diff": 0.0015619099140167236,
-       "act_probability_diff": 0.0,
-       "k": 20,
-       "ref_choice": "3",
-       "graph_choice": "3"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.509674959567555e-05,
-       "max_abs_logit_diff": 0.00028336048126220703,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "0",
-       "graph_choice": "0"
-      }
-     }
-    },
-    {
-     "name": "clock_add_alarm",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.683852828706424e-05,
-       "max_abs_logit_diff": 0.0013946294784545898,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.983535783789403e-05,
-       "max_abs_logit_diff": 0.0010998249053955078,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "18",
-       "graph_choice": "18"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 7.793929667065935e-05,
-       "max_abs_logit_diff": 0.00048094987869262695,
-       "act_probability_diff": 0.0,
-       "k": 2,
-       "ref_choice": "0",
-       "graph_choice": "0"
-      }
-     }
-    },
-    {
-     "name": "clock_enable_715",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.4872992549496153e-05,
-       "max_abs_logit_diff": 0.001425027847290039,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00011265909194979606,
-       "max_abs_logit_diff": 0.0020722150802612305,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "8",
-       "graph_choice": "8"
-      }
-     }
-    },
-    {
-     "name": "clock_open_timer",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00018027485176974611,
-       "max_abs_logit_diff": 0.0015162676572799683,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.3667139265381998e-05,
-       "max_abs_logit_diff": 0.0018477439880371094,
-       "act_probability_diff": 0.0,
-       "k": 24,
-       "ref_choice": "21",
-       "graph_choice": "21"
-      }
-     }
-    },
-    {
-     "name": "dialog_cancel",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.451606987500913e-05,
-       "max_abs_logit_diff": 0.0016999244689941406,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001686243970528134,
-       "max_abs_logit_diff": 0.002731606364250183,
-       "act_probability_diff": 0.0,
-       "k": 19,
-       "ref_choice": "9",
-       "graph_choice": "9"
-      }
-     }
-    },
-    {
-     "name": "dialog_two_minutes",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.526473925636765e-05,
-       "max_abs_logit_diff": 0.0016617774963378906,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.7770048240408074e-05,
-       "max_abs_logit_diff": 0.0015788078308105469,
-       "act_probability_diff": 0.0,
-       "k": 19,
-       "ref_choice": "12",
-       "graph_choice": "12"
-      }
-     }
-    },
-    {
-     "name": "drawer_whatsapp",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.4869824047368816e-05,
-       "max_abs_logit_diff": 0.0018284320831298828,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.890252767011713e-05,
-       "max_abs_logit_diff": 0.0016510486602783203,
-       "act_probability_diff": 0.0,
-       "k": 53,
-       "ref_choice": "44",
-       "graph_choice": "44"
-      }
-     }
-    },
-    {
-     "name": "drawer_zoom_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00010462217780482508,
-       "max_abs_logit_diff": 0.0016930103302001953,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.780389904217696e-05,
-       "max_abs_logit_diff": 0.0018224716186523438,
-       "act_probability_diff": 0.0,
-       "k": 53,
-       "ref_choice": "48",
-       "graph_choice": "48"
-      }
-     }
-    },
-    {
-     "name": "empty_game",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.4246365498803842e-06,
-       "max_abs_logit_diff": 0.0004858970642089844,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "WAIT",
-       "graph_choice": "WAIT"
-      }
-     }
-    },
-    {
-     "name": "empty_game_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.57037913132352e-05,
-       "max_abs_logit_diff": 0.0011105537414550781,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      }
-     }
-    },
-    {
-     "name": "home_all_apps_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.665082432288916e-05,
-       "max_abs_logit_diff": 0.001414179801940918,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0001839920966723585,
-       "max_abs_logit_diff": 0.002153843641281128,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "15",
-       "graph_choice": "15"
-      }
-     }
-    },
-    {
-     "name": "home_open_chrome",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.1691076004828604e-05,
-       "max_abs_logit_diff": 0.0012121200561523438,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "OPEN_APP",
-       "graph_choice": "OPEN_APP"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.1606021790125662e-05,
-       "max_abs_logit_diff": 0.0010950565338134766,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "12",
-       "graph_choice": "12"
-      }
-     }
-    },
-    {
-     "name": "msg_call",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00023827946197185756,
-       "max_abs_logit_diff": 0.0014679431915283203,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0003644784572880422,
-       "max_abs_logit_diff": 0.0020475387573242188,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "11",
-       "graph_choice": "11"
-      }
-     }
-    },
-    {
-     "name": "msg_reply",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.409475148605459e-05,
-       "max_abs_logit_diff": 0.00115203857421875,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "INPUT_TEXT",
-       "graph_choice": "INPUT_TEXT"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00011832336588818437,
-       "max_abs_logit_diff": 0.0012900829315185547,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "11",
-       "graph_choice": "11"
-      },
-      "text": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 6.180507346720265e-05,
-       "max_abs_logit_diff": 0.0005814433097839355,
-       "act_probability_diff": 0.0,
-       "k": 3,
-       "ref_choice": "2",
-       "graph_choice": "2"
-      }
-     }
-    },
-    {
-     "name": "settings_bt_from_main",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00023510083763778056,
-       "max_abs_logit_diff": 0.0014281272888183594,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.0004164562438875308,
-       "max_abs_logit_diff": 0.0024068355560302734,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "4",
-       "graph_choice": "4"
-      }
-     }
-    },
-    {
-     "name": "settings_dark_theme",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 3.701321943805347e-05,
-       "max_abs_logit_diff": 0.0011036992073059082,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 1.7833387726540195e-06,
-       "max_abs_logit_diff": 0.0009491443634033203,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "10",
-       "graph_choice": "10"
-      }
-     }
-    },
-    {
-     "name": "settings_de_bluetooth",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 4.037874282353249e-05,
-       "max_abs_logit_diff": 0.0009331703186035156,
-       "act_probability_diff": 0.0,
-       "k": 12,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 0.00019372793224137208,
-       "max_abs_logit_diff": 0.0025824308395385742,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "4",
-       "graph_choice": "4"
-      }
-     }
-    },
-    {
-     "name": "settings_storage_extra",
-     "questions": {
-      "operation": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 9.365627547341937e-05,
-       "max_abs_logit_diff": 0.001945197582244873,
-       "act_probability_diff": 0.0,
-       "k": 18,
-       "ref_choice": "CLICK",
-       "graph_choice": "CLICK"
-      },
-      "target": {
-       "token_ids_identical": true,
-       "argmax_identical": true,
-       "max_abs_prob_diff": 2.4324086925764377e-06,
-       "max_abs_logit_diff": 0.001102447509765625,
-       "act_probability_diff": 0.0,
-       "k": 13,
-       "ref_choice": "8",
-       "graph_choice": "8"
-      }
-     }
-    }
-   ],
-   "rows_checked": 22,
-   "questions_checked": 46,
-   "all_token_ids_identical": true,
-   "all_argmax_identical": true,
-   "max_abs_prob_diff": 0.0004164562438875308,
    "max_abs_act_probability_diff": 0.0
   },
   "s256_wfp16": {
@@ -5077,21 +3859,1869 @@
    "max_abs_prob_diff": 0.0002991086978142432,
    "max_abs_act_probability_diff": 0.0
   },
+  "multi_wfp16_sig_s512": {
+   "rows": [
+    {
+     "name": "article_carrington",
+     "skipped": "options do not fit the 512 window"
+    },
+    {
+     "name": "article_scroll_extra",
+     "skipped": "options do not fit the 512 window"
+    },
+    {
+     "name": "bt_rename",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.821273286337302e-05,
+       "max_abs_logit_diff": 0.0026917457580566406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010994207527059707,
+       "max_abs_logit_diff": 0.00171661376953125,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "5",
+       "graph_choice": "5"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001153364208792973,
+       "max_abs_logit_diff": 0.0010807514190673828,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "1",
+       "graph_choice": "1"
+      }
+     }
+    },
+    {
+     "name": "bt_toggle",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.595629443537863e-05,
+       "max_abs_logit_diff": 0.0024550706148147583,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.9382522584775472e-05,
+       "max_abs_logit_diff": 0.0007472038269042969,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      }
+     }
+    },
+    {
+     "name": "chrome_feed_article",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0002108644737823795,
+       "max_abs_logit_diff": 0.0017902851104736328,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010472300011210578,
+       "max_abs_logit_diff": 0.0031987130641937256,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      }
+     }
+    },
+    {
+     "name": "chrome_open_youtube",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.056646311543453e-05,
+       "max_abs_logit_diff": 0.002240896224975586,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.975651442214792e-05,
+       "max_abs_logit_diff": 0.002122819423675537,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "chrome_search_weather",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1107672678502554e-05,
+       "max_abs_logit_diff": 0.00153350830078125,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010289968358445645,
+       "max_abs_logit_diff": 0.0015619099140167236,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.509674959567555e-05,
+       "max_abs_logit_diff": 0.00028336048126220703,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_add_alarm",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.683852828706424e-05,
+       "max_abs_logit_diff": 0.0013946294784545898,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.983535783789403e-05,
+       "max_abs_logit_diff": 0.0010998249053955078,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 7.793929667065935e-05,
+       "max_abs_logit_diff": 0.00048094987869262695,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_enable_715",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4872992549496153e-05,
+       "max_abs_logit_diff": 0.001425027847290039,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00011265909194979606,
+       "max_abs_logit_diff": 0.0020722150802612305,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    },
+    {
+     "name": "clock_open_timer",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00018027485176974611,
+       "max_abs_logit_diff": 0.0015162676572799683,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.3667139265381998e-05,
+       "max_abs_logit_diff": 0.0018477439880371094,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "21",
+       "graph_choice": "21"
+      }
+     }
+    },
+    {
+     "name": "dialog_cancel",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.451606987500913e-05,
+       "max_abs_logit_diff": 0.0016999244689941406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001686243970528134,
+       "max_abs_logit_diff": 0.002731606364250183,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "dialog_two_minutes",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.526473925636765e-05,
+       "max_abs_logit_diff": 0.0016617774963378906,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.7770048240408074e-05,
+       "max_abs_logit_diff": 0.0015788078308105469,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "drawer_whatsapp",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4869824047368816e-05,
+       "max_abs_logit_diff": 0.0018284320831298828,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.890252767011713e-05,
+       "max_abs_logit_diff": 0.0016510486602783203,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "44",
+       "graph_choice": "44"
+      }
+     }
+    },
+    {
+     "name": "drawer_zoom_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010462217780482508,
+       "max_abs_logit_diff": 0.0016930103302001953,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.780389904217696e-05,
+       "max_abs_logit_diff": 0.0018224716186523438,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "48",
+       "graph_choice": "48"
+      }
+     }
+    },
+    {
+     "name": "empty_game",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.4246365498803842e-06,
+       "max_abs_logit_diff": 0.0004858970642089844,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "WAIT",
+       "graph_choice": "WAIT"
+      }
+     }
+    },
+    {
+     "name": "empty_game_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.57037913132352e-05,
+       "max_abs_logit_diff": 0.0011105537414550781,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      }
+     }
+    },
+    {
+     "name": "home_all_apps_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.665082432288916e-05,
+       "max_abs_logit_diff": 0.001414179801940918,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001839920966723585,
+       "max_abs_logit_diff": 0.002153843641281128,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "15",
+       "graph_choice": "15"
+      }
+     }
+    },
+    {
+     "name": "home_open_chrome",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.1691076004828604e-05,
+       "max_abs_logit_diff": 0.0012121200561523438,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1606021790125662e-05,
+       "max_abs_logit_diff": 0.0010950565338134766,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "msg_call",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023827946197185756,
+       "max_abs_logit_diff": 0.0014679431915283203,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0003644784572880422,
+       "max_abs_logit_diff": 0.0020475387573242188,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      }
+     }
+    },
+    {
+     "name": "msg_reply",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.409475148605459e-05,
+       "max_abs_logit_diff": 0.00115203857421875,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "INPUT_TEXT",
+       "graph_choice": "INPUT_TEXT"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00011832336588818437,
+       "max_abs_logit_diff": 0.0012900829315185547,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.180507346720265e-05,
+       "max_abs_logit_diff": 0.0005814433097839355,
+       "act_probability_diff": 0.0,
+       "k": 3,
+       "ref_choice": "2",
+       "graph_choice": "2"
+      }
+     }
+    },
+    {
+     "name": "settings_bt_from_main",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023510083763778056,
+       "max_abs_logit_diff": 0.0014281272888183594,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0004164562438875308,
+       "max_abs_logit_diff": 0.0024068355560302734,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_dark_theme",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.701321943805347e-05,
+       "max_abs_logit_diff": 0.0011036992073059082,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.7833387726540195e-06,
+       "max_abs_logit_diff": 0.0009491443634033203,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "10",
+       "graph_choice": "10"
+      }
+     }
+    },
+    {
+     "name": "settings_de_bluetooth",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.037874282353249e-05,
+       "max_abs_logit_diff": 0.0009331703186035156,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00019372793224137208,
+       "max_abs_logit_diff": 0.0025824308395385742,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_storage_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 9.365627547341937e-05,
+       "max_abs_logit_diff": 0.001945197582244873,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4324086925764377e-06,
+       "max_abs_logit_diff": 0.001102447509765625,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    }
+   ],
+   "rows_checked": 22,
+   "questions_checked": 46,
+   "all_token_ids_identical": true,
+   "all_argmax_identical": true,
+   "max_abs_prob_diff": 0.0004164562438875308,
+   "max_abs_act_probability_diff": 0.0
+  },
+  "multi_wfp16_sig_s1024": {
+   "rows": [
+    {
+     "name": "article_carrington",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00029540111600445673,
+       "max_abs_logit_diff": 0.0018181800842285156,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.156374161201626e-05,
+       "max_abs_logit_diff": 0.002753913402557373,
+       "act_probability_diff": 0.0,
+       "k": 50,
+       "ref_choice": "39",
+       "graph_choice": "39"
+      }
+     }
+    },
+    {
+     "name": "article_scroll_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.472811189661698e-05,
+       "max_abs_logit_diff": 0.0011396408081054688,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00012180362486530205,
+       "max_abs_logit_diff": 0.0014178752899169922,
+       "act_probability_diff": 0.0,
+       "k": 50,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    },
+    {
+     "name": "bt_rename",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.821273286337302e-05,
+       "max_abs_logit_diff": 0.0026917457580566406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010994207527059707,
+       "max_abs_logit_diff": 0.00171661376953125,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "5",
+       "graph_choice": "5"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001153364208792973,
+       "max_abs_logit_diff": 0.0010807514190673828,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "1",
+       "graph_choice": "1"
+      }
+     }
+    },
+    {
+     "name": "bt_toggle",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.595629443537863e-05,
+       "max_abs_logit_diff": 0.0024550706148147583,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.9382522584775472e-05,
+       "max_abs_logit_diff": 0.0007472038269042969,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      }
+     }
+    },
+    {
+     "name": "chrome_feed_article",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0002108644737823795,
+       "max_abs_logit_diff": 0.0017902851104736328,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010472300011210578,
+       "max_abs_logit_diff": 0.0031987130641937256,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      }
+     }
+    },
+    {
+     "name": "chrome_open_youtube",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.056646311543453e-05,
+       "max_abs_logit_diff": 0.002240896224975586,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.975651442214792e-05,
+       "max_abs_logit_diff": 0.002122819423675537,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "chrome_search_weather",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1107672678502554e-05,
+       "max_abs_logit_diff": 0.00153350830078125,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010289968358445645,
+       "max_abs_logit_diff": 0.0015619099140167236,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.509674959567555e-05,
+       "max_abs_logit_diff": 0.00028336048126220703,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_add_alarm",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.683852828706424e-05,
+       "max_abs_logit_diff": 0.0013946294784545898,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.7059217650116096e-05,
+       "max_abs_logit_diff": 0.002727985382080078,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 7.793929667065935e-05,
+       "max_abs_logit_diff": 0.00048094987869262695,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_enable_715",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4872992549496153e-05,
+       "max_abs_logit_diff": 0.001425027847290039,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.032437867320439e-05,
+       "max_abs_logit_diff": 0.0017137527465820312,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    },
+    {
+     "name": "clock_open_timer",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.0785992151096657e-05,
+       "max_abs_logit_diff": 0.0005669593811035156,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.6709857460939226e-05,
+       "max_abs_logit_diff": 0.0020701587200164795,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "21",
+       "graph_choice": "21"
+      }
+     }
+    },
+    {
+     "name": "dialog_cancel",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.451606987500913e-05,
+       "max_abs_logit_diff": 0.0016999244689941406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001686243970528134,
+       "max_abs_logit_diff": 0.002731606364250183,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "dialog_two_minutes",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.526473925636765e-05,
+       "max_abs_logit_diff": 0.0016617774963378906,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.596348022073508e-05,
+       "max_abs_logit_diff": 0.0016736984252929688,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "drawer_whatsapp",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.638680057558517e-05,
+       "max_abs_logit_diff": 0.0024313926696777344,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.663524237545012e-05,
+       "max_abs_logit_diff": 0.0020052194595336914,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "44",
+       "graph_choice": "44"
+      }
+     }
+    },
+    {
+     "name": "drawer_zoom_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00027493817118551256,
+       "max_abs_logit_diff": 0.0021528005599975586,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.6882037543196624e-05,
+       "max_abs_logit_diff": 0.0018663406372070312,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "48",
+       "graph_choice": "48"
+      }
+     }
+    },
+    {
+     "name": "empty_game",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.4246365498803842e-06,
+       "max_abs_logit_diff": 0.0004858970642089844,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "WAIT",
+       "graph_choice": "WAIT"
+      }
+     }
+    },
+    {
+     "name": "empty_game_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.57037913132352e-05,
+       "max_abs_logit_diff": 0.0011105537414550781,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      }
+     }
+    },
+    {
+     "name": "home_all_apps_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.665082432288916e-05,
+       "max_abs_logit_diff": 0.001414179801940918,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001839920966723585,
+       "max_abs_logit_diff": 0.002153843641281128,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "15",
+       "graph_choice": "15"
+      }
+     }
+    },
+    {
+     "name": "home_open_chrome",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.1691076004828604e-05,
+       "max_abs_logit_diff": 0.0012121200561523438,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1606021790125662e-05,
+       "max_abs_logit_diff": 0.0010950565338134766,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "msg_call",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023827946197185756,
+       "max_abs_logit_diff": 0.0014679431915283203,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0003644784572880422,
+       "max_abs_logit_diff": 0.0020475387573242188,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      }
+     }
+    },
+    {
+     "name": "msg_reply",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.409475148605459e-05,
+       "max_abs_logit_diff": 0.00115203857421875,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "INPUT_TEXT",
+       "graph_choice": "INPUT_TEXT"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00011832336588818437,
+       "max_abs_logit_diff": 0.0012900829315185547,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.180507346720265e-05,
+       "max_abs_logit_diff": 0.0005814433097839355,
+       "act_probability_diff": 0.0,
+       "k": 3,
+       "ref_choice": "2",
+       "graph_choice": "2"
+      }
+     }
+    },
+    {
+     "name": "settings_bt_from_main",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023510083763778056,
+       "max_abs_logit_diff": 0.0014281272888183594,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0004164562438875308,
+       "max_abs_logit_diff": 0.0024068355560302734,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_dark_theme",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.701321943805347e-05,
+       "max_abs_logit_diff": 0.0011036992073059082,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.7833387726540195e-06,
+       "max_abs_logit_diff": 0.0009491443634033203,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "10",
+       "graph_choice": "10"
+      }
+     }
+    },
+    {
+     "name": "settings_de_bluetooth",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.037874282353249e-05,
+       "max_abs_logit_diff": 0.0009331703186035156,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00019372793224137208,
+       "max_abs_logit_diff": 0.0025824308395385742,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_storage_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 9.365627547341937e-05,
+       "max_abs_logit_diff": 0.001945197582244873,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4324086925764377e-06,
+       "max_abs_logit_diff": 0.001102447509765625,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    }
+   ],
+   "rows_checked": 24,
+   "questions_checked": 50,
+   "all_token_ids_identical": true,
+   "all_argmax_identical": true,
+   "max_abs_prob_diff": 0.0004164562438875308,
+   "max_abs_act_probability_diff": 0.0
+  },
+  "multi_wfp16_sig_s2048": {
+   "rows": [
+    {
+     "name": "article_carrington",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00029540111600445673,
+       "max_abs_logit_diff": 0.0018181800842285156,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 7.076861259269762e-05,
+       "max_abs_logit_diff": 0.003110945224761963,
+       "act_probability_diff": 0.0,
+       "k": 50,
+       "ref_choice": "39",
+       "graph_choice": "39"
+      }
+     }
+    },
+    {
+     "name": "article_scroll_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.472811189661698e-05,
+       "max_abs_logit_diff": 0.0011396408081054688,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00012180362486530205,
+       "max_abs_logit_diff": 0.0014178752899169922,
+       "act_probability_diff": 0.0,
+       "k": 50,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    },
+    {
+     "name": "bt_rename",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.821273286337302e-05,
+       "max_abs_logit_diff": 0.0026917457580566406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010994207527059707,
+       "max_abs_logit_diff": 0.00171661376953125,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "5",
+       "graph_choice": "5"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001153364208792973,
+       "max_abs_logit_diff": 0.0010807514190673828,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "1",
+       "graph_choice": "1"
+      }
+     }
+    },
+    {
+     "name": "bt_toggle",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.595629443537863e-05,
+       "max_abs_logit_diff": 0.0024550706148147583,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.9382522584775472e-05,
+       "max_abs_logit_diff": 0.0007472038269042969,
+       "act_probability_diff": 0.0,
+       "k": 7,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      }
+     }
+    },
+    {
+     "name": "chrome_feed_article",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0002108644737823795,
+       "max_abs_logit_diff": 0.0017902851104736328,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010472300011210578,
+       "max_abs_logit_diff": 0.0031987130641937256,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      }
+     }
+    },
+    {
+     "name": "chrome_open_youtube",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.056646311543453e-05,
+       "max_abs_logit_diff": 0.002240896224975586,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.975651442214792e-05,
+       "max_abs_logit_diff": 0.002122819423675537,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "chrome_search_weather",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1107672678502554e-05,
+       "max_abs_logit_diff": 0.00153350830078125,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00010289968358445645,
+       "max_abs_logit_diff": 0.0015619099140167236,
+       "act_probability_diff": 0.0,
+       "k": 20,
+       "ref_choice": "3",
+       "graph_choice": "3"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.509674959567555e-05,
+       "max_abs_logit_diff": 0.00028336048126220703,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_add_alarm",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.683852828706424e-05,
+       "max_abs_logit_diff": 0.0013946294784545898,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.7059217650116096e-05,
+       "max_abs_logit_diff": 0.002727985382080078,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "18",
+       "graph_choice": "18"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 7.793929667065935e-05,
+       "max_abs_logit_diff": 0.00048094987869262695,
+       "act_probability_diff": 0.0,
+       "k": 2,
+       "ref_choice": "0",
+       "graph_choice": "0"
+      }
+     }
+    },
+    {
+     "name": "clock_enable_715",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4872992549496153e-05,
+       "max_abs_logit_diff": 0.001425027847290039,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.032437867320439e-05,
+       "max_abs_logit_diff": 0.0017137527465820312,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    },
+    {
+     "name": "clock_open_timer",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.0785992151096657e-05,
+       "max_abs_logit_diff": 0.0005669593811035156,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.6709857460939226e-05,
+       "max_abs_logit_diff": 0.0020701587200164795,
+       "act_probability_diff": 0.0,
+       "k": 24,
+       "ref_choice": "21",
+       "graph_choice": "21"
+      }
+     }
+    },
+    {
+     "name": "dialog_cancel",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.451606987500913e-05,
+       "max_abs_logit_diff": 0.0016999244689941406,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001686243970528134,
+       "max_abs_logit_diff": 0.002731606364250183,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "9",
+       "graph_choice": "9"
+      }
+     }
+    },
+    {
+     "name": "dialog_two_minutes",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.526473925636765e-05,
+       "max_abs_logit_diff": 0.0016617774963378906,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.596348022073508e-05,
+       "max_abs_logit_diff": 0.0016736984252929688,
+       "act_probability_diff": 0.0,
+       "k": 19,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "drawer_whatsapp",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.638680057558517e-05,
+       "max_abs_logit_diff": 0.0024313926696777344,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.663524237545012e-05,
+       "max_abs_logit_diff": 0.0020052194595336914,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "44",
+       "graph_choice": "44"
+      }
+     }
+    },
+    {
+     "name": "drawer_zoom_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00027493817118551256,
+       "max_abs_logit_diff": 0.0021528005599975586,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.6882037543196624e-05,
+       "max_abs_logit_diff": 0.0018663406372070312,
+       "act_probability_diff": 0.0,
+       "k": 53,
+       "ref_choice": "48",
+       "graph_choice": "48"
+      }
+     }
+    },
+    {
+     "name": "empty_game",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.4246365498803842e-06,
+       "max_abs_logit_diff": 0.0004858970642089844,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "WAIT",
+       "graph_choice": "WAIT"
+      }
+     }
+    },
+    {
+     "name": "empty_game_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.57037913132352e-05,
+       "max_abs_logit_diff": 0.0011105537414550781,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      }
+     }
+    },
+    {
+     "name": "home_all_apps_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.665082432288916e-05,
+       "max_abs_logit_diff": 0.001414179801940918,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0001839920966723585,
+       "max_abs_logit_diff": 0.002153843641281128,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "15",
+       "graph_choice": "15"
+      }
+     }
+    },
+    {
+     "name": "home_open_chrome",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.1691076004828604e-05,
+       "max_abs_logit_diff": 0.0012121200561523438,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "OPEN_APP",
+       "graph_choice": "OPEN_APP"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.1606021790125662e-05,
+       "max_abs_logit_diff": 0.0010950565338134766,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "12",
+       "graph_choice": "12"
+      }
+     }
+    },
+    {
+     "name": "msg_call",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023827946197185756,
+       "max_abs_logit_diff": 0.0014679431915283203,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0003644784572880422,
+       "max_abs_logit_diff": 0.0020475387573242188,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      }
+     }
+    },
+    {
+     "name": "msg_reply",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.409475148605459e-05,
+       "max_abs_logit_diff": 0.00115203857421875,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "INPUT_TEXT",
+       "graph_choice": "INPUT_TEXT"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00011832336588818437,
+       "max_abs_logit_diff": 0.0012900829315185547,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "11",
+       "graph_choice": "11"
+      },
+      "text": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 6.180507346720265e-05,
+       "max_abs_logit_diff": 0.0005814433097839355,
+       "act_probability_diff": 0.0,
+       "k": 3,
+       "ref_choice": "2",
+       "graph_choice": "2"
+      }
+     }
+    },
+    {
+     "name": "settings_bt_from_main",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00023510083763778056,
+       "max_abs_logit_diff": 0.0014281272888183594,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.0004164562438875308,
+       "max_abs_logit_diff": 0.0024068355560302734,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_dark_theme",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 3.701321943805347e-05,
+       "max_abs_logit_diff": 0.0011036992073059082,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 1.7833387726540195e-06,
+       "max_abs_logit_diff": 0.0009491443634033203,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "10",
+       "graph_choice": "10"
+      }
+     }
+    },
+    {
+     "name": "settings_de_bluetooth",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 4.037874282353249e-05,
+       "max_abs_logit_diff": 0.0009331703186035156,
+       "act_probability_diff": 0.0,
+       "k": 12,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 0.00019372793224137208,
+       "max_abs_logit_diff": 0.0025824308395385742,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "4",
+       "graph_choice": "4"
+      }
+     }
+    },
+    {
+     "name": "settings_storage_extra",
+     "questions": {
+      "operation": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 9.365627547341937e-05,
+       "max_abs_logit_diff": 0.001945197582244873,
+       "act_probability_diff": 0.0,
+       "k": 18,
+       "ref_choice": "CLICK",
+       "graph_choice": "CLICK"
+      },
+      "target": {
+       "token_ids_identical": true,
+       "argmax_identical": true,
+       "max_abs_prob_diff": 2.4324086925764377e-06,
+       "max_abs_logit_diff": 0.001102447509765625,
+       "act_probability_diff": 0.0,
+       "k": 13,
+       "ref_choice": "8",
+       "graph_choice": "8"
+      }
+     }
+    }
+   ],
+   "rows_checked": 24,
+   "questions_checked": 50,
+   "all_token_ids_identical": true,
+   "all_argmax_identical": true,
+   "max_abs_prob_diff": 0.0004164562438875308,
+   "max_abs_act_probability_diff": 0.0
+  },
   "adaptive_multi_wfp16": {
    "rows": [
     {
      "name": "article_carrington",
-     "window": 1024,
+     "window": 2048,
      "questions": {
       "operation": {
-       "window": 1024,
+       "window": 2048,
        "argmax_identical": true,
        "max_abs_prob_diff": 0.00029540111600445673
       },
       "target": {
-       "window": 1024,
+       "window": 2048,
        "argmax_identical": true,
-       "max_abs_prob_diff": 4.156374161201626e-05
+       "max_abs_prob_diff": 7.076861259269762e-05
       }
      }
     },
@@ -5483,11 +6113,12 @@
    "window_picks": {
     "256": 4,
     "512": 12,
-    "1024": 8
+    "1024": 7,
+    "2048": 1
    },
    "latency": {
-    "step_ms_median": 352.3,
-    "step_ms_p90": 937.7,
+    "step_ms_median": 394.4,
+    "step_ms_p90": 997.5,
     "reps": 3,
     "rows": 24
    }
@@ -5498,35 +6129,35 @@
    "rows": 24,
    "reps": 3,
    "questions_per_step_mean": 2.08,
-   "step_ms_median": 1277.8,
-   "step_ms_p90": 1902.2,
-   "graph_ms_median": 1276.6,
-   "host_prep_ms_median": 1.2,
-   "graph_ms_per_question_median": 612.8
+   "step_ms_median": 960.0,
+   "step_ms_p90": 1400.1,
+   "graph_ms_median": 959.1,
+   "host_prep_ms_median": 0.9,
+   "graph_ms_per_question_median": 460.4
   },
   "s512_wfp16": {
    "rows": 22,
    "reps": 3,
    "questions_per_step_mean": 2.09,
-   "step_ms_median": 337.2,
-   "step_ms_p90": 499.1,
-   "graph_ms_median": 336.6,
-   "host_prep_ms_median": 0.7,
-   "graph_ms_per_question_median": 161.0
+   "step_ms_median": 373.8,
+   "step_ms_p90": 563.0,
+   "graph_ms_median": 373.0,
+   "host_prep_ms_median": 0.8,
+   "graph_ms_per_question_median": 178.4
   },
   "s256_wfp16": {
    "rows": 17,
    "reps": 3,
    "questions_per_step_mean": 2.06,
-   "step_ms_median": 145.6,
-   "step_ms_p90": 217.9,
-   "graph_ms_median": 145.0,
-   "host_prep_ms_median": 0.6,
-   "graph_ms_per_question_median": 70.4
+   "step_ms_median": 174.9,
+   "step_ms_p90": 258.1,
+   "graph_ms_median": 174.1,
+   "host_prep_ms_median": 0.7,
+   "graph_ms_per_question_median": 84.5
   },
   "adaptive_multi_wfp16": {
-   "step_ms_median": 352.3,
-   "step_ms_p90": 937.7,
+   "step_ms_median": 394.4,
+   "step_ms_p90": 997.5,
    "reps": 3,
    "rows": 24
   }

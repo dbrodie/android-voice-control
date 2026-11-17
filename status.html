@@ -10,7 +10,7 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
 .ok{background:#e6f4ea;border-color:#a8dab5}
 </style></head><body>
 <h1>Android Voice Control — build status</h1>
-<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 12:29:54 · page auto-refreshes every 30 s</div>
+<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 13:14:37 · page auto-refreshes every 30 s</div>
 <p>Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime (&#x27;GPT live&#x27;) voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.</p>
 
 <table><tr><th>#</th><th>Task</th><th>Status</th><th>What is happening</th></tr><tr>
@@ -102,7 +102,7 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
   <td><b>T14</b></td>
   <td>Laya-Android model conversion: fetch ByunByun/laya-android, reproduce its candidate serialization + questions in Python, export to a mobile graph (LiteRT preferred, ONNX fallback) at a 1024-token window, parity fixtures + host contract<div class=owner>Opus 5.5 agent: laya-convert</div></td>
   <td><span class=badge style="background:#1a73e8">RUNNING</span></td>
-  <td></td>
+  <td>LiteRT export of Laya-Android done on macOS (litert-torch 0.9.3, community recipe re-implemented): one 275 MB wfp16 .tflite with signatures s256/s512/s1024/s2048 sharing weights (+ single-window files), 393 MB fp16 token table, tokenizer. Parity vs laya 0.3.28 PyTorch on 24 rows / 50 questions over 10 hand-built UiTrees: token ids identical, argmax identical everywhere, max |dp| 0.00042 (wfp16) / 0.00000 (fp32). Mac M5 CPU: 194 ms/question at 512, 478 at 1024; adaptive window 394 ms/step median. tools/laya/HOST_CONTRACT.md is the Kotlin spec (T=1.1609, head_max_len 1536, act head ignored, tokenizer.json truncation trap). Extra untrained ops/text question: not recommended.<ul class=log><li>candidates.py: faithful port of Byun11 candidates/serialization for our UiTree; 10 realistic trees incl. keyboard, dialog, &gt;40 candidates</li><li>export.py: explicit rewrite matches laya forward to 1.7e-5; LiteRT conversion + fp16 FC weights; multi-signature shared-weight file</li><li>parity.py: all windows/storages argmax-identical, max |dp| 0.00042; extra_ops_study: extras never flip trained argmax but take 0.3-22% mass</li></ul></td>
 </tr><tr>
   <td><b>T15</b></td>
   <td>SystemOne backend interface: JevSystemOne adapter, StepInput/StepDecision, TaskRunner refactor, backend setting (auto|jev|laya) + settings UI, backend/latency in run reports and Runs screen<div class=owner>Opus 5.5 agent: backend-seam</div></td>

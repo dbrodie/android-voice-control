@@ -1,185 +1,189 @@
 {
-  "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
-  "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
-  "needs_input": [],
-  "tasks": [
-    {
-      "id": "T0",
-      "title": "Project skeleton: Gradle project, core contracts, manifest, debug hooks, emulator boot, first build + install",
-      "owner": "Opus 5.5 agent: skeleton",
-      "status": "done",
-      "summary": "Gradle 8.13 / AGP 8.13.2 / Kotlin 2.1, core contracts, stubs, scripts/, debug broadcasts. Builds, installs, accessibility service connects on emulator-5554. See docs/SKELETON.md.",
-      "log": []
-    },
-    {
-      "id": "T0b",
-      "title": "Research: current OpenAI Realtime API protocol (model id, WS events, tool calling, audio formats)",
-      "owner": "Opus 5.5 agent: research",
-      "status": "done",
-      "summary": "docs/realtime-api-notes.md written. Key finding: OpenAI now has an official 'GPT-Live' product (gpt-live-1, $0.05/min) separate from the Realtime API (gpt-realtime-2.1). Sign-in-with-ChatGPT officially does not cover audio.",
-      "log": []
-    },
-    {
-      "id": "T1",
-      "title": "AccessibilityService: screenshots + taps/swipes/typing/back/home/open app (control/)",
-      "owner": "Opus 5.5 agent: accessibility",
-      "status": "done",
-      "summary": "Merged to main. takeScreenshot (~400 ms/shot under the OS rate limit), gestures with completion callbacks, typing via SET_TEXT→clipboard→IME fallbacks, openApp/openUrl with window wait, installedApps. All checks passed on emulator-5554. install.sh now disables/re-enables the service around reinstalls."
-    },
-    {
-      "id": "T2",
-      "title": "JEV agent loop port (agent/): JevClient, TaskParser, TaskRunner with confidence gating, zoom refine, screen-settle wait",
-      "owner": "Opus 5.5 agent: agent-loop",
-      "status": "done",
-      "summary": "Merged to main. Faithful port of run_task(): golden tests vs upstream Python (21 JVM tests pass), request bodies byte-identical, live JEV call OK (ask ~0.4 s, refine ~0.3 s). Run reports saved to files/runs/. Not yet exercised end-to-end on a device (T5)."
-    },
-    {
-      "id": "T3",
-      "title": "Overlay bubble + status UI, foreground service, MainActivity setup/permissions/settings (overlay/, ui/)",
-      "owner": "Opus 5.5 agent: overlay-ui",
-      "status": "done",
-      "summary": "Merged to main. Draggable mic bubble + status pill, slim top strip with stop button while a task runs (reported via core/OverlayInfo.regions), setup checklist Activity with settings and text-task test box. Verified on emulator-5556. Caveat: the Settings app hides non-system overlays, so the strip is invisible there."
-    },
-    {
-      "id": "T4a",
-      "title": "Voice auth: Sign in with ChatGPT (Codex PKCE OAuth), token refresh, Codex auth.json import for testing (voice/auth/)",
-      "owner": "Opus 5.5 agent: voice-auth",
-      "status": "done",
-      "summary": "Merged to main. Codex PKCE OAuth (params verified against openai/codex source), loopback login on 127.0.0.1:1455, Keystore-encrypted token store, Codex auth.json import. AUTH_PROBE against chatgpt.com call endpoint: HTTP 400 'Offer did not have an audio media section' = auth and plan accepted (plan prolite). Refresh deliberately not exercised with the Mac's token (OpenAI rotates refresh tokens; would force a Mac re-login)."
-    },
-    {
-      "id": "T4b",
-      "title": "GPT-Live core: Live event protocol, Codex WebRTC call + control WebSocket, mic/speaker, delegation → TaskController (voice/live/, VoiceController)",
-      "owner": "Opus 5.5 agent: voice-live",
-      "status": "done",
-      "summary": "Merged to main. WebRTC call to chatgpt.com Codex GPT-Live (HTTP 201), control WS (101), delegation.created → TaskController → result appended → GPT speaks it. Verified with real spoken audio injected through a debug mic on emulator-5558. Adds stream-webrtc-android (APK ~54 MB)."
-    },
-    {
-      "id": "T4c",
-      "title": "API-key fallback: official GPT-Live API (gpt-live-1) over WebSocket, selectable in settings",
-      "owner": "Opus 5.5 agent: voice-fallback",
-      "status": "done",
-      "summary": "Merged to main. OpenAiLiveWsTransport (wss://api.openai.com/v1/live/sessions, gpt-live-1, PCM 24 kHz) + PcmAudio; chooser in VoiceBackends (auto/chatgpt/openai_key). 12 new JVM tests; live negative test: bad key → clean 401 error; Codex route regression OK. Untested with a real key (none provided)."
-    },
-    {
-      "id": "T5",
-      "title": "Integration + end-to-end emulator test: voice (text-injected) → task → JEV loop → actions; final APK",
-      "owner": "Opus 5.5 agent: integration",
-      "status": "done",
-      "summary": "Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock→Alarms (1), Dark theme (3). Voice path: spoken 'Open settings and turn on Bluetooth' → delegation → JEV loop → Bluetooth on → GPT said 'Done—Bluetooth is on now.' Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035."
-    },
-    {
-      "id": "T6",
-      "title": "OpenAI (ChatGPT) login flow: onboarding/login screen, in-app browser, callback + token exchange, account display, sign-out, error handling; verified on the emulator",
-      "owner": "Opus 5.5 agent: login-flow",
-      "status": "done",
-      "summary": "Merged to main. Sign-in screen (ChatGPT or API key), Custom Tabs, waiting/success/error states, account mode with sign-out/switch, survives rotation and process death, port fallback 1457. 58 JVM tests pass incl. pinned token-exchange body. Real sign-in confirmed by the user on their phone."
-    },
-    {
-      "id": "T7",
-      "title": "JEV API key entered by the user instead of embedded at build time: key screen with live verification, checklist row, clear errors when missing, release builds never embed keys",
-      "owner": "Opus 5.5 agent: jev-key",
-      "status": "done",
-      "summary": "Merged to main. JEV key entered in-app (JevKeyActivity) with a live probe (200 = valid, 401/403 = rejected), stored encrypted via Keystore, checklist row, clear 'Add your JEV API key' errors in the pill and spoken by GPT. Release builds never embed keys (verified: no apikey_ string in the release APK). 66 JVM tests pass."
-    },
-    {
-      "id": "T8",
-      "title": "Bubble colours per state (grey idle, amber connecting, green listening, blue GPT speaking, red error) per user feedback",
-      "owner": "Opus 5.5 agent: bubble-colours",
-      "status": "done",
-      "summary": "Merged to main. Bubble colour per state: grey idle, amber connecting, green listening (brighter while you speak), blue while GPT speaks with a speaker icon, red on error; strip tinted green/blue while a task runs; 150 ms cross-fades. Verified on dark and light screens."
-    },
-    {
-      "id": "T9",
-      "title": "Port the upstream dashboard: in-app Runs screen with per-step screenshots, actions, confidence/alternatives, tokens, cost, status, totals, trash",
-      "owner": "Opus 5.5 agent: dashboard",
-      "status": "done",
-      "summary": "Merged to main. Runs & costs screen: totals (runs, cost, tokens, success rate), per-run rows with status chips, live card with Stop, step-by-step detail with annotated screenshots, confidence bars and alternatives, timings, tokens, cost; Trash with restore/delete forever; Share report.json. Verified against report.json totals on emulator-5554. 80 JVM tests pass."
-    },
-    {
-      "id": "T10",
-      "title": "Foldables: bubble must be movable over the whole screen after unfolding/folding (display size changes)",
-      "owner": "Opus 5.5 agent: foldable-overlay",
-      "status": "done",
-      "summary": "Merged to main. Root cause: overlay cached the screen size and its one post-fold rebuild ran before window metrics updated, leaving the bubble off-screen (fold) or clamped to the old bounds (unfold). Fix: live metrics cross-checked against DisplayManager, re-layout on config/display/window callbacks with settle retries, bubble keeps its edge + vertical fraction. Verified on the foldable AVD in both states and rotations; 10 geometry tests."
-    },
-    {
-      "id": "T11",
-      "title": "APK size: per-ABI release APKs (arm64-v8a, armeabi-v7a, x86_64, x86 + universal) and R8 minification with keep rules verified on device",
-      "owner": "Opus 5.5 agent: apk-size",
-      "status": "done",
-      "summary": "Merged to main. Release = per-ABI APKs + universal (arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB; dex 8 MB → 1.6 MB) with R8 + resource shrinking; versionCode = base*10+abi. Keep rules verified on a minified build: JEV task, Runs screen, GPT-Live call, key probe, login screen. scripts/release.sh builds, verifies signatures, rejects embedded keys, copies APKs + mapping to dist/."
-    },
-    {
-      "id": "T12",
-      "title": "Voice cost in Runs & costs: persist per-session GPT-Live usage (minutes, backend, turns, delegated tasks), show equivalent API pricing ($0.05/min) for both routes, totals and all-in cost",
-      "owner": "Opus 5.5 agent: voice-cost",
-      "status": "done",
-      "summary": "Merged to main. Per-call voice records (files/voice/*.json) with billed seconds from the server's usage events, $0.05/min equivalent (per-second, session time incl. silence; source: developers.openai.com pricing), turns and delegated tasks linked to runs. Runs & costs: voice totals + All-in, Voice tab, 'Triggered by voice session' in run detail. Also fixed a native crash on audio drop and a call left open on OpenAI's side. 105 JVM tests pass."
-    },
-    {
-      "id": "T13",
-      "title": "GitHub: create public repo dbrodie/android-voice-control, push, Actions workflow that builds + signs (separate CI key) + publishes per-ABI APKs on v* tags; release v0.1.1",
-      "owner": "Opus 5.5 agent: github-release",
-      "status": "done",
-      "summary": "Public repo dbrodie/android-voice-control created and pushed (history rewritten first to drop a debug APK that embedded the JEV key; verified no object contains it). release.yml on v* tags builds, signs with a separate CI key (secrets), verifies, and attaches 5 APKs + mapping; ci.yml runs tests on main. v0.1.1 released and verified (CI signer, no keys)."
-    },
-    {
-      "id": "T14",
-      "title": "Laya-Android model conversion: fetch ByunByun/laya-android, reproduce its candidate serialization + questions in Python, export to a mobile graph (LiteRT preferred, ONNX fallback) at a 1024-token window, parity fixtures + host contract",
-      "owner": "Opus 5.5 agent: laya-convert",
-      "status": "running",
-      "summary": "",
-      "log": []
-    },
-    {
-      "id": "T15",
-      "title": "SystemOne backend interface: JevSystemOne adapter, StepInput/StepDecision, TaskRunner refactor, backend setting (auto|jev|laya) + settings UI, backend/latency in run reports and Runs screen",
-      "owner": "Opus 5.5 agent: backend-seam",
-      "status": "running",
-      "summary": "",
-      "log": []
-    },
-    {
-      "id": "T16",
-      "title": "Accessibility tree capture (control/ → core/UiTree) + Kotlin port of Laya-Android candidate extraction/serialization, DUMP_TREE debug broadcast, JVM golden tests",
-      "owner": "Opus 5.5 agent: tree-capture",
-      "status": "running",
-      "summary": "",
-      "log": []
-    },
-    {
-      "id": "T17",
-      "title": "LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya",
-      "owner": "Opus 5.5 agent: laya-engine",
-      "status": "todo",
-      "summary": "Depends on T14, T15, T16.",
-      "log": []
-    },
-    {
-      "id": "T18",
-      "title": "Verification: reference tasks with JEV vs Laya on emulator (and user's phone), latency/accuracy table, docs + USER_GUIDE update, release",
-      "owner": "orchestrator",
-      "status": "todo",
-      "summary": "",
-      "log": []
-    }
-  ],
-  "notes": [
-    "Upstream cloned to upstream/System-One-Computer-Use (gitignored).",
-    "Architecture contract for all agents: ARCHITECTURE.md.",
-    "Verified: opencode-gpt-live uses ChatGPT OAuth (Codex sign-in token) to open a GPT-Live WebRTC call via chatgpt.com/backend-api/codex/realtime/calls, model gpt-live-1-codex, control channel wss://api.openai.com/v1/live/<call>. Undocumented API; full reference incl. Rust WebRTC helper cloned to upstream/opencode-gpt-live.",
-    "Skeleton committed as the base commit so agents can work in isolated git worktrees.",
-    "Decision (user, 2026-11-13): voice = ChatGPT login via the unofficial Codex GPT-Live route, with official API-key GPT-Live as fallback. Codex token from ~/.codex/auth.json may be used for emulator testing.",
-    "Caution: the imported Codex token is shared with the Mac's Codex CLI. If the app ever refreshes it (401 or <5 min to expiry; current token expires 2026-11-19), the Mac's ~/.codex/auth.json becomes stale and needs `codex login`.",
-    "Main at 0ac50bd builds a debug APK with all Phase 1 work merged.",
-    "Deliverable: dist/voice-control-debug.apk (54 MB, built from main; embeds the JEV key from .env so it is NOT tracked in git). Guide: docs/USER_GUIDE.md.",
-    "Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio).",
-    "Release build (2026-11-13 12:54): dist/voice-control-release.apk, v0.1.0, signed with a locally generated key (keystore/voice-control-release.jks + keystore.properties, gitignored). Built from main at fdfabee + signing config; excludes the in-progress T6 login work. Not installed on the emulator (T6 is using it).",
-    "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup → JEV API key) and sign in with ChatGPT or enter an OpenAI key.",
-    "MIT license chosen (matches both MIT upstreams); LICENSE, NOTICE (credits), README added.",
-    "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a.",
-    "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe.",
-    "Phase 2 (2026-11-17): user asked for selectable JEV vs on-device Laya-Android (no new training). Research + plan in docs/ON_DEVICE_SYSTEM1_PLAN.md."
-  ]
+ "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
+ "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
+ "needs_input": [],
+ "tasks": [
+  {
+   "id": "T0",
+   "title": "Project skeleton: Gradle project, core contracts, manifest, debug hooks, emulator boot, first build + install",
+   "owner": "Opus 5.5 agent: skeleton",
+   "status": "done",
+   "summary": "Gradle 8.13 / AGP 8.13.2 / Kotlin 2.1, core contracts, stubs, scripts/, debug broadcasts. Builds, installs, accessibility service connects on emulator-5554. See docs/SKELETON.md.",
+   "log": []
+  },
+  {
+   "id": "T0b",
+   "title": "Research: current OpenAI Realtime API protocol (model id, WS events, tool calling, audio formats)",
+   "owner": "Opus 5.5 agent: research",
+   "status": "done",
+   "summary": "docs/realtime-api-notes.md written. Key finding: OpenAI now has an official 'GPT-Live' product (gpt-live-1, $0.05/min) separate from the Realtime API (gpt-realtime-2.1). Sign-in-with-ChatGPT officially does not cover audio.",
+   "log": []
+  },
+  {
+   "id": "T1",
+   "title": "AccessibilityService: screenshots + taps/swipes/typing/back/home/open app (control/)",
+   "owner": "Opus 5.5 agent: accessibility",
+   "status": "done",
+   "summary": "Merged to main. takeScreenshot (~400 ms/shot under the OS rate limit), gestures with completion callbacks, typing via SET_TEXT→clipboard→IME fallbacks, openApp/openUrl with window wait, installedApps. All checks passed on emulator-5554. install.sh now disables/re-enables the service around reinstalls."
+  },
+  {
+   "id": "T2",
+   "title": "JEV agent loop port (agent/): JevClient, TaskParser, TaskRunner with confidence gating, zoom refine, screen-settle wait",
+   "owner": "Opus 5.5 agent: agent-loop",
+   "status": "done",
+   "summary": "Merged to main. Faithful port of run_task(): golden tests vs upstream Python (21 JVM tests pass), request bodies byte-identical, live JEV call OK (ask ~0.4 s, refine ~0.3 s). Run reports saved to files/runs/. Not yet exercised end-to-end on a device (T5)."
+  },
+  {
+   "id": "T3",
+   "title": "Overlay bubble + status UI, foreground service, MainActivity setup/permissions/settings (overlay/, ui/)",
+   "owner": "Opus 5.5 agent: overlay-ui",
+   "status": "done",
+   "summary": "Merged to main. Draggable mic bubble + status pill, slim top strip with stop button while a task runs (reported via core/OverlayInfo.regions), setup checklist Activity with settings and text-task test box. Verified on emulator-5556. Caveat: the Settings app hides non-system overlays, so the strip is invisible there."
+  },
+  {
+   "id": "T4a",
+   "title": "Voice auth: Sign in with ChatGPT (Codex PKCE OAuth), token refresh, Codex auth.json import for testing (voice/auth/)",
+   "owner": "Opus 5.5 agent: voice-auth",
+   "status": "done",
+   "summary": "Merged to main. Codex PKCE OAuth (params verified against openai/codex source), loopback login on 127.0.0.1:1455, Keystore-encrypted token store, Codex auth.json import. AUTH_PROBE against chatgpt.com call endpoint: HTTP 400 'Offer did not have an audio media section' = auth and plan accepted (plan prolite). Refresh deliberately not exercised with the Mac's token (OpenAI rotates refresh tokens; would force a Mac re-login)."
+  },
+  {
+   "id": "T4b",
+   "title": "GPT-Live core: Live event protocol, Codex WebRTC call + control WebSocket, mic/speaker, delegation → TaskController (voice/live/, VoiceController)",
+   "owner": "Opus 5.5 agent: voice-live",
+   "status": "done",
+   "summary": "Merged to main. WebRTC call to chatgpt.com Codex GPT-Live (HTTP 201), control WS (101), delegation.created → TaskController → result appended → GPT speaks it. Verified with real spoken audio injected through a debug mic on emulator-5558. Adds stream-webrtc-android (APK ~54 MB)."
+  },
+  {
+   "id": "T4c",
+   "title": "API-key fallback: official GPT-Live API (gpt-live-1) over WebSocket, selectable in settings",
+   "owner": "Opus 5.5 agent: voice-fallback",
+   "status": "done",
+   "summary": "Merged to main. OpenAiLiveWsTransport (wss://api.openai.com/v1/live/sessions, gpt-live-1, PCM 24 kHz) + PcmAudio; chooser in VoiceBackends (auto/chatgpt/openai_key). 12 new JVM tests; live negative test: bad key → clean 401 error; Codex route regression OK. Untested with a real key (none provided)."
+  },
+  {
+   "id": "T5",
+   "title": "Integration + end-to-end emulator test: voice (text-injected) → task → JEV loop → actions; final APK",
+   "owner": "Opus 5.5 agent: integration",
+   "status": "done",
+   "summary": "Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock→Alarms (1), Dark theme (3). Voice path: spoken 'Open settings and turn on Bluetooth' → delegation → JEV loop → Bluetooth on → GPT said 'Done—Bluetooth is on now.' Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035."
+  },
+  {
+   "id": "T6",
+   "title": "OpenAI (ChatGPT) login flow: onboarding/login screen, in-app browser, callback + token exchange, account display, sign-out, error handling; verified on the emulator",
+   "owner": "Opus 5.5 agent: login-flow",
+   "status": "done",
+   "summary": "Merged to main. Sign-in screen (ChatGPT or API key), Custom Tabs, waiting/success/error states, account mode with sign-out/switch, survives rotation and process death, port fallback 1457. 58 JVM tests pass incl. pinned token-exchange body. Real sign-in confirmed by the user on their phone."
+  },
+  {
+   "id": "T7",
+   "title": "JEV API key entered by the user instead of embedded at build time: key screen with live verification, checklist row, clear errors when missing, release builds never embed keys",
+   "owner": "Opus 5.5 agent: jev-key",
+   "status": "done",
+   "summary": "Merged to main. JEV key entered in-app (JevKeyActivity) with a live probe (200 = valid, 401/403 = rejected), stored encrypted via Keystore, checklist row, clear 'Add your JEV API key' errors in the pill and spoken by GPT. Release builds never embed keys (verified: no apikey_ string in the release APK). 66 JVM tests pass."
+  },
+  {
+   "id": "T8",
+   "title": "Bubble colours per state (grey idle, amber connecting, green listening, blue GPT speaking, red error) per user feedback",
+   "owner": "Opus 5.5 agent: bubble-colours",
+   "status": "done",
+   "summary": "Merged to main. Bubble colour per state: grey idle, amber connecting, green listening (brighter while you speak), blue while GPT speaks with a speaker icon, red on error; strip tinted green/blue while a task runs; 150 ms cross-fades. Verified on dark and light screens."
+  },
+  {
+   "id": "T9",
+   "title": "Port the upstream dashboard: in-app Runs screen with per-step screenshots, actions, confidence/alternatives, tokens, cost, status, totals, trash",
+   "owner": "Opus 5.5 agent: dashboard",
+   "status": "done",
+   "summary": "Merged to main. Runs & costs screen: totals (runs, cost, tokens, success rate), per-run rows with status chips, live card with Stop, step-by-step detail with annotated screenshots, confidence bars and alternatives, timings, tokens, cost; Trash with restore/delete forever; Share report.json. Verified against report.json totals on emulator-5554. 80 JVM tests pass."
+  },
+  {
+   "id": "T10",
+   "title": "Foldables: bubble must be movable over the whole screen after unfolding/folding (display size changes)",
+   "owner": "Opus 5.5 agent: foldable-overlay",
+   "status": "done",
+   "summary": "Merged to main. Root cause: overlay cached the screen size and its one post-fold rebuild ran before window metrics updated, leaving the bubble off-screen (fold) or clamped to the old bounds (unfold). Fix: live metrics cross-checked against DisplayManager, re-layout on config/display/window callbacks with settle retries, bubble keeps its edge + vertical fraction. Verified on the foldable AVD in both states and rotations; 10 geometry tests."
+  },
+  {
+   "id": "T11",
+   "title": "APK size: per-ABI release APKs (arm64-v8a, armeabi-v7a, x86_64, x86 + universal) and R8 minification with keep rules verified on device",
+   "owner": "Opus 5.5 agent: apk-size",
+   "status": "done",
+   "summary": "Merged to main. Release = per-ABI APKs + universal (arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB; dex 8 MB → 1.6 MB) with R8 + resource shrinking; versionCode = base*10+abi. Keep rules verified on a minified build: JEV task, Runs screen, GPT-Live call, key probe, login screen. scripts/release.sh builds, verifies signatures, rejects embedded keys, copies APKs + mapping to dist/."
+  },
+  {
+   "id": "T12",
+   "title": "Voice cost in Runs & costs: persist per-session GPT-Live usage (minutes, backend, turns, delegated tasks), show equivalent API pricing ($0.05/min) for both routes, totals and all-in cost",
+   "owner": "Opus 5.5 agent: voice-cost",
+   "status": "done",
+   "summary": "Merged to main. Per-call voice records (files/voice/*.json) with billed seconds from the server's usage events, $0.05/min equivalent (per-second, session time incl. silence; source: developers.openai.com pricing), turns and delegated tasks linked to runs. Runs & costs: voice totals + All-in, Voice tab, 'Triggered by voice session' in run detail. Also fixed a native crash on audio drop and a call left open on OpenAI's side. 105 JVM tests pass."
+  },
+  {
+   "id": "T13",
+   "title": "GitHub: create public repo dbrodie/android-voice-control, push, Actions workflow that builds + signs (separate CI key) + publishes per-ABI APKs on v* tags; release v0.1.1",
+   "owner": "Opus 5.5 agent: github-release",
+   "status": "done",
+   "summary": "Public repo dbrodie/android-voice-control created and pushed (history rewritten first to drop a debug APK that embedded the JEV key; verified no object contains it). release.yml on v* tags builds, signs with a separate CI key (secrets), verifies, and attaches 5 APKs + mapping; ci.yml runs tests on main. v0.1.1 released and verified (CI signer, no keys)."
+  },
+  {
+   "id": "T14",
+   "title": "Laya-Android model conversion: fetch ByunByun/laya-android, reproduce its candidate serialization + questions in Python, export to a mobile graph (LiteRT preferred, ONNX fallback) at a 1024-token window, parity fixtures + host contract",
+   "owner": "Opus 5.5 agent: laya-convert",
+   "status": "running",
+   "summary": "LiteRT export of Laya-Android done on macOS (litert-torch 0.9.3, community recipe re-implemented): one 275 MB wfp16 .tflite with signatures s256/s512/s1024/s2048 sharing weights (+ single-window files), 393 MB fp16 token table, tokenizer. Parity vs laya 0.3.28 PyTorch on 24 rows / 50 questions over 10 hand-built UiTrees: token ids identical, argmax identical everywhere, max |dp| 0.00042 (wfp16) / 0.00000 (fp32). Mac M5 CPU: 194 ms/question at 512, 478 at 1024; adaptive window 394 ms/step median. tools/laya/HOST_CONTRACT.md is the Kotlin spec (T=1.1609, head_max_len 1536, act head ignored, tokenizer.json truncation trap). Extra untrained ops/text question: not recommended.",
+   "log": [
+    "candidates.py: faithful port of Byun11 candidates/serialization for our UiTree; 10 realistic trees incl. keyboard, dialog, >40 candidates",
+    "export.py: explicit rewrite matches laya forward to 1.7e-5; LiteRT conversion + fp16 FC weights; multi-signature shared-weight file",
+    "parity.py: all windows/storages argmax-identical, max |dp| 0.00042; extra_ops_study: extras never flip trained argmax but take 0.3-22% mass"
+   ]
+  },
+  {
+   "id": "T15",
+   "title": "SystemOne backend interface: JevSystemOne adapter, StepInput/StepDecision, TaskRunner refactor, backend setting (auto|jev|laya) + settings UI, backend/latency in run reports and Runs screen",
+   "owner": "Opus 5.5 agent: backend-seam",
+   "status": "running",
+   "summary": "",
+   "log": []
+  },
+  {
+   "id": "T16",
+   "title": "Accessibility tree capture (control/ → core/UiTree) + Kotlin port of Laya-Android candidate extraction/serialization, DUMP_TREE debug broadcast, JVM golden tests",
+   "owner": "Opus 5.5 agent: tree-capture",
+   "status": "running",
+   "summary": "",
+   "log": []
+  },
+  {
+   "id": "T17",
+   "title": "LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya",
+   "owner": "Opus 5.5 agent: laya-engine",
+   "status": "todo",
+   "summary": "Depends on T14, T15, T16.",
+   "log": []
+  },
+  {
+   "id": "T18",
+   "title": "Verification: reference tasks with JEV vs Laya on emulator (and user's phone), latency/accuracy table, docs + USER_GUIDE update, release",
+   "owner": "orchestrator",
+   "status": "todo",
+   "summary": "",
+   "log": []
+  }
+ ],
+ "notes": [
+  "Upstream cloned to upstream/System-One-Computer-Use (gitignored).",
+  "Architecture contract for all agents: ARCHITECTURE.md.",
+  "Verified: opencode-gpt-live uses ChatGPT OAuth (Codex sign-in token) to open a GPT-Live WebRTC call via chatgpt.com/backend-api/codex/realtime/calls, model gpt-live-1-codex, control channel wss://api.openai.com/v1/live/<call>. Undocumented API; full reference incl. Rust WebRTC helper cloned to upstream/opencode-gpt-live.",
+  "Skeleton committed as the base commit so agents can work in isolated git worktrees.",
+  "Decision (user, 2026-11-13): voice = ChatGPT login via the unofficial Codex GPT-Live route, with official API-key GPT-Live as fallback. Codex token from ~/.codex/auth.json may be used for emulator testing.",
+  "Caution: the imported Codex token is shared with the Mac's Codex CLI. If the app ever refreshes it (401 or <5 min to expiry; current token expires 2026-11-19), the Mac's ~/.codex/auth.json becomes stale and needs `codex login`.",
+  "Main at 0ac50bd builds a debug APK with all Phase 1 work merged.",
+  "Deliverable: dist/voice-control-debug.apk (54 MB, built from main; embeds the JEV key from .env so it is NOT tracked in git). Guide: docs/USER_GUIDE.md.",
+  "Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio).",
+  "Release build (2026-11-13 12:54): dist/voice-control-release.apk, v0.1.0, signed with a locally generated key (keystore/voice-control-release.jks + keystore.properties, gitignored). Built from main at fdfabee + signing config; excludes the in-progress T6 login work. Not installed on the emulator (T6 is using it).",
+  "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup → JEV API key) and sign in with ChatGPT or enter an OpenAI key.",
+  "MIT license chosen (matches both MIT upstreams); LICENSE, NOTICE (credits), README added.",
+  "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a.",
+  "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe.",
+  "Phase 2 (2026-11-17): user asked for selectable JEV vs on-device Laya-Android (no new training). Research + plan in docs/ON_DEVICE_SYSTEM1_PLAN.md."
+ ]
 }
