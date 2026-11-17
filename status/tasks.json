@@ -131,9 +131,13 @@
       "id": "T14",
       "title": "Laya-Android model conversion: fetch ByunByun/laya-android, reproduce its candidate serialization + questions in Python, export to a mobile graph (LiteRT preferred, ONNX fallback) at a 1024-token window, parity fixtures + host contract",
       "owner": "Opus 5.5 agent: laya-convert",
-      "status": "running",
-      "summary": "",
-      "log": []
+      "status": "done",
+      "summary": "LiteRT export of Laya-Android done on macOS (litert-torch 0.9.3, community recipe re-implemented): one 275 MB wfp16 .tflite with signatures s256/s512/s1024/s2048 sharing weights (+ single-window files), 393 MB fp16 token table, tokenizer. Parity vs laya 0.3.28 PyTorch on 24 rows / 50 questions over 10 hand-built UiTrees: token ids identical, argmax identical everywhere, max |dp| 0.00042 (wfp16) / 0.00000 (fp32). Mac M5 CPU: 194 ms/question at 512, 478 at 1024; adaptive window 394 ms/step median. tools/laya/HOST_CONTRACT.md is the Kotlin spec (T=1.1609, head_max_len 1536, act head ignored, tokenizer.json truncation trap). Extra untrained ops/text question: not recommended.",
+      "log": [
+        "candidates.py: faithful port of Byun11 candidates/serialization for our UiTree; 10 realistic trees incl. keyboard, dialog, >40 candidates",
+        "export.py: explicit rewrite matches laya forward to 1.7e-5; LiteRT conversion + fp16 FC weights; multi-signature shared-weight file",
+        "parity.py: all windows/storages argmax-identical, max |dp| 0.00042; extra_ops_study: extras never flip trained argmax but take 0.3-22% mass"
+      ]
     },
     {
       "id": "T15",
@@ -163,7 +167,7 @@
       "id": "T17",
       "title": "LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya",
       "owner": "Opus 5.5 agent: laya-engine",
-      "status": "todo",
+      "status": "running",
       "summary": "Depends on T14, T15, T16.",
       "log": []
     },

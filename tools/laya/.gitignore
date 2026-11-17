@@ -1,0 +1,6 @@
+.venv/
+work/
+out/*
+!out/MANIFEST.json
+__pycache__/
+.venv-litert/
