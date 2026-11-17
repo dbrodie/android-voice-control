@@ -1,0 +1,31 @@
+{
+ "rows": [
+  "settings_bt_from_main",
+  "settings_dark_theme",
+  "settings_storage_extra",
+  "settings_de_bluetooth",
+  "bt_toggle",
+  "bt_rename",
+  "chrome_search_weather",
+  "chrome_open_youtube",
+  "chrome_feed_article",
+  "article_carrington",
+  "article_scroll_extra",
+  "clock_enable_715",
+  "clock_add_alarm",
+  "clock_open_timer",
+  "msg_reply",
+  "msg_call",
+  "home_open_chrome",
+  "home_all_apps_extra",
+  "drawer_whatsapp",
+  "drawer_zoom_extra",
+  "dialog_two_minutes",
+  "dialog_cancel",
+  "empty_game",
+  "empty_game_extra"
+ ],
+ "source": "laya 0.3.28, torch CPU fp32, ByunByun/laya-android",
+ "window": 1024,
+ "head_max_len": 1536
+}

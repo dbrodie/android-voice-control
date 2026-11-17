@@ -1,0 +1,576 @@
+{
+ "extra_ops": {
+  "TYPE_ENTER": "type text into the focused field and press enter",
+  "ENTER": "press the enter key",
+  "OPEN_WEBSITE": "open a website by its address",
+  "ALL_APPS": "open the list of all apps",
+  "SWIPE_LEFT": "swipe left",
+  "SWIPE_RIGHT": "swipe right"
+ },
+ "part_a_distribution_shift": [
+  {
+   "name": "settings_bt_from_main",
+   "goal": "Turn on Bluetooth",
+   "base_argmax": "CLICK",
+   "base_p": 0.6801,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.6616,
+   "extra_mass": 0.0303,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0211,
+   "top_extra": [
+    "ENTER",
+    0.0154
+   ]
+  },
+  {
+   "name": "settings_dark_theme",
+   "goal": "Turn on dark theme",
+   "base_argmax": "CLICK",
+   "base_p": 0.9681,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9446,
+   "extra_mass": 0.0232,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0033,
+   "top_extra": [
+    "ENTER",
+    0.018
+   ]
+  },
+  {
+   "name": "settings_storage_extra",
+   "goal": "Check how much storage is free",
+   "base_argmax": "CLICK",
+   "base_p": 0.8908,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.8712,
+   "extra_mass": 0.0123,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0116,
+   "top_extra": [
+    "ENTER",
+    0.0048
+   ]
+  },
+  {
+   "name": "settings_de_bluetooth",
+   "goal": "Schalte Bluetooth ein",
+   "base_argmax": "CLICK",
+   "base_p": 0.4669,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.4734,
+   "extra_mass": 0.0323,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0507,
+   "top_extra": [
+    "ENTER",
+    0.0119
+   ]
+  },
+  {
+   "name": "bt_toggle",
+   "goal": "Turn on Bluetooth",
+   "base_argmax": "CLICK",
+   "base_p": 0.7592,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.6545,
+   "extra_mass": 0.027,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0875,
+   "top_extra": [
+    "ENTER",
+    0.0213
+   ]
+  },
+  {
+   "name": "bt_rename",
+   "goal": "Rename my phone to Daniel's Pixel",
+   "base_argmax": "CLICK",
+   "base_p": 0.9651,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9579,
+   "extra_mass": 0.0074,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0041,
+   "top_extra": [
+    "ENTER",
+    0.0043
+   ]
+  },
+  {
+   "name": "chrome_search_weather",
+   "goal": "Search for weather in Berlin",
+   "base_argmax": "CLICK",
+   "base_p": 0.75,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.7409,
+   "extra_mass": 0.0576,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0604,
+   "top_extra": [
+    "ENTER",
+    0.0206
+   ]
+  },
+  {
+   "name": "chrome_open_youtube",
+   "goal": "Open YouTube in Chrome",
+   "base_argmax": "CLICK",
+   "base_p": 0.9468,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9009,
+   "extra_mass": 0.0429,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.006,
+   "top_extra": [
+    "ENTER",
+    0.023
+   ]
+  },
+  {
+   "name": "chrome_feed_article",
+   "goal": "Read the article about the northern lights",
+   "base_argmax": "CLICK",
+   "base_p": 0.6591,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.5327,
+   "extra_mass": 0.1888,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0504,
+   "top_extra": [
+    "OPEN_WEBSITE",
+    0.0944
+   ]
+  },
+  {
+   "name": "article_carrington",
+   "goal": "Open the Wikipedia article about the Carrington Event",
+   "base_argmax": "CLICK",
+   "base_p": 0.7155,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.5867,
+   "extra_mass": 0.1236,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0502,
+   "top_extra": [
+    "ENTER",
+    0.0717
+   ]
+  },
+  {
+   "name": "article_scroll_extra",
+   "goal": "Find the section about aurora photography",
+   "base_argmax": "CLICK",
+   "base_p": 0.7369,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.6233,
+   "extra_mass": 0.0225,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0996,
+   "top_extra": [
+    "ENTER",
+    0.0136
+   ]
+  },
+  {
+   "name": "clock_enable_715",
+   "goal": "Turn on the 7:15 AM alarm",
+   "base_argmax": "CLICK",
+   "base_p": 0.9416,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9341,
+   "extra_mass": 0.0108,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0065,
+   "top_extra": [
+    "SWIPE_LEFT",
+    0.0042
+   ]
+  },
+  {
+   "name": "clock_add_alarm",
+   "goal": "Set an alarm for 5:45 AM",
+   "base_argmax": "CLICK",
+   "base_p": 0.9652,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9661,
+   "extra_mass": 0.0049,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0078,
+   "top_extra": [
+    "ENTER",
+    0.0012
+   ]
+  },
+  {
+   "name": "clock_open_timer",
+   "goal": "Start a 10 minute timer",
+   "base_argmax": "CLICK",
+   "base_p": 0.9454,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9443,
+   "extra_mass": 0.0068,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0059,
+   "top_extra": [
+    "ENTER",
+    0.0021
+   ]
+  },
+  {
+   "name": "msg_reply",
+   "goal": "Reply to Dana: see you at 7:30",
+   "base_argmax": "INPUT_TEXT",
+   "base_p": 0.9693,
+   "extra_argmax": "INPUT_TEXT",
+   "extra_p": 0.7433,
+   "extra_mass": 0.2222,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0135,
+   "top_extra": [
+    "TYPE_ENTER",
+    0.2025
+   ]
+  },
+  {
+   "name": "msg_call",
+   "goal": "Call Dana",
+   "base_argmax": "CLICK",
+   "base_p": 0.579,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.3961,
+   "extra_mass": 0.1826,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0955,
+   "top_extra": [
+    "ENTER",
+    0.1031
+   ]
+  },
+  {
+   "name": "home_open_chrome",
+   "goal": "Open Chrome",
+   "base_argmax": "OPEN_APP",
+   "base_p": 0.9629,
+   "extra_argmax": "OPEN_APP",
+   "extra_p": 0.9305,
+   "extra_mass": 0.0122,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0209,
+   "top_extra": [
+    "ALL_APPS",
+    0.0058
+   ]
+  },
+  {
+   "name": "home_all_apps_extra",
+   "goal": "Show me all my apps",
+   "base_argmax": "OPEN_APP",
+   "base_p": 0.9798,
+   "extra_argmax": "OPEN_APP",
+   "extra_p": 0.8635,
+   "extra_mass": 0.1136,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.006,
+   "top_extra": [
+    "ALL_APPS",
+    0.1109
+   ]
+  },
+  {
+   "name": "drawer_whatsapp",
+   "goal": "Open WhatsApp",
+   "base_argmax": "CLICK",
+   "base_p": 0.9601,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.8996,
+   "extra_mass": 0.0366,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0289,
+   "top_extra": [
+    "ENTER",
+    0.017
+   ]
+  },
+  {
+   "name": "drawer_zoom_extra",
+   "goal": "Open the Zoom app and join a meeting",
+   "base_argmax": "OPEN_APP",
+   "base_p": 0.8536,
+   "extra_argmax": "OPEN_APP",
+   "extra_p": 0.6929,
+   "extra_mass": 0.0309,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.1387,
+   "top_extra": [
+    "ALL_APPS",
+    0.0113
+   ]
+  },
+  {
+   "name": "dialog_two_minutes",
+   "goal": "Set the screen timeout to 2 minutes",
+   "base_argmax": "CLICK",
+   "base_p": 0.9274,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.9172,
+   "extra_mass": 0.0101,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0097,
+   "top_extra": [
+    "ENTER",
+    0.0047
+   ]
+  },
+  {
+   "name": "dialog_cancel",
+   "goal": "Never mind, close the screen timeout dialog",
+   "base_argmax": "CLICK",
+   "base_p": 0.7859,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.7814,
+   "extra_mass": 0.0424,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0455,
+   "top_extra": [
+    "ENTER",
+    0.0129
+   ]
+  },
+  {
+   "name": "empty_game",
+   "goal": "Start a new game",
+   "base_argmax": "WAIT",
+   "base_p": 0.9729,
+   "extra_argmax": "WAIT",
+   "extra_p": 0.9558,
+   "extra_mass": 0.0027,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.0145,
+   "top_extra": [
+    "ALL_APPS",
+    0.0016
+   ]
+  },
+  {
+   "name": "empty_game_extra",
+   "goal": "Go back to the home screen",
+   "base_argmax": "CLICK",
+   "base_p": 0.5202,
+   "extra_argmax": "CLICK",
+   "extra_p": 0.4488,
+   "extra_mass": 0.0186,
+   "trained_argmax_changed": false,
+   "tv_trained": 0.1156,
+   "top_extra": [
+    "ENTER",
+    0.0146
+   ]
+  }
+ ],
+ "part_b_untrained_targets": [
+  {
+   "tree": "chrome_ntp",
+   "goal": "Search for weather in Berlin",
+   "history": [
+    "OPEN_APP Chrome",
+    "CLICK Search or type URL",
+    "INPUT_TEXT \"weather in Berlin\""
+   ],
+   "wanted": "ENTER",
+   "p_wanted": 0.0262,
+   "rank_wanted": 4,
+   "top3": [
+    [
+     "CLICK",
+     0.8496
+    ],
+    [
+     "WAIT",
+     0.042
+    ],
+    [
+     "DONE",
+     0.0337
+    ]
+   ],
+   "base_top": "CLICK"
+  },
+  {
+   "tree": "chrome_ntp",
+   "goal": "Type weather in Berlin into the search box and press enter",
+   "history": [
+    "OPEN_APP Chrome",
+    "CLICK Search or type URL"
+   ],
+   "wanted": "TYPE_ENTER",
+   "p_wanted": 0.1253,
+   "rank_wanted": 3,
+   "top3": [
+    [
+     "INPUT_TEXT",
+     0.6979
+    ],
+    [
+     "CLICK",
+     0.1303
+    ],
+    [
+     "TYPE_ENTER",
+     0.1253
+    ]
+   ],
+   "base_top": "INPUT_TEXT"
+  },
+  {
+   "tree": "chrome_ntp",
+   "goal": "Go to the website wikipedia.org",
+   "history": [
+    "OPEN_APP Chrome"
+   ],
+   "wanted": "OPEN_WEBSITE",
+   "p_wanted": 0.6397,
+   "rank_wanted": 1,
+   "top3": [
+    [
+     "OPEN_WEBSITE",
+     0.6397
+    ],
+    [
+     "CLICK",
+     0.2445
+    ],
+    [
+     "WAIT",
+     0.0529
+    ]
+   ],
+   "base_top": "CLICK"
+  },
+  {
+   "tree": "home_screen",
+   "goal": "Open the app drawer and show all apps",
+   "history": [],
+   "wanted": "ALL_APPS",
+   "p_wanted": 0.0274,
+   "rank_wanted": 2,
+   "top3": [
+    [
+     "OPEN_APP",
+     0.9402
+    ],
+    [
+     "ALL_APPS",
+     0.0274
+    ],
+    [
+     "CLICK",
+     0.0168
+    ]
+   ],
+   "base_top": "OPEN_APP"
+  },
+  {
+   "tree": "home_screen",
+   "goal": "Swipe left to the next home screen page",
+   "history": [],
+   "wanted": "SWIPE_LEFT",
+   "p_wanted": 0.0227,
+   "rank_wanted": 3,
+   "top3": [
+    [
+     "OPEN_APP",
+     0.8685
+    ],
+    [
+     "CLICK",
+     0.0415
+    ],
+    [
+     "SWIPE_LEFT",
+     0.0227
+    ]
+   ],
+   "base_top": "OPEN_APP"
+  },
+  {
+   "tree": "messages_keyboard",
+   "goal": "Reply to Dana: see you at 7:30 and send it",
+   "history": [
+    "CLICK Text message",
+    "INPUT_TEXT \"see you at 7:30\""
+   ],
+   "wanted": "ENTER",
+   "p_wanted": 0.0151,
+   "rank_wanted": 4,
+   "top3": [
+    [
+     "CLICK",
+     0.9109
+    ],
+    [
+     "WAIT",
+     0.0264
+    ],
+    [
+     "DONE",
+     0.0183
+    ]
+   ],
+   "base_top": "CLICK"
+  }
+ ],
+ "part_c_text_question": [
+  {
+   "name": "bt_rename",
+   "goal": "Rename my phone to Daniel's Pixel",
+   "options": [
+    "Daniel's Pixel",
+    "Pixel"
+   ],
+   "probs": {
+    "Daniel's Pixel": 0.2785,
+    "Pixel": 0.7215
+   }
+  },
+  {
+   "name": "chrome_search_weather",
+   "goal": "Search for weather in Berlin",
+   "options": [
+    "weather in Berlin",
+    "Berlin"
+   ],
+   "probs": {
+    "weather in Berlin": 0.9065,
+    "Berlin": 0.0935
+   }
+  },
+  {
+   "name": "clock_add_alarm",
+   "goal": "Set an alarm for 5:45 AM",
+   "options": [
+    "5:45 AM",
+    "5:45"
+   ],
+   "probs": {
+    "5:45 AM": 0.587,
+    "5:45": 0.413
+   }
+  },
+  {
+   "name": "msg_reply",
+   "goal": "Reply to Dana: see you at 7:30",
+   "options": [
+    "see you at 7:30",
+    "Dana",
+    "7:30"
+   ],
+   "probs": {
+    "see you at 7:30": 0.2943,
+    "Dana": 0.0985,
+    "7:30": 0.6072
+   }
+  }
+ ]
+}
