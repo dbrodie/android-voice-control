@@ -22,11 +22,17 @@ object AppSettings {
     private const val KEY_OPENAI = "openai_api_key"
     private const val KEY_MODEL = "realtime_model"
     private const val KEY_BACKEND = "voice_backend"
+    private const val KEY_SYSTEM_ONE = "system_one_backend"
 
     /** Which GPT-Live transport to use. */
     const val BACKEND_AUTO = "auto"          // ChatGPT sign-in if signed in, else OpenAI API key if set
     const val BACKEND_CHATGPT = "chatgpt"    // unofficial Codex GPT-Live route (WebRTC), needs Sign in with ChatGPT
     const val BACKEND_OPENAI_KEY = "openai_key" // official GPT-Live API over WebSocket, needs an OpenAI API key
+
+    /** Which System One backend decides each step (T15, agent/SystemOneBackends). */
+    const val SYSTEM_ONE_AUTO = "auto"       // the on-device model when it is Ready, else JEV
+    const val SYSTEM_ONE_JEV = "jev"         // TypeSafe JEV (cloud), needs a JEV API key
+    const val SYSTEM_ONE_LAYA = "laya"       // on-device Laya model (T17)
 
     private fun prefs(ctx: Context): SharedPreferences =
         ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -98,4 +104,7 @@ object AppSettings {
 
     fun voiceBackend(ctx: Context): String = get(ctx, KEY_BACKEND, BACKEND_AUTO)
     fun setVoiceBackend(ctx: Context, v: String) = set(ctx, KEY_BACKEND, v)
+
+    fun systemOneBackend(ctx: Context): String = get(ctx, KEY_SYSTEM_ONE, SYSTEM_ONE_AUTO)
+    fun setSystemOneBackend(ctx: Context, v: String) = set(ctx, KEY_SYSTEM_ONE, v)
 }

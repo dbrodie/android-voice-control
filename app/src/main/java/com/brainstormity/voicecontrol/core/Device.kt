@@ -11,6 +11,8 @@ data class ScreenSize(val width: Int, val height: Int)
 interface Screen {
     suspend fun screenshot(): Bitmap
     fun screenSize(): ScreenSize
+    /** Additive (Phase 2): the accessibility node tree at this moment, or null if the service can't read it. */
+    suspend fun uiTree(): UiTree? = null
 }
 
 /** The hands. Coordinates are real screen pixels. Each call returns when the gesture has been dispatched. */

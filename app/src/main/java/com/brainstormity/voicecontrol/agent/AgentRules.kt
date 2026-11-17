@@ -62,7 +62,9 @@ object AgentRules {
      * When JEV is split between CLICK / TYPE / TYPE_ENTER, do only the longest part enough of JEV agrees on.
      * Returns the input unchanged when it doesn't apply.
      */
-    fun splitChain(action: String, confidence: Double, probabilities: Map<String, Double>): ChainResult {
+    fun splitChain(
+        action: String, confidence: Double, probabilities: Map<String, Double>, who: String = "JEV",
+    ): ChainResult {
         if (confidence < MIN_CONFIDENCE && action in CHAIN) {
             for (i in CHAIN.indices.reversed()) {
                 val tail = CHAIN.subList(i, CHAIN.size)
@@ -70,7 +72,7 @@ object AgentRules {
                 if (agreed >= MIN_CONFIDENCE) {
                     val split = tail.filter { (probabilities[it] ?: 0.0) >= 0.05 }
                     val note = if (CHAIN[i] != action || split.size > 1)
-                        "JEV was split between ${split.joinToString(" / ")}, so only the shared first part " +
+                        "$who was split between ${split.joinToString(" / ")}, so only the shared first part " +
                             "(${CHAIN[i]}) is done."
                     else ""
                     return ChainResult(CHAIN[i], agreed, note)

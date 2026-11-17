@@ -7,7 +7,6 @@ import com.brainstormity.voicecontrol.agent.AgentRules.CLOSE_UP_BELOW
 import com.brainstormity.voicecontrol.agent.AgentRules.LOADS_PAGE
 import com.brainstormity.voicecontrol.agent.AgentRules.MAX_STEPS
 import com.brainstormity.voicecontrol.agent.AgentRules.PHONE_ACTIONS
-import com.brainstormity.voicecontrol.agent.AgentRules.costOf
 import com.brainstormity.voicecontrol.agent.AgentRules.pct
 import com.brainstormity.voicecontrol.agent.AgentRules.pyRepr
 import com.brainstormity.voicecontrol.agent.AgentRules.usd
@@ -18,6 +17,7 @@ import com.brainstormity.voicecontrol.core.AgentState
 import com.brainstormity.voicecontrol.core.Hands
 import com.brainstormity.voicecontrol.core.Screen
 import com.brainstormity.voicecontrol.core.SwipeDirection
+import com.brainstormity.voicecontrol.core.UiTree
 import com.brainstormity.voicecontrol.core.VcLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -34,18 +34,24 @@ import kotlin.math.min
  *
  * Runs on a background thread (blocking JEV calls); [isStopped] is checked where upstream checks `stop`
  * (before each step and right before acting) and also while waiting for the screen to settle.
+ *
+ * T15: the model is a [SystemOne] ([JevSystemOne] = JEV, the upstream behaviour; on-device backends plug in the
+ * same way). User-facing sentences name [SystemOne.displayName] ("JEV" for JEV, so its strings are unchanged).
  */
 class TaskRunner(
     private val task: String,
-    private val jev: JevClient,
+    private val system: SystemOne,
     private val screen: Screen,
     private val hands: Hands,
     private val report: RunReport,
     private val isStopped: () -> Boolean,
     private val onStep: (AgentState.Running) -> Unit = {},
 ) {
-    /** A screenshot shrunk for JEV ([img], <= 1568 px) plus a tiny grayscale copy for change detection. */
-    private class Shot(val img: Bitmap, val gray: ScreenDiff.Gray)
+    /**
+     * A screenshot shrunk for JEV ([img], <= 1568 px) plus a tiny grayscale copy for change detection, and the
+     * accessibility tree taken right after the screenshot (null unless the backend wants it, or unreadable).
+     */
+    private class Shot(val img: Bitmap, val gray: ScreenDiff.Gray, val tree: UiTree? = null)
 
     private class Waited(val shot: Shot, val info: Map<String, Any?>, val selfMoving: Mask)
 
@@ -62,8 +68,19 @@ class TaskRunner(
      */
     private suspend fun grab(): Shot {
         val full = screen.screenshot()  // real screen pixels: the same space as the overlay regions
+        // The tree right after the pixels, so both describe the same moment. Never fatal: null = no tree.
+        val tree = if (system.wantsUiTree) uiTreeOrNull() else null
         val img = OverlayMask.apply(Images.shrink(full), full.width, full.height)
-        return Shot(img, Images.grayThumb(img))
+        return Shot(img, Images.grayThumb(img), tree)
+    }
+
+    private suspend fun uiTreeOrNull(): UiTree? = try {
+        screen.uiTree()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        VcLog.w(TAG, "uiTree() failed: ${e.message}")
+        null
     }
 
     private fun steps(): MutableList<MutableMap<String, Any?>> {
@@ -89,7 +106,8 @@ class TaskRunner(
     private fun addUsage(u: JevUsage): Double {
         r["input_tokens"] = (r["input_tokens"] as Long) + u.inputTokens
         r["output_tokens"] = (r["output_tokens"] as Long) + u.outputTokens
-        val cost = costOf(u.inputTokens)
+        // AgentRules.costOf's formula with the backend's price (JEV: the same price, so the same doubles).
+        val cost = u.inputTokens / 1_000_000.0 * system.pricePerMillionInput
         r["cost_usd"] = (r["cost_usd"] as Double) + cost
         return cost
     }
@@ -184,11 +202,13 @@ class TaskRunner(
         r["output_tokens"] = 0L
         r["cost_usd"] = 0.0
         r["device"] = "android"
+        r["backend"] = system.id
+        r["backend_name"] = system.displayName
         save()
         log("Task: $task\nQuoted text: ${quoted.ifEmpty { "-" }}\nWebsites: ${urls.ifEmpty { "-" }}\n" +
             "Report: ${report.dir ?: "(not saved)"}/")
         try {
-            if (!jev.hasKey()) throw JevException(JevClient.NO_KEY_MESSAGE)
+            system.preflight()?.let { throw SystemOneException(it) }  // JEV: no key -> JevClient.NO_KEY_MESSAGE
             val size = screen.screenSize()  // taps use real screen pixels
             val screenW = size.width
             val screenH = size.height
@@ -196,6 +216,12 @@ class TaskRunner(
             r["device_name"] = Build.MODEL ?: "Android"
             r["apps"] = apps.map { it.name }
             log("Phone: ${r["device_name"]} ${screenW}x$screenH  Apps: ${apps.map { it.name }.ifEmpty { "-" }}")
+            // One probe of the accessibility tree (T16 implements Screen.uiTree; null until then): recorded so the
+            // report says whether tree backends could have run here.
+            val probe = uiTreeOrNull()
+            r["ui_tree_nodes"] = probe?.nodes?.size
+            log("Model: ${system.displayName} (${system.id})  UI tree: " +
+                (probe?.let { "${it.nodes.size} nodes" } ?: "unavailable"))
             val history = mutableListOf<String>()
             var nextScreen: Shot
             var selfMoving: Mask
@@ -236,18 +262,24 @@ class TaskRunner(
                 val img = shot.img
                 val imgBefore = shot
                 val started = now()
-                val response = jev.ask(task, Images.jpeg(img, 85), history, texts, urls, apps)
-                val actionAnswer = response.action ?: throw JevException("JEV's answer has no action")
+                val input = StepInput(task, Images.jpeg(img, 85), img.width, img.height, shot.tree,
+                    history.toList(), texts, urls, apps)
+                val response = system.ask(input)
+                val actionAnswer = response.action ?: throw SystemOneException("$who's answer has no action")
                 var usage = response.usage
                 var stepCost = addUsage(usage)
                 val probabilities = actionAnswer.probabilities
-                val split = AgentRules.splitChain(actionAnswer.choice, actionAnswer.confidence, probabilities)
+                val split = AgentRules.splitChain(actionAnswer.choice, actionAnswer.confidence, probabilities, who)
                 val action = split.action
                 val confidence = split.confidence
                 var note = split.note
 
                 // Work out what exactly to do.
-                val targetAnswer = response.target ?: throw JevException("JEV's answer has no target box")
+                // A box is required for anything that touches the screen. Tree backends may leave it out for
+                // BACK / HOME / SCROLL...; then the (unused) tap point is the screen's centre.
+                val targetAnswer = response.target
+                    ?: if (action in CLICKS) throw SystemOneException("$who's answer has no target box")
+                    else JevTarget(Box(0.5, 0.5, 0.5, 0.5), 0.0)
                 var box = targetAnswer.box
                 var cx = box.cx
                 var cy = box.cy
@@ -255,10 +287,14 @@ class TaskRunner(
                 // Unsure where, or the same spot just did nothing: zoom in and ask again where exactly.
                 val keepsTyping = action == "TYPE" && editing?.box?.contains(cx, cy) == true
                 val missedHere = lastMiss?.isNear(action, cx, cy) == true
-                if (action in CLICKS && !keepsTyping && (targetConfidence < CLOSE_UP_BELOW || missedHere)) {
+                // A backend without refine (tree backends) returns null: no zoom step, the first answer stands.
+                val refined = if (shouldZoom(action, keepsTyping, targetConfidence, missedHere)) {
                     val c = CloseUp.around(box, img.width, img.height)
-                    val close = jev.refine(task, Images.jpeg(Images.closeUp(img, c), 90), history)
-                    val closeTarget = close.target ?: throw JevException("JEV's close-up answer has no target box")
+                    system.refine(input, c, Images.jpeg(Images.closeUp(img, c), 90))?.let { c to it }
+                } else null
+                if (refined != null) {
+                    val (c, close) = refined
+                    val closeTarget = close.target
                     usage += close.usage
                     stepCost += addUsage(close.usage)
                     if (closeTarget.confidence >= targetConfidence || missedHere) {
@@ -303,19 +339,19 @@ class TaskRunner(
                     "image" to image, "jev_seconds" to round1(now() - started),
                     "tokens" to usage.toMap(), "cost_usd" to stepCost, "result" to "",
                 )
+                step.putAll(backendFields(response, Math.round((now() - started) * 1000)))
                 steps().add(step)
                 save()
 
                 if (confidence < AgentRules.minConfidenceFor(action)) {
-                    step["result"] = "Not executed: JEV wasn't sure enough."
-                    log("JEV is only ${pct(confidence)} sure. Stopping.")
-                    return save("unsure", "JEV was only ${pct(confidence)} sure about $action, so nothing was " +
-                        "done. Try making the task more specific.")
+                    step["result"] = "Not executed: $who wasn't sure enough."
+                    log("$who is only ${pct(confidence)} sure. Stopping.")
+                    return save("unsure", unsureMessage(who, confidence, action))
                 }
                 if (action == "DONE") {
                     step["result"] = "Task finished."
                     log("Done.")
-                    return save("done", "JEV says the task is finished.")
+                    return save("done", doneMessage(who))
                 }
                 if (isStopped()) {
                     step["result"] = "Not executed."
@@ -371,7 +407,7 @@ class TaskRunner(
                         "ENTER" -> hands.enter()
                         "BACK" -> hands.back()
                         "HOME" -> hands.home()
-                        "OPEN_APP" -> hands.openApp(app?.packageName ?: throw JevException("No app to open"))
+                        "OPEN_APP" -> hands.openApp(app?.packageName ?: throw SystemOneException("No app to open"))
                         "ALL_APPS" -> hands.allApps()
                         "OPEN_WEBSITE" -> hands.openUrl(url)
                         "SCROLL_DOWN" -> hands.swipe(SwipeDirection.UP)
@@ -452,11 +488,38 @@ class TaskRunner(
     private fun <T> pick(options: List<T>, answer: JevChoice?, what: String): T {
         val i = answer?.choice?.toIntOrNull()
         return options.getOrNull(i ?: -1)
-            ?: throw JevException("JEV picked $what option ${answer?.choice} of ${options.size}")
+            ?: throw SystemOneException("$who picked $what option ${answer?.choice} of ${options.size}")
     }
+
+    /** The backend's name in user-facing sentences ("JEV"). */
+    private val who: String get() = system.displayName
 
     companion object {
         private const val TAG = "Agent"
+
+        /** Zoom in and ask again where exactly: unsure where, or the same spot just did nothing (upstream rule). */
+        fun shouldZoom(action: String, keepsTyping: Boolean, targetConfidence: Double, missedHere: Boolean): Boolean =
+            action in CLICKS && !keepsTyping && (targetConfidence < CLOSE_UP_BELOW || missedHere)
+
+        /** Finished.message when the backend isn't sure enough ("JEV was only 40% sure about CLICK, ..."). */
+        fun unsureMessage(who: String, confidence: Double, action: String): String =
+            "$who was only ${pct(confidence)} sure about $action, so nothing was " +
+                "done. Try making the task more specific."
+
+        fun doneMessage(who: String): String = "$who says the task is finished."
+
+        /**
+         * T15 report fields added to every step (after upstream's): `latency_ms` (the same span as `jev_seconds`,
+         * in ms: asking the backend incl. any zoom-in), `backend` (id), `backend_latency_ms` (the backend's own
+         * timing of the main question), `target_node_id` (tree backends; null for JEV) and `backend_extras`.
+         */
+        fun backendFields(d: StepDecision, latencyMs: Long): Map<String, Any?> = linkedMapOf(
+            "latency_ms" to latencyMs,
+            "backend" to d.backend,
+            "backend_latency_ms" to d.latencyMs,
+            "target_node_id" to d.targetNodeId,
+            "backend_extras" to LinkedHashMap(d.extras),
+        )
         /** Extra time a tap gets to show any effect before it counts as "nothing changed". */
         private const val LATE_REACTION_SECONDS = 4.0
     }
