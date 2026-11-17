@@ -10,9 +10,9 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
 .ok{background:#e6f4ea;border-color:#a8dab5}
 </style></head><body>
 <h1>Android Voice Control — build status</h1>
-<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 12:29:54 · page auto-refreshes every 30 s</div>
+<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 12:34:38 · page auto-refreshes every 30 s</div>
 <p>Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime (&#x27;GPT live&#x27;) voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.</p>
-
+<div class=box><b>Needs your input</b><ul><li>Where should the converted Laya-Android model files (~700 MB) be hosted for in-app download? Recommendation: a GitHub release asset on dbrodie/android-voice-control (models-v1 tag). Alternative: a Hugging Face repo under your account.</li><li>Which phone will validate the on-device backend (model/RAM)? The emulator can only exercise the CPU path.</li></ul></div>
 <table><tr><th>#</th><th>Task</th><th>Status</th><th>What is happening</th></tr><tr>
   <td><b>T0</b></td>
   <td>Project skeleton: Gradle project, core contracts, manifest, debug hooks, emulator boot, first build + install<div class=owner>Opus 5.5 agent: skeleton</div></td>

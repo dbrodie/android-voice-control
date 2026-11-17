@@ -1,7 +1,10 @@
 {
   "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
-  "needs_input": [],
+  "needs_input": [
+    "Where should the converted Laya-Android model files (~700 MB) be hosted for in-app download? Recommendation: a GitHub release asset on dbrodie/android-voice-control (models-v1 tag). Alternative: a Hugging Face repo under your account.",
+    "Which phone will validate the on-device backend (model/RAM)? The emulator can only exercise the CPU path."
+  ],
   "tasks": [
     {
       "id": "T0",
