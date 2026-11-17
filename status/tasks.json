@@ -1,6 +1,6 @@
 {
-  "overall": "COMPLETE \u2014 published: github.com/dbrodie/android-voice-control, release v0.1.1 built by GitHub Actions",
-  "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot\u2192action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
+  "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
+  "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [],
   "tasks": [
     {
@@ -24,7 +24,7 @@
       "title": "AccessibilityService: screenshots + taps/swipes/typing/back/home/open app (control/)",
       "owner": "Opus 5.5 agent: accessibility",
       "status": "done",
-      "summary": "Merged to main. takeScreenshot (~400 ms/shot under the OS rate limit), gestures with completion callbacks, typing via SET_TEXT\u2192clipboard\u2192IME fallbacks, openApp/openUrl with window wait, installedApps. All checks passed on emulator-5554. install.sh now disables/re-enables the service around reinstalls."
+      "summary": "Merged to main. takeScreenshot (~400 ms/shot under the OS rate limit), gestures with completion callbacks, typing via SET_TEXT→clipboard→IME fallbacks, openApp/openUrl with window wait, installedApps. All checks passed on emulator-5554. install.sh now disables/re-enables the service around reinstalls."
     },
     {
       "id": "T2",
@@ -49,24 +49,24 @@
     },
     {
       "id": "T4b",
-      "title": "GPT-Live core: Live event protocol, Codex WebRTC call + control WebSocket, mic/speaker, delegation \u2192 TaskController (voice/live/, VoiceController)",
+      "title": "GPT-Live core: Live event protocol, Codex WebRTC call + control WebSocket, mic/speaker, delegation → TaskController (voice/live/, VoiceController)",
       "owner": "Opus 5.5 agent: voice-live",
       "status": "done",
-      "summary": "Merged to main. WebRTC call to chatgpt.com Codex GPT-Live (HTTP 201), control WS (101), delegation.created \u2192 TaskController \u2192 result appended \u2192 GPT speaks it. Verified with real spoken audio injected through a debug mic on emulator-5558. Adds stream-webrtc-android (APK ~54 MB)."
+      "summary": "Merged to main. WebRTC call to chatgpt.com Codex GPT-Live (HTTP 201), control WS (101), delegation.created → TaskController → result appended → GPT speaks it. Verified with real spoken audio injected through a debug mic on emulator-5558. Adds stream-webrtc-android (APK ~54 MB)."
     },
     {
       "id": "T4c",
       "title": "API-key fallback: official GPT-Live API (gpt-live-1) over WebSocket, selectable in settings",
       "owner": "Opus 5.5 agent: voice-fallback",
       "status": "done",
-      "summary": "Merged to main. OpenAiLiveWsTransport (wss://api.openai.com/v1/live/sessions, gpt-live-1, PCM 24 kHz) + PcmAudio; chooser in VoiceBackends (auto/chatgpt/openai_key). 12 new JVM tests; live negative test: bad key \u2192 clean 401 error; Codex route regression OK. Untested with a real key (none provided)."
+      "summary": "Merged to main. OpenAiLiveWsTransport (wss://api.openai.com/v1/live/sessions, gpt-live-1, PCM 24 kHz) + PcmAudio; chooser in VoiceBackends (auto/chatgpt/openai_key). 12 new JVM tests; live negative test: bad key → clean 401 error; Codex route regression OK. Untested with a real key (none provided)."
     },
     {
       "id": "T5",
-      "title": "Integration + end-to-end emulator test: voice (text-injected) \u2192 task \u2192 JEV loop \u2192 actions; final APK",
+      "title": "Integration + end-to-end emulator test: voice (text-injected) → task → JEV loop → actions; final APK",
       "owner": "Opus 5.5 agent: integration",
       "status": "done",
-      "summary": "Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock\u2192Alarms (1), Dark theme (3). Voice path: spoken 'Open settings and turn on Bluetooth' \u2192 delegation \u2192 JEV loop \u2192 Bluetooth on \u2192 GPT said 'Done\u2014Bluetooth is on now.' Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035."
+      "summary": "Merged to main. App class wiring, mic FGS type, sign-in + backend UI, overlay masked out of screenshots, 8 integration bugs fixed. Real tasks done on emulator-5554: Bluetooth on (5 steps), Chrome search (5), Clock→Alarms (1), Dark theme (3). Voice path: spoken 'Open settings and turn on Bluetooth' → delegation → JEV loop → Bluetooth on → GPT said 'Done—Bluetooth is on now.' Orchestrator re-verified merged main: Dark theme off in 2 steps, $0.00035."
     },
     {
       "id": "T6",
@@ -108,7 +108,7 @@
       "title": "APK size: per-ABI release APKs (arm64-v8a, armeabi-v7a, x86_64, x86 + universal) and R8 minification with keep rules verified on device",
       "owner": "Opus 5.5 agent: apk-size",
       "status": "done",
-      "summary": "Merged to main. Release = per-ABI APKs + universal (arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB; dex 8 MB \u2192 1.6 MB) with R8 + resource shrinking; versionCode = base*10+abi. Keep rules verified on a minified build: JEV task, Runs screen, GPT-Live call, key probe, login screen. scripts/release.sh builds, verifies signatures, rejects embedded keys, copies APKs + mapping to dist/."
+      "summary": "Merged to main. Release = per-ABI APKs + universal (arm64-v8a 13.0 MB, armeabi-v7a 8.3 MB, x86_64 14.3 MB, x86 13.8 MB, universal 43.3 MB; dex 8 MB → 1.6 MB) with R8 + resource shrinking; versionCode = base*10+abi. Keep rules verified on a minified build: JEV task, Runs screen, GPT-Live call, key probe, login screen. scripts/release.sh builds, verifies signatures, rejects embedded keys, copies APKs + mapping to dist/."
     },
     {
       "id": "T12",
@@ -123,6 +123,46 @@
       "owner": "Opus 5.5 agent: github-release",
       "status": "done",
       "summary": "Public repo dbrodie/android-voice-control created and pushed (history rewritten first to drop a debug APK that embedded the JEV key; verified no object contains it). release.yml on v* tags builds, signs with a separate CI key (secrets), verifies, and attaches 5 APKs + mapping; ci.yml runs tests on main. v0.1.1 released and verified (CI signer, no keys)."
+    },
+    {
+      "id": "T14",
+      "title": "Laya-Android model conversion: fetch ByunByun/laya-android, reproduce its candidate serialization + questions in Python, export to a mobile graph (LiteRT preferred, ONNX fallback) at a 1024-token window, parity fixtures + host contract",
+      "owner": "Opus 5.5 agent: laya-convert",
+      "status": "running",
+      "summary": "",
+      "log": []
+    },
+    {
+      "id": "T15",
+      "title": "SystemOne backend interface: JevSystemOne adapter, StepInput/StepDecision, TaskRunner refactor, backend setting (auto|jev|laya) + settings UI, backend/latency in run reports and Runs screen",
+      "owner": "Opus 5.5 agent: backend-seam",
+      "status": "running",
+      "summary": "",
+      "log": []
+    },
+    {
+      "id": "T16",
+      "title": "Accessibility tree capture (control/ → core/UiTree) + Kotlin port of Laya-Android candidate extraction/serialization, DUMP_TREE debug broadcast, JVM golden tests",
+      "owner": "Opus 5.5 agent: tree-capture",
+      "status": "running",
+      "summary": "",
+      "log": []
+    },
+    {
+      "id": "T17",
+      "title": "LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya",
+      "owner": "Opus 5.5 agent: laya-engine",
+      "status": "todo",
+      "summary": "Depends on T14, T15, T16.",
+      "log": []
+    },
+    {
+      "id": "T18",
+      "title": "Verification: reference tasks with JEV vs Laya on emulator (and user's phone), latency/accuracy table, docs + USER_GUIDE update, release",
+      "owner": "orchestrator",
+      "status": "todo",
+      "summary": "",
+      "log": []
     }
   ],
   "notes": [
@@ -136,9 +176,10 @@
     "Deliverable: dist/voice-control-debug.apk (54 MB, built from main; embeds the JEV key from .env so it is NOT tracked in git). Guide: docs/USER_GUIDE.md.",
     "Known limitations: GPT occasionally acknowledges without delegating (1 of 3 voice tries); API-key GPT-Live transport untested with a real key; first accessibility binding after a manual reinstall may need the service toggled off/on; Settings app hides the overlay; emulator mic is off (voice tested via injected audio).",
     "Release build (2026-11-13 12:54): dist/voice-control-release.apk, v0.1.0, signed with a locally generated key (keystore/voice-control-release.jks + keystore.properties, gitignored). Built from main at fdfabee + signing config; excludes the in-progress T6 login work. Not installed on the emulator (T6 is using it).",
-    "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup \u2192 JEV API key) and sign in with ChatGPT or enter an OpenAI key.",
+    "Release build (13:45): dist/voice-control-release.apk now contains NO keys; enter the JEV key in the app (Setup → JEV API key) and sign in with ChatGPT or enter an OpenAI key.",
     "MIT license chosen (matches both MIT upstreams); LICENSE, NOTICE (credits), README added.",
     "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a.",
-    "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe."
+    "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe.",
+    "Phase 2 (2026-11-17): user asked for selectable JEV vs on-device Laya-Android (no new training). Research + plan in docs/ON_DEVICE_SYSTEM1_PLAN.md."
   ]
 }
