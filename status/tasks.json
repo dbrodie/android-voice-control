@@ -2,7 +2,6 @@
   "overall": "Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md",
   "goal": "Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime ('GPT live') voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.",
   "needs_input": [
-    "Where should the converted Laya-Android model files (~700 MB) be hosted for in-app download? Recommendation: a GitHub release asset on dbrodie/android-voice-control (models-v1 tag). Alternative: a Hugging Face repo under your account.",
     "Which phone will validate the on-device backend (model/RAM)? The emulator can only exercise the CPU path."
   ],
   "tasks": [
@@ -195,6 +194,7 @@
     "MIT license chosen (matches both MIT upstreams); LICENSE, NOTICE (credits), README added.",
     "Release set v0.1.0 (15:40): dist/voice-control-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,x86,universal}-release.apk + mapping-0.1.0.txt; all signed, no embedded keys. Phones: arm64-v8a.",
     "Git history was rewritten on 2026-11-13 to remove dist/voice-control-debug.apk (contained the JEV key). The user is rotating the key at TypeSafe.",
-    "Phase 2 (2026-11-17): user asked for selectable JEV vs on-device Laya-Android (no new training). Research + plan in docs/ON_DEVICE_SYSTEM1_PLAN.md."
+    "Phase 2 (2026-11-17): user asked for selectable JEV vs on-device Laya-Android (no new training). Research + plan in docs/ON_DEVICE_SYSTEM1_PLAN.md.",
+    "2026-11-17: Laya-Android model files published as GitHub pre-release models-v1 (https://github.com/dbrodie/android-voice-control/releases/tag/models-v1): 4 files + MANIFEST.json, 670 MB; this is the app's default download base URL."
   ]
 }
