@@ -23,6 +23,9 @@ object AppSettings {
     private const val KEY_MODEL = "realtime_model"
     private const val KEY_BACKEND = "voice_backend"
     private const val KEY_SYSTEM_ONE = "system_one_backend"
+    private const val KEY_LAYA_BASE_URL = "laya_model_base_url"
+    private const val KEY_LAYA_ACCELERATOR = "laya_accelerator"
+    private const val KEY_LAYA_ALLOW_LOW_RAM = "laya_allow_low_ram"
 
     /** Which GPT-Live transport to use. */
     const val BACKEND_AUTO = "auto"          // ChatGPT sign-in if signed in, else OpenAI API key if set
@@ -33,6 +36,15 @@ object AppSettings {
     const val SYSTEM_ONE_AUTO = "auto"       // the on-device model when it is Ready, else JEV
     const val SYSTEM_ONE_JEV = "jev"         // TypeSafe JEV (cloud), needs a JEV API key
     const val SYSTEM_ONE_LAYA = "laya"       // on-device Laya model (T17)
+
+    /** Where "Download" fetches the Laya model files from (base URL + file name). Not live yet (T17). */
+    const val LAYA_MODEL_BASE_URL_DEFAULT = "https://github.com/dbrodie/android-voice-control/releases/download/models-v1/"
+    /** Laya accelerator: GPU (FP32) with CPU fallback, or one of them only. */
+    const val LAYA_ACCEL_AUTO = "auto"
+    const val LAYA_ACCEL_GPU = "gpu"
+    const val LAYA_ACCEL_CPU = "cpu"
+    /** Built-in TFLite kernels, no XNNPACK (forced; auto picks it on emulators where XNNPACK crashes). */
+    const val LAYA_ACCEL_CPU_REF = "cpu_ref"
 
     private fun prefs(ctx: Context): SharedPreferences =
         ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -107,4 +119,14 @@ object AppSettings {
 
     fun systemOneBackend(ctx: Context): String = get(ctx, KEY_SYSTEM_ONE, SYSTEM_ONE_AUTO)
     fun setSystemOneBackend(ctx: Context, v: String) = set(ctx, KEY_SYSTEM_ONE, v)
+
+    fun layaModelBaseUrl(ctx: Context): String = get(ctx, KEY_LAYA_BASE_URL, LAYA_MODEL_BASE_URL_DEFAULT)
+    fun setLayaModelBaseUrl(ctx: Context, v: String) = set(ctx, KEY_LAYA_BASE_URL, v)
+
+    fun layaAccelerator(ctx: Context): String = get(ctx, KEY_LAYA_ACCELERATOR, LAYA_ACCEL_AUTO)
+    fun setLayaAccelerator(ctx: Context, v: String) = set(ctx, KEY_LAYA_ACCELERATOR, v)
+
+    /** Debug/dev override of the on-device model's 3 GB RAM requirement (set by the LAYA_CONFIG debug broadcast). */
+    fun layaAllowLowRam(ctx: Context): Boolean = prefs(ctx).getBoolean(KEY_LAYA_ALLOW_LOW_RAM, false)
+    fun setLayaAllowLowRam(ctx: Context, v: Boolean) { prefs(ctx).edit().putBoolean(KEY_LAYA_ALLOW_LOW_RAM, v).apply() }
 }

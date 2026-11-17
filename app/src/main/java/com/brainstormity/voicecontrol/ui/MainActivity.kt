@@ -56,6 +56,7 @@ import java.util.Locale
 
 /** Setup checklist + settings + a text box to run tasks without voice. Plain Views. */
 class MainActivity : AppCompatActivity() {
+    private lateinit var layaCard: LayaModelCard
 
     private class CheckRow(
         val optional: () -> Boolean,
@@ -115,6 +116,7 @@ class MainActivity : AppCompatActivity() {
         setupOverlayButton()
         setupBackend()
         setupSystemOne()
+        layaCard = LayaModelCard(this) { refreshSystemOne() } // T17: on-device model files
         setupSettings()
         setupTestBox()
         listOf(R.id.runsRow, R.id.runsButton).forEach { findViewById<View>(it).setOnClickListener { com.brainstormity.voicecontrol.ui.runs.RunsActivity.start(this) } } // T9: Runs & costs
@@ -131,6 +133,7 @@ class MainActivity : AppCompatActivity() {
         scope.launch { OverlayService.running.collect { updateOverlayButton(it) } }
         // Sign-in finishes in the browser / LoginActivity: refresh the ChatGPT row and the backend line live.
         scope.launch { ChatGptAuth.state.collect { refreshChecklist() } }
+        layaCard.onStart()
     }
 
     override fun onResume() {
@@ -140,6 +143,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        layaCard.onStop()
         startedScope?.cancel()
         startedScope = null
         super.onStop()
@@ -323,6 +327,7 @@ class MainActivity : AppCompatActivity() {
         text.text = if (a != null && a.isReady) getString(R.string.system_one_in_use, system.displayName)
         else getString(R.string.system_one_not_ready, system.displayName, a?.message ?: "unknown")
         text.setTextColor(getColor(if (a?.isReady == true) R.color.vc_text_secondary else R.color.vc_warn))
+        if (::layaCard.isInitialized) layaCard.refresh()
     }
 
     private fun isAccessibilityEnabled(): Boolean {

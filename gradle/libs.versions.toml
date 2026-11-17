@@ -9,8 +9,12 @@ junit = "4.13.2"
 orgJson = "20240303"
 streamWebrtc = "1.3.10"
 browser = "1.8.0"
+# LiteRT (on-device Laya, agent/laya): CompiledModel API, as in google-ai-edge/litert-samples zero_shot_classification
+litert = "2.3.2"
 
 [libraries]
+litert = { module = "com.google.ai.edge.litert:litert", version.ref = "litert" }
+litert-gpu = { module = "com.google.ai.edge.litert:litert-gpu", version.ref = "litert" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }

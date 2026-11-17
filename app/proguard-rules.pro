@@ -20,3 +20,11 @@
 # and error messages fall back to `e.javaClass.simpleName`; without this they read `s0.m@d4414e7` / `(h)`.
 # Costs ~50 KB (3%) of dex.
 -keepnames class com.brainstormity.voicecontrol.**
+
+# LiteRT (on-device Laya, agent/laya/LayaEngine). Its native code constructs and calls Kotlin/Java classes by name
+# (TensorBuffer(long), LiteRtException, TensorBufferRequirements, TensorType, the classic Interpreter's
+# NativeInterpreterWrapper), but the AAR's consumer rule only covers @UsedByReflection members. Keep both APIs whole.
+-keep class com.google.ai.edge.litert.** { *; }
+-keep class org.tensorflow.lite.** { *; }
+-dontwarn com.google.ai.edge.litert.**
+-dontwarn org.tensorflow.lite.**

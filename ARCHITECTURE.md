@@ -22,6 +22,8 @@ core/        Shared contracts + state. Owned by the skeleton; others only ADD, n
              without telling the orchestrator.
 agent/       Task loop (TaskRunner, TaskParser) + the System One seam: SystemOne (interface), JevSystemOne
              (adapter over JevClient), SystemOneBackends (registry + "Next-step model" chooser). [agent-loop, T15]
+             agent/laya/: on-device Laya-Android backend (candidates, tokenizer, sequence, LiteRT engine,
+             LayaSystemOne, model files / download / import).                       [T16, T17]
 control/     PhoneAccessibilityService: implements Screen + Hands.                   [Agent: accessibility]
 overlay/     OverlayService (foreground) + bubble/status UI (WindowManager views).  [Agent: overlay-ui]
 voice/       RealtimeVoiceClient: OpenAI Realtime WS, mic in, speaker out, tool call.[Agent: voice]
@@ -139,7 +141,8 @@ open class SystemOneException(message, cause, httpCode)   // JevException extend
 ```
 - `JevChoice`/`JevTarget`/`JevUsage`/`Box` are the shared answer vocabulary (choice keys = PHONE_ACTIONS names or
   option indexes; boxes 0..1 of the screenshot). `JevSystemOne` wraps the unchanged `JevClient` (golden bodies).
-- `SystemOneBackends`: registry (`register(backend)` replaces by id; JEV + `PlaceholderLayaSystemOne` built in)
+- `SystemOneBackends`: registry (`register(backend)` replaces by id; JEV + `PlaceholderLayaSystemOne` built in, the
+  placeholder replaced by `LayaSystemOne` in `App.onCreate`, T17)
   and `current(ctx)`. Setting `AppSettings.systemOneBackend`: `auto` (default; Laya if Ready, else JEV) | `jev` |
   `laya`; an explicit choice wins even when not available. `TaskController.runTask` refuses a backend whose
   availability isn't Ready with status "error" and the availability message (JEV without key: NO_KEY_MESSAGE).
@@ -148,6 +151,50 @@ open class SystemOneException(message, cause, httpCode)   // JevException extend
 - Reports: run-level `backend`, `backend_name`, `ui_tree_nodes`; per step `latency_ms` (alongside the kept
   `jev_seconds`), `backend`, `backend_latency_ms`, `target_node_id`, `backend_extras`. Runs screens show a backend
   chip and per-step latency; MainActivity has the "Next-step model" card. Debug: `RUN_TASK --es system_one laya`.
+
+## On-device Laya (T17) — `agent/laya/`
+`App.onCreate` registers `LayaSystemOne(this)` under id `laya` (replacing T15's placeholder). Spec of the model
+input: `tools/laya/HOST_CONTRACT.md` (executable reference `tools/laya/host.py`).
+- `LayaCandidates` (T16): Byun11 candidate rules + `[i] label (class) flags` lines; `ground`, `historyEntry`.
+- `LayaTokenizer`: HF `tokenizer.json` (mmBERT BPE, byte fallback, Metaspace, 249 added tokens), streamed by
+  `LayaJsonReader`; ignores the file's stale `truncation: 48`. `LayaSequence`: Python-identical state JSON
+  (hand-written `json.dumps(ensure_ascii=False)`), one sequence per question
+  (`[CLS] choice question: … [SEP] [MASK] opt … [SEP] state [SEP]`, head_max_len 1536, options ≤ 48 tokens,
+  state right-truncated), smallest window of 256/512/1024/2048 that holds every question untruncated.
+  `LayaDecoder`: softmax(logit/T), T = 1.1609 from `rl_agent_config.json`; gate on max(p).
+- `LayaEngine` (one per process, lazy, single "Laya-LiteRT" thread; `score()` blocks): LiteRT 2.3.2
+  `CompiledModel` on GPU (FP32) → CPU (XNNPACK); a GPU with non-finite output falls back to CPU; a backend that
+  crashed the process while compiling (marker `compiling.txt`) is skipped next time. `CPU_REF` = classic
+  `Interpreter` with XNNPACK off, auto-selected on emulators whose CPU advertises SME (Apple M4/M5 hosts: XNNPACK
+  executes `rdsvl` and dies with SIGILL); it runs one signature only (s512), since each signature it touches
+  materialises ~0.45 GB of fp32 weights, and if `laya_android_s512_embeds_fp32.tflite` is present (dev/emulator
+  only) it uses that instead (weights stay mmapped: ~650 MB PSS instead of > 1.2 GB, which lmkd killed on the 2 GB
+  AVD). `auto` never tries the GPU on an emulator: the failed gfxstream GL delegate init corrupted the process's GL
+  state and HWUI then crashed in screenshot readback. Multi-signature graph `laya_android_multi_embeds_wfp16.tflite`
+  (`s256`…`s2048`); single-window files are a fallback if a signature can't be bound. Inputs: mmapped fp16 token
+  table gathered to fp32 `inputs_embeds` (padding = row 0), `attention_mask`, `qtype_onehot`; output
+  `token_logits` read at the `[MASK]` markers. The act head is not used. Logs: `VC/Laya`.
+- `LayaSystemOne.ask`: no tree → `SystemOneException(NO_TREE)`; 0 candidates → operation only, tap ops dropped;
+  state `{goal, history: last 3 via LayaHistory, ui}`; questions `operation` (Byun11's 12 ops) + `target`;
+  candidates dropped from the end while a question doesn't fit. `LayaPolicy`: ops → PHONE_ACTIONS
+  (SCROLL_UP/DOWN same, SCROLL_RIGHT → SWIPE_LEFT, SCROLL_LEFT → SWIPE_RIGHT: AndroidControl names the content
+  revealed, our SwipeDirection is the finger), INPUT_TEXT → TYPE_ENTER for search-looking fields else TYPE, typed
+  into Laya's target if editable else the focused field; probabilities = mapped mass over offered actions;
+  target box = element bounds / screen, confidence 1.0, `targetNodeId` = UiNode.id; text from the task (single
+  option, quoted text, "search for X"), else Laya's untrained `text` question. `extras`: candidates, dropped,
+  laya_op(+p), target_id/p/label, window, question_ms, engine, load_ms, history.
+- `LayaHistory`: TaskRunner's pixel history → Laya's (`CLICK <label>` grounded on that step's candidates,
+  `INPUT_TEXT "…"`, swipes inverted, "(nothing changed on screen)" dropped).
+- Model files (`LayaModelFiles`): `files/models/laya-android/` = `laya_android_multi_embeds_wfp16.tflite`,
+  `token_embeddings_fp16.bin`, `tokenizer.json`, `rl_agent_config.json` (702,944,470 bytes; sizes + sha256 from
+  `assets/laya/MANIFEST.json` = `tools/laya/out/MANIFEST.json`). Sizes checked on every availability call, sha256
+  once per file version (`verified.txt`). Availability: Unsupported if not arm64-v8a/x86_64 or < 3 GB RAM (debug
+  override `LAYA_CONFIG --ez allow_low_ram true`), NeedsDownload(missing bytes), Ready. `LayaDownload`: resumable
+  (HTTP Range) OkHttp download from `AppSettings.layaModelBaseUrl` (default the `models-v1` GitHub release), sha256
+  checked before the rename. Import: ACTION_OPEN_DOCUMENT of the files or a .zip. UI: `ui/LayaModelCard` in the
+  Next-step model card. `AppSettings.layaAccelerator`: auto | gpu | cpu | cpu_ref.
+- APK: LiteRT needs `-Xskip-metadata-version-check` (its Kotlin API is built with Kotlin 2.4 metadata), GPU
+  `uses-native-library` entries (optional), armeabi-v7a LiteRT libs excluded (Laya is 64-bit only).
 
 ## JEV API (TypeSafe System One) — port exactly from `jev_agent.py`
 - `POST https://api.typesafe.ai/v1/systemone`, headers `Authorization: Bearer <JEV_KEY>`,
@@ -184,6 +231,12 @@ open class SystemOneException(message, cause, httpCode)   // JevException extend
   writes the current `UiTree` JSON to `files/trees/<yyyyMMdd-HHmmss>[-name].json` and logs path, counts, capture ms
   and the Laya-Android candidate lines under `VC/Tree`; pull with
   `adb exec-out run-as com.brainstormity.voicecontrol cat files/trees/<file>.json > tree.json`
+  On-device Laya (`debug/LayaDebugReceiver`, logs `VC/Laya`): model files into a debug build with
+  `tools/laya/push_to_device.sh` (adb push + `run-as cp`), or push to the app's external dir and
+  `IMPORT_LAYA [--es dir <dir>] [--ez delete true]`; `LAYA_CONFIG [--es accelerator auto|gpu|cpu|cpu_ref]
+  [--ez allow_low_ram true] [--es base_url …]`; `LAYA_STATUS`; `LAYA_RELEASE`; `LAYA_PARITY [--ei window N]
+  [--es rows a,b]` runs the 24 T14 fixture rows (debug asset `laya/parity.json`, from
+  `tools/laya/make_kotlin_assets.py`) through the real engine and logs `PARITY … argmax_ok … max_diff …`.
 - Log tag prefix: `VC/` (e.g. `VC/Agent`, `VC/Voice`, `VC/Hands`, `VC/Overlay`). `adb logcat -s VC/Agent:V ...`
 - Toolchain: minSdk 30 (takeScreenshot needs API 30), targetSdk 36, compileSdk 36, Kotlin, no Compose
   (plain Views for the overlay; Activity may use Views too). Gradle wrapper; cached distributions available:

@@ -127,6 +127,38 @@ The log under the box shows each step.
   screens that block screenshots (banking apps, `FLAG_SECURE`).
 - Treat it as an assistant you watch, not one you leave alone. Don't ask it to do anything you can't undo.
 
+## On-device model (Laya)
+
+Instead of JEV (cloud), the steps can be decided by **Laya**, a small model that runs on the phone: no API key,
+no cost per step, and the screen never leaves the phone. It reads the screen's accessibility view (the list
+of buttons, fields and texts), not the screenshot, so it can't act on screens that don't expose one (games,
+some custom-drawn apps); there it stops with "The on-device model needs the app's accessibility view…".
+
+**Requirements.** A 64-bit phone (arm64; x86-64 emulators too) with at least 3 GB of RAM, and about 700 MB of
+free storage for the model files.
+
+**Get the model** (main screen → *Next-step model* card):
+- **Download** fetches the four files (703 MB) from the project's `models-v1` release. Use Wi-Fi: on mobile
+  data the app asks first. The progress bar shows how far it is; *Cancel download* stops it, and the next
+  *Download* resumes where it stopped. Every file is checked (SHA-256) before it is used.
+- **Import…** if you already have the files (for example copied from a computer): pick
+  `laya_android_multi_embeds_wfp16.tflite`, `token_embeddings_fp16.bin`, `tokenizer.json` and
+  `rl_agent_config.json` (several at once), or one `.zip` that contains them.
+- **Delete** removes the files again.
+
+Then choose **On-device (Laya)**, or leave **Automatic**: Automatic uses Laya as soon as its files are there and
+the phone can run it, and JEV otherwise. The status line under the choices says which one is in use and why
+not the other ("Download the on-device model first (703 MB)", "needs at least 3 GB of RAM", …).
+
+**What to expect.** The first task after the app starts loads the model (a few seconds). Each step then asks
+the model two questions (what to do, and which element), using the phone's GPU when it can and the CPU
+otherwise; on a recent phone that is well under a second per step, on an emulator much longer. Laya picks
+what to tap from the screen's element list, so its taps land exactly on an element. It does not know about
+"Enter" or websites: after typing into a search box it presses Enter itself, and opening an app or website
+named in the task happens before the model is asked, as with JEV. It is new: if it taps the wrong thing,
+switch back to JEV for that task. *Runs & costs* shows "Laya" as the model of each run and, for each step,
+the element it chose.
+
 ## 5. Runs & costs
 
 Every task the agent runs is saved with a step-by-step report, like the upstream web dashboard. Open it from
@@ -251,4 +283,15 @@ adb logcat -s VC/Voice VC/Live VC/Agent
 # Hands / screen checks
 adb shell am broadcast -a $P.HANDS --es op screenshot
 adb shell am broadcast -a $P.HANDS --es op tap --ei x 540 --ei y 1200
+
+# On-device model (Laya). Files from tools/laya/out (or the models-v1 release) into a debug build:
+tools/laya/push_to_device.sh                      # adb push to /data/local/tmp + `run-as cp` into files/models/laya-android
+#   or: open the app once (creates its external dir), push there, then import
+adb shell am broadcast -p $P -a $P.IMPORT_LAYA    # copies from /sdcard/Android/data/$P/files/laya (or --es dir ...)
+adb shell am broadcast -p $P -a $P.LAYA_STATUS    # availability, files, accelerator, loaded engine
+adb shell am broadcast -p $P -a $P.LAYA_CONFIG --es accelerator cpu     # auto | gpu | cpu | cpu_ref
+adb shell am broadcast -p $P -a $P.LAYA_CONFIG --ez allow_low_ram true  # emulators with < 3 GB RAM
+adb shell am broadcast -p $P -a $P.LAYA_PARITY    # 24 reference rows through the real model (minutes)
+adb shell am broadcast -p $P -a $P.RUN_TASK --es system_one laya --es task "'Open Settings and turn on Dark theme'"
+adb logcat -s VC/Laya VC/Agent
 ```

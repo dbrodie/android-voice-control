@@ -135,6 +135,15 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            // LiteRT (on-device Laya) runs on 64-bit phones only (LayaModelFiles.SUPPORTED_ABIS; its x86 build doesn't
+            // exist anyway): keep its ~6 MB of armeabi-v7a libraries out of the APK.
+            excludes += listOf("lib/armeabi-v7a/libLiteRt.so", "lib/armeabi-v7a/libLiteRtClGlAccelerator.so",
+                "lib/armeabi-v7a/liblitert_jni.so")
+        }
+    }
+
     buildFeatures {
         buildConfig = true
     }
@@ -145,6 +154,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        // LiteRT 2.3.x's Kotlin API (litert-api) is compiled with Kotlin metadata 2.4; this project is on 2.1.
+        // Same flag as Google's litert-samples (zero_shot_classification); only that small API surface is affected.
+        freeCompilerArgs += "-Xskip-metadata-version-check"
     }
 }
 
@@ -171,6 +183,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
     implementation(libs.stream.webrtc.android)
+    implementation(libs.litert)     // on-device Laya (agent/laya/LayaEngine): CompiledModel, CPU
+    implementation(libs.litert.gpu) // + its GPU accelerator (OpenCL), optional at runtime
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
@@ -178,6 +192,8 @@ dependencies {
 }
 
 tasks.withType<Test>().configureEach {
+    // LayaTokenizerTest loads the 34 MB tokenizer.json (256k vocab, 580k merges).
+    maxHeapSize = "2g"
     // The live JEV smoke test (JevLiveTest) runs only when JEV_KEY is set, e.g. after `source scripts/env.sh`.
     System.getenv("JEV_KEY")?.let { environment("JEV_KEY", it) }
     testLogging { events("passed", "skipped", "failed"); showStandardStreams = true }

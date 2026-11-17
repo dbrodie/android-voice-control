@@ -1,0 +1,99 @@
+{
+ "source": {
+  "model": "ByunByun/laya-android",
+  "base": "convaiinnovations/laya@7b928d8 / multilingual",
+  "checkpoint_sha256": "4ffca5d9a75f4888dc029b1de1dc2d81b77944b69f6b22c93db5285a66262993"
+ },
+ "converter": "tools/laya/export.py (litert-torch convert, ai-edge-quantizer float_casting on FULLY_CONNECTED)",
+ "versions": {
+  ".venv-litert:ai-edge-litert": "2.1.6",
+  ".venv-litert:ai-edge-quantizer": "0.8.0",
+  ".venv-litert:laya": "0.3.28",
+  ".venv-litert:litert-torch": "0.9.3",
+  ".venv-litert:torch": "2.12.1",
+  ".venv-litert:transformers": "5.23.0",
+  ".venv:laya": "0.3.28",
+  ".venv:tokenizers": "0.23.3",
+  ".venv:torch": "2.15.0",
+  ".venv:transformers": "5.23.0"
+ },
+ "recommended_phone_set": [
+  "laya_android_multi_embeds_wfp16.tflite",
+  "token_embeddings_fp16.bin",
+  "tokenizer.json",
+  "rl_agent_config.json"
+ ],
+ "recommended_phone_set_bytes": 702944470,
+ "files": {
+  "laya_android_act_head_fp32.tflite": {
+   "bytes": 795736,
+   "sha256": "b573e632f505d9b8b2fcac461e14b1a4a7f05b02ea1344b6670fd4d224c8b106",
+   "role": "act head (not needed; act_probability saturates at 1.0)"
+  },
+  "laya_android_multi_embeds_fp32.tflite": {
+   "bytes": 525462240,
+   "sha256": "d0a4411bad0ce53db6ec24bb820d8817842f17fc33e7d74ab33097cca762a905",
+   "role": "main graph, same signatures, fp32 weights"
+  },
+  "laya_android_multi_embeds_wfp16.tflite": {
+   "bytes": 275364304,
+   "sha256": "8ac2b3d646386dceda3a975f68795b2a948b5b9175c6c7f72142f2984f0ad089",
+   "role": "RECOMMENDED main graph: signatures s256/s512/s1024/s2048, shared fp16 FC weights, fp32 compute"
+  },
+  "laya_android_s1024_embeds_fp32.tflite": {
+   "bytes": 505209240,
+   "sha256": "80fc8c15ad42a251cc0631d96ca0cfcb1127cf56467d2e1a2c751287bb610f7e",
+   "role": "main graph, window 1024, fp32 weights"
+  },
+  "laya_android_s1024_embeds_wfp16.tflite": {
+   "bytes": 255117408,
+   "sha256": "cdff529024e9c9b9719f2f8828c1382bb6ccd36cdc89d82b1455ace32cac777c",
+   "role": "main graph, window 1024, signature serving_default"
+  },
+  "laya_android_s256_embeds_fp32.tflite": {
+   "bytes": 500883864,
+   "sha256": "a546e1425de9b5f035584d558a221f899a6221fbeda16f11c20b78eb1c49e3b2",
+   "role": "main graph, window 256, fp32 weights"
+  },
+  "laya_android_s256_embeds_wfp16.tflite": {
+   "bytes": 250792032,
+   "sha256": "7fd2ab5a7beb368b81e29259dff20854749b72340f449dc8ec249a3f57416245",
+   "role": "main graph, window 256"
+  },
+  "laya_android_s512_embeds_fp32.tflite": {
+   "bytes": 501801368,
+   "sha256": "14769595ddcde8afce5daefc9845c822540afa0eb54e383d818c885f2ab81d90",
+   "role": "main graph, window 512, fp32 weights"
+  },
+  "laya_android_s512_embeds_wfp16.tflite": {
+   "bytes": 251709536,
+   "sha256": "619d67e5875c415160832713cbc6d66520c48d17b6fdded1af6c6e89f1cfb1f5",
+   "role": "main graph, window 512"
+  },
+  "rl_agent_config.json": {
+   "bytes": 881,
+   "sha256": "58b0f4c2cb7483454c5bbebff4c25d6774ddb92e97a03c9dc22c7f4ae5f2f852",
+   "role": "checkpoint config incl. temperatures"
+  },
+  "token_embeddings.json": {
+   "bytes": 611,
+   "sha256": "298f395a535800a376f9302a9065ee848f8b828f427717724a41c7d0d02f90de",
+   "role": "token table metadata"
+  },
+  "token_embeddings_fp16.bin": {
+   "bytes": 393216000,
+   "sha256": "8307935d74957bab3e5ceabcc67a8ccadfa425aca805a2adeb537f0d18cab3ce",
+   "role": "[256000,768] float16 LE row-major token table (host lookup)"
+  },
+  "tokenizer.json": {
+   "bytes": 34363285,
+   "sha256": "dbba919c6e5e492bc22beb80abb64e6fcc7e8744dc696e8388b8c977767afa4b",
+   "role": "tokenizer (ignore its stale truncation field)"
+  },
+  "tokenizer_config.json": {
+   "bytes": 48511,
+   "sha256": "29b86dcaf639622ce5480307e1fb185653dacea3ff0a9dcae0166ee86c10e23a",
+   "role": "tokenizer config"
+  }
+ }
+}
