@@ -167,7 +167,10 @@ input: `tools/laya/HOST_CONTRACT.md` (executable reference `tools/laya/host.py`)
   crashed the process while compiling (marker `compiling.txt`) is skipped next time. `CPU_REF` = classic
   `Interpreter` with XNNPACK off, auto-selected on emulators whose CPU advertises SME (Apple M4/M5 hosts: XNNPACK
   executes `rdsvl` and dies with SIGILL); it runs one signature only (s512), since each signature it touches
-  materialises ~0.45 GB of fp32 weights. Multi-signature graph `laya_android_multi_embeds_wfp16.tflite`
+  materialises ~0.45 GB of fp32 weights, and if `laya_android_s512_embeds_fp32.tflite` is present (dev/emulator
+  only) it uses that instead (weights stay mmapped: ~650 MB PSS instead of > 1.2 GB, which lmkd killed on the 2 GB
+  AVD). `auto` never tries the GPU on an emulator: the failed gfxstream GL delegate init corrupted the process's GL
+  state and HWUI then crashed in screenshot readback. Multi-signature graph `laya_android_multi_embeds_wfp16.tflite`
   (`s256`…`s2048`); single-window files are a fallback if a signature can't be bound. Inputs: mmapped fp16 token
   table gathered to fp32 `inputs_embeds` (padding = row 0), `attention_mask`, `qtype_onehot`; output
   `token_logits` read at the `[MASK]` markers. The act head is not used. Logs: `VC/Laya`.
