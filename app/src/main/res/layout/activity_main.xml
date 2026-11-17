@@ -190,6 +190,66 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Next-step model (T15): which System One backend decides each step -->
+        <TextView
+            style="@style/VC.SectionTitle"
+            android:text="@string/section_system_one" />
+
+        <LinearLayout style="@style/VC.Card">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="@string/system_one_intro"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+
+            <RadioGroup
+                android:id="@+id/systemOneGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/systemOneAuto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/system_one_auto"
+                    android:textColor="@color/vc_text" />
+
+                <RadioButton
+                    android:id="@+id/systemOneJev"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/system_one_jev"
+                    android:textColor="@color/vc_text" />
+
+                <RadioButton
+                    android:id="@+id/systemOneLaya"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/system_one_laya"
+                    android:textColor="@color/vc_text" />
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/systemOneStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/systemOneDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/vc_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <!-- Settings (collapsible) -->
         <LinearLayout
             android:id="@+id/settingsHeader"

@@ -9,16 +9,7 @@ import java.io.IOException
 import java.util.Base64
 import java.util.concurrent.TimeUnit
 
-/** A JEV `choice` answer. [choice] is the chosen criteria key (an action name, or "0", "1", ... for options). */
-data class JevChoice(val choice: String, val confidence: Double, val probabilities: Map<String, Double>)
-
-/** A JEV `box` answer: the box in 0..1 coordinates of the image, and how sure JEV is about the location. */
-data class JevTarget(val box: Box, val confidence: Double)
-
-data class JevUsage(val inputTokens: Long = 0, val outputTokens: Long = 0) {
-    operator fun plus(o: JevUsage) = JevUsage(inputTokens + o.inputTokens, outputTokens + o.outputTokens)
-    fun toMap(): Map<String, Long> = linkedMapOf("input_tokens" to inputTokens, "output_tokens" to outputTokens)
-}
+// JevChoice / JevTarget / JevUsage (the answer vocabulary shared by every System One backend) live in SystemOne.kt.
 
 /** Parsed `/v1/systemone` response. Answers that weren't asked (or are missing) are null. */
 data class JevResponse(
@@ -30,8 +21,9 @@ data class JevResponse(
     val usage: JevUsage,
 )
 
-/** [httpCode] is set for HTTP errors (e.g. 401/403 = the key was rejected). */
-class JevException(message: String, cause: Throwable? = null, val httpCode: Int? = null) : IOException(message, cause)
+/** [httpCode] is set for HTTP errors (e.g. 401/403 = the key was rejected). A [SystemOneException] (T15). */
+class JevException(message: String, cause: Throwable? = null, httpCode: Int? = null) :
+    SystemOneException(message, cause, httpCode)
 
 /**
  * TypeSafe System One ("JEV") client: the exact request bodies of `ask_jev()` and `refine_target()` in

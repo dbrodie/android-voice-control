@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T15: "Next-step model" (System One backend) chooser in MainActivity. Own file for easy merging. -->
+<resources>
+    <string name="section_system_one">Next-step model</string>
+    <string name="system_one_intro">The model that looks at the screen and decides every tap.</string>
+    <string name="system_one_auto">Automatic (on-device when ready, else JEV)</string>
+    <string name="system_one_jev">JEV (cloud, TypeSafe AI)</string>
+    <string name="system_one_laya">On-device (Laya)</string>
+    <string name="system_one_in_use">In use now: %1$s</string>
+    <string name="system_one_not_ready">%1$s is selected but can\'t run: %2$s</string>
+    <string name="check_jev_active">Next-step model in use: JEV</string>
+    <string name="check_jev_inactive">Not in use now: the next-step model is %1$s</string>
+</resources>

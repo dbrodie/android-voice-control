@@ -123,6 +123,7 @@ class RunDetailActivity : AppCompatActivity() {
 
     private fun render(r: Run) {
         RunUi.styleChip(findViewById(R.id.detailChip), r.displayStatus)
+        RunUi.styleChip(findViewById(R.id.detailBackendChip), RunFormat.backendLabel(r), RunFormat.Tone.MUTED)
         findViewById<View>(R.id.detailInTrash).visibility = if (inTrash) View.VISIBLE else View.GONE
         findViewById<TextView>(R.id.detailTask).text = r.task
         findViewById<TextView>(R.id.detailMessage).apply {
@@ -174,9 +175,14 @@ class RunDetailActivity : AppCompatActivity() {
             (r.finished?.let { " · finished ${RunFormat.whenLong(it).substringAfter(", ")}" } ?: ""))
         add("${r.steps.size} step${if (r.steps.size == 1) "" else "s"}" +
             (r.seconds?.let { " in ${RunFormat.duration(it)}" } ?: ""))
-        add("${RunFormat.usd(r.costUsd)} · ${RunFormat.tokens(r.tokens)} JEV tokens " +
-            "(${RunFormat.tokens(r.inputTokens)} in / ${RunFormat.tokens(r.outputTokens)} out; " +
-            "JEV charges \$0.042 per million input tokens, output is free)")
+        if (RunFormat.isLocal(r)) {
+            add("${RunFormat.usd(r.costUsd)} · ${RunFormat.backendLabel(r)} runs on this phone: no API cost")
+        } else {
+            add("${RunFormat.usd(r.costUsd)} · ${RunFormat.tokens(r.tokens)} JEV tokens " +
+                "(${RunFormat.tokens(r.inputTokens)} in / ${RunFormat.tokens(r.outputTokens)} out; " +
+                "JEV charges \$0.042 per million input tokens, output is free)")
+        }
+        add("Next-step model: ${RunFormat.backendLabel(r)}")
         if (r.device == "android" || r.deviceName != null) add("Phone: ${r.deviceName ?: "Android phone"}")
         r.opened?.let { add("Opened $it first") }
         add("Quoted text: " + if (r.canType.isEmpty()) "nothing" else r.canType.joinToString(", ") { "“$it”" })
@@ -205,7 +211,8 @@ class RunDetailActivity : AppCompatActivity() {
             visibility = if (s.why.isBlank()) View.GONE else View.VISIBLE
             text = s.why
         }
-        v.findViewById<TextView>(R.id.stepConfidence).text = "How sure JEV was: ${RunFormat.pct(s.confidence)}"
+        v.findViewById<TextView>(R.id.stepConfidence).text =
+            "How sure ${RunFormat.backendLabel(r)} was: ${RunFormat.pct(s.confidence)}"
         v.findViewById<ProgressBar>(R.id.stepConfidenceBar).progress = Math.round((s.confidence ?: 0.0) * 100).toInt()
         v.findViewById<TextView>(R.id.stepTarget).apply {
             visibility = if (s.targetBox != null) View.VISIBLE else View.GONE
@@ -226,7 +233,8 @@ class RunDetailActivity : AppCompatActivity() {
             setTextColor(getColor(if (bad) R.color.vc_error else R.color.vc_text))
         }
         v.findViewById<TextView>(R.id.stepTiming).apply {
-            val t = RunFormat.stepTiming(s)
+            val t = listOfNotNull(RunFormat.stepTiming(s, RunFormat.backendLabel(r)).ifBlank { null },
+                RunFormat.stepBackend(s)).joinToString("\n")
             visibility = if (t.isBlank()) View.GONE else View.VISIBLE
             text = t
         }

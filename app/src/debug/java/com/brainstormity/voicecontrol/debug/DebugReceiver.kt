@@ -9,7 +9,9 @@ import android.content.IntentFilter
 import android.database.Cursor
 import android.net.Uri
 import androidx.core.content.ContextCompat
+import com.brainstormity.voicecontrol.agent.SystemOneBackends
 import com.brainstormity.voicecontrol.agent.TaskController
+import com.brainstormity.voicecontrol.core.AppSettings
 import com.brainstormity.voicecontrol.core.VcLog
 import com.brainstormity.voicecontrol.overlay.OverlayDemo
 import com.brainstormity.voicecontrol.overlay.OverlayService
@@ -18,6 +20,7 @@ import com.brainstormity.voicecontrol.voice.VoiceController
 /**
  * Debug-only adb hooks (this file lives in src/debug, so release builds don't contain it):
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.RUN_TASK --es task "Open Settings"
+ *     optional `--es system_one jev|laya|auto` first stores the "Next-step model" setting (T15)
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.STOP
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_START
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.VOICE_STOP
@@ -42,6 +45,12 @@ class DebugReceiver(private val runtimeRegistered: Boolean) : BroadcastReceiver(
         VcLog.i(TAG, "DebugReceiver got $action (${if (runtimeRegistered) "runtime" else "manifest"})")
         when (action) {
             RUN_TASK -> {
+                intent.getStringExtra("system_one")?.takeIf { it.isNotBlank() }?.let { v ->
+                    AppSettings.setSystemOneBackend(context, v)
+                    val chosen = SystemOneBackends.current(context)
+                    VcLog.i(TAG, "next-step model setting -> $v (resolves to ${chosen.id}); " +
+                        SystemOneBackends.all().joinToString("; ") { SystemOneBackends.statusLine(context, it) })
+                }
                 val task = intent.getStringExtra("task")
                 if (task.isNullOrBlank()) VcLog.w(TAG, "RUN_TASK without --es task \"...\"")
                 else TaskController.runTask(task)

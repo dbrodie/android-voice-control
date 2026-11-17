@@ -305,6 +305,7 @@ class RunsActivity : AppCompatActivity() {
         val v = layoutInflater.inflate(R.layout.item_run_row, list, false)
         v.findViewById<TextView>(R.id.runTask).text = r.task.ifBlank { "(no task)" }
         RunUi.styleChip(v.findViewById(R.id.runChip), r.displayStatus)
+        RunUi.styleChip(v.findViewById(R.id.runBackendChip), RunFormat.backendLabel(r), RunFormat.Tone.MUTED)
         v.findViewById<TextView>(R.id.runWhen).text = RunFormat.whenShort(r.started)
         v.findViewById<TextView>(R.id.runMetrics).text = RunFormat.rowMetrics(r)
         v.findViewById<TextView>(R.id.runWarning).apply {

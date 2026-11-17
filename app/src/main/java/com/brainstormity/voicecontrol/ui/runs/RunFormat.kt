@@ -83,10 +83,35 @@ object RunFormat {
         "${tokens(r.tokens)} tokens",
     ).joinToString(" · ")
 
-    /** The line under a step: what happened, timings. Mirrors upstream's step footer. */
-    fun stepTiming(s: Step): String {
+    /** The backend chip's text: "JEV", "Laya". Reports from before T15 have no backend: they were all JEV. */
+    fun backendLabel(r: Run): String = r.backendName?.takeIf { it.isNotBlank() } ?: when (r.backend) {
+        null, "", "jev" -> "JEV"
+        "laya" -> "Laya"
+        else -> r.backend.replaceFirstChar { it.uppercase() }
+    }
+
+    /** On-device backends: no tokens are billed. */
+    fun isLocal(r: Run): Boolean = r.backend != null && r.backend != "" && r.backend != "jev"
+
+    /** "Chose element #12 · candidates: 34" for tree backends; null when there's nothing to say (JEV). */
+    fun stepBackend(s: Step): String? {
         val parts = mutableListOf<String>()
-        s.jevSeconds?.let { parts += "JEV took ${seconds(it)}" }
+        s.targetNodeId?.let { parts += "Chose element #$it" }
+        s.backendExtras.forEach { (k, v) -> parts += "${k.replace('_', ' ')}: $v" }
+        return parts.joinToString(" · ").ifEmpty { null }
+    }
+
+    /**
+     * The line under a step: what happened, timings. Mirrors upstream's step footer. [who] = the backend's name:
+     * "JEV took 0.8s"; on-device backends show milliseconds ("Laya took 140 ms").
+     */
+    fun stepTiming(s: Step, who: String = "JEV"): String {
+        val parts = mutableListOf<String>()
+        when {
+            s.latencyMs != null && who != "JEV" -> parts += "$who took ${s.latencyMs} ms"
+            s.jevSeconds != null -> parts += "$who took ${seconds(s.jevSeconds)}"
+            s.latencyMs != null -> parts += "$who took ${seconds(s.latencyMs / 1000.0)}"
+        }
         s.waited?.let {
             parts += "waited ${seconds(it)} for the screen" +
                 (if (s.lateBy != null) " (it reacted ${seconds(s.lateBy)} late)" else "") +

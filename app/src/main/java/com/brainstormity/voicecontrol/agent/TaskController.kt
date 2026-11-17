@@ -2,7 +2,6 @@ package com.brainstormity.voicecontrol.agent
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.brainstormity.voicecontrol.BuildConfig
 import com.brainstormity.voicecontrol.core.AgentState
 import com.brainstormity.voicecontrol.core.AppSettings
 import com.brainstormity.voicecontrol.core.Device
@@ -27,6 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Context (for the JEV key in AppSettings and for run reports in filesDir/runs) comes from [init] if someone
  * called it, otherwise from the running Application.
+ *
+ * T15: the model is chosen per run by [SystemOneBackends.current] (the "Next-step model" setting). A backend
+ * that isn't [Availability.Ready] ends the run at once with status "error" and its availability message (JEV
+ * without a key: [JevClient.NO_KEY_MESSAGE], as before), which the overlay shows and GPT speaks.
  */
 object TaskController : TaskControllerApi {
     private const val TAG = "Agent"
@@ -45,6 +48,7 @@ object TaskController : TaskControllerApi {
     /** Optional: give the controller a Context early (any; the application context is kept). */
     fun init(context: Context) {
         appContext = context.applicationContext
+        SystemOneBackends.init(context)
     }
 
     override fun runTask(task: String) {
@@ -57,13 +61,23 @@ object TaskController : TaskControllerApi {
         // doesn't re-emit an equal Finished value).
         _state.value = AgentState.Running(task, 0, "START", "", 0f)
         val ctx = context()
-        if (jevKey(ctx).isBlank()) {
-            // No key entered in the app and none built in (release builds never embed one).
-            VcLog.w(TAG, "runTask(\"$task\"): no JEV API key")
-            _state.value = AgentState.Finished(task, "error", JevClient.NO_KEY_MESSAGE, 0, 0.0)
+        // Which model decides the steps, and can it run? (JEV: no key entered in the app and none built in;
+        // release builds never embed one.) Without a Context: JEV with the build's key, as before T15.
+        val system = ctx?.let { SystemOneBackends.current(it) } ?: SystemOneBackends.jev()
+        val notReady = if (ctx != null) {
+            try {
+                system.availability(ctx).takeIf { !it.isReady }?.message
+            } catch (e: Exception) {
+                "${system.displayName} can't run: ${e.message ?: e.javaClass.simpleName}"
+            }
+        } else system.preflight()
+        if (notReady != null) {
+            VcLog.w(TAG, "runTask(\"$task\"): ${system.id} not available: $notReady")
+            _state.value = AgentState.Finished(task, "error", notReady, 0, 0.0)
             busy.set(false)
             return
         }
+        VcLog.i(TAG, "runTask(\"$task\"): next-step model ${system.id}")
         val screen = Device.screen.value
         val hands = Device.hands.value
         if (screen == null || hands == null) {
@@ -80,9 +94,8 @@ object TaskController : TaskControllerApi {
         job = scope.launch {
             var finished: AgentState.Finished? = null
             try {
-                val jev = JevClient({ jevKey(ctx) })
                 val report = RunReport.create(ctx?.filesDir)
-                val runner = TaskRunner(task, jev, screen, hands, report, { stopRequested.get() }) { running ->
+                val runner = TaskRunner(task, system, screen, hands, report, { stopRequested.get() }) { running ->
                     _state.value = running
                 }
                 finished = runner.run()
@@ -110,13 +123,11 @@ object TaskController : TaskControllerApi {
         stopRequested.set(true)
     }
 
-    private fun jevKey(ctx: Context?): String = ctx?.let { AppSettings.jevApiKey(it) } ?: BuildConfig.JEV_KEY
-
     private fun context(): Context? = appContext ?: try {
         // The app's own Application object; avoids requiring every caller (e.g. DebugReceiver) to call init().
         @SuppressLint("PrivateApi")
         val app = Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null) as Context?
-        app?.also { appContext = it }
+        app?.also { appContext = it; SystemOneBackends.init(it) }
     } catch (e: Exception) {
         VcLog.w(TAG, "no Context: run reports off, JEV key from BuildConfig (${e.message})")
         null

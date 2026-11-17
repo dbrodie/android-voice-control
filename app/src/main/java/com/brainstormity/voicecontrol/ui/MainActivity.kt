@@ -31,6 +31,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.brainstormity.voicecontrol.R
+import com.brainstormity.voicecontrol.agent.SystemOneBackends
 import com.brainstormity.voicecontrol.agent.TaskController
 import com.brainstormity.voicecontrol.core.AgentState
 import com.brainstormity.voicecontrol.core.AppSettings
@@ -113,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         buildChecklist()
         setupOverlayButton()
         setupBackend()
+        setupSystemOne()
         setupSettings()
         setupTestBox()
         listOf(R.id.runsRow, R.id.runsButton).forEach { findViewById<View>(it).setOnClickListener { com.brainstormity.voicecontrol.ui.runs.RunsActivity.start(this) } } // T9: Runs & costs
@@ -219,6 +221,7 @@ class MainActivity : AppCompatActivity() {
             button.setOnClickListener { row.action() }
         }
         refreshBackend()
+        refreshSystemOne()
     }
 
     private fun chatGptDetail(): String? = when (val s = ChatGptAuth.state.value) {
@@ -246,6 +249,10 @@ class MainActivity : AppCompatActivity() {
         val group = findViewById<RadioGroup>(R.id.backendGroup)
         val id = backendIds.entries.firstOrNull { it.value == AppSettings.voiceBackend(this) }?.key ?: R.id.backendAuto
         if (group.checkedRadioButtonId != id) group.check(id) // listener sees the same value: no write
+        val s1 = findViewById<RadioGroup>(R.id.systemOneGroup)
+        val s1Id = systemOneIds.entries.firstOrNull { it.value == AppSettings.systemOneBackend(this) }?.key
+            ?: R.id.systemOneAuto
+        if (s1.checkedRadioButtonId != s1Id) s1.check(s1Id)
         val openAi = findViewById<EditText>(R.id.openAiKeyInput)
         val key = AppSettings.openAiApiKey(this)
         if (!openAi.hasFocus() && openAi.text.toString() != key) openAi.setText(key)
@@ -280,6 +287,42 @@ class MainActivity : AppCompatActivity() {
         val desc = try { VoiceBackends.describe(this) } catch (e: Exception) { "Unknown (${e.message})" }
         text.text = "In use now: $desc"
         text.setTextColor(getColor(if (VoiceBackends.resolve(this).isEmpty()) R.color.vc_warn else R.color.vc_text_secondary))
+    }
+
+    // ---------------------------------------------------------------- next-step model (T15)
+
+    private val systemOneIds by lazy {
+        mapOf(
+            R.id.systemOneAuto to AppSettings.SYSTEM_ONE_AUTO,
+            R.id.systemOneJev to AppSettings.SYSTEM_ONE_JEV,
+            R.id.systemOneLaya to AppSettings.SYSTEM_ONE_LAYA,
+        )
+    }
+
+    private fun setupSystemOne() {
+        val group = findViewById<RadioGroup>(R.id.systemOneGroup)
+        val current = AppSettings.systemOneBackend(this)
+        group.check(systemOneIds.entries.firstOrNull { it.value == current }?.key ?: R.id.systemOneAuto)
+        group.setOnCheckedChangeListener { _, id ->
+            val v = systemOneIds[id] ?: return@setOnCheckedChangeListener
+            if (v != AppSettings.systemOneBackend(this)) {
+                VcLog.d(TAG, "next-step model -> $v")
+                AppSettings.setSystemOneBackend(this, v)
+            }
+            refreshChecklist()  // the JEV key row says whether JEV is the model in use
+        }
+    }
+
+    /** One availability line per backend ("JEV: key verified", "Laya: on-device model not installed ..."). */
+    private fun refreshSystemOne() {
+        findViewById<TextView>(R.id.systemOneStatus).text =
+            SystemOneBackends.all().joinToString("\n") { SystemOneBackends.statusLine(this, it) }
+        val text = findViewById<TextView>(R.id.systemOneDescription)
+        val system = SystemOneBackends.current(this)
+        val a = try { system.availability(this) } catch (e: Exception) { null }
+        text.text = if (a != null && a.isReady) getString(R.string.system_one_in_use, system.displayName)
+        else getString(R.string.system_one_not_ready, system.displayName, a?.message ?: "unknown")
+        text.setTextColor(getColor(if (a?.isReady == true) R.color.vc_text_secondary else R.color.vc_warn))
     }
 
     private fun isAccessibilityEnabled(): Boolean {
@@ -442,11 +485,19 @@ class MainActivity : AppCompatActivity() {
         v.findViewById<TextView>(R.id.checkDetail).setText(R.string.check_jev_detail)
         container.addView(v)
         rows += CheckRow(
-            optional = { false }, isOk = { JevKeyActivity.isKeyOk(this) },
+            // Optional while another next-step model (on-device) is the one in use.
+            optional = { !jevInUse() }, isOk = { JevKeyActivity.isKeyOk(this) },
             actionLabel = R.string.action_add, action = { JevKeyActivity.start(this) }, view = v,
-            detail = { JevKeyActivity.statusLine(this) }, okLabel = R.string.action_change,
+            detail = {
+                val system = SystemOneBackends.current(this)
+                JevKeyActivity.statusLine(this) + "\n" + if (system.id == SystemOneBackends.JEV)
+                    getString(R.string.check_jev_active) else getString(R.string.check_jev_inactive, system.displayName)
+            },
+            okLabel = R.string.action_change,
         )
     }
+
+    private fun jevInUse(): Boolean = SystemOneBackends.current(this).id == SystemOneBackends.JEV
 
     override fun onPostResume() {
         super.onPostResume()
