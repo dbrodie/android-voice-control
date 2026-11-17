@@ -50,7 +50,8 @@ class LayaDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
         if (runtimeRegistered && explicit) return
         val action = intent.action ?: return
         val app = context.applicationContext
-        val pending = goAsync()
+        // Not goAsync(): parity / import run for minutes, far past the broadcast timeout (the system would kill
+        // the process for a background ANR). The work continues in this process-wide scope.
         scope.launch {
             try {
                 when (action) {
@@ -76,8 +77,6 @@ class LayaDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
                 }
             } catch (e: Throwable) {
                 VcLog.e(TAG, "$action failed: $e", e)
-            } finally {
-                pending.finish()
             }
         }
     }

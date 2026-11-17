@@ -248,6 +248,51 @@
                 android:layout_marginTop="4dp"
                 android:textColor="@color/vc_text_secondary"
                 android:textSize="13sp" />
+
+            <!-- On-device model files (T17, ui/LayaModelCard) -->
+            <TextView
+                android:id="@+id/layaFilesStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/vc_text"
+                android:textSize="13sp" />
+
+            <ProgressBar
+                android:id="@+id/layaProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:max="1000"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/layaDownload"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/laya_download" />
+
+                <Button
+                    android:id="@+id/layaImport"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/laya_import" />
+
+                <Button
+                    android:id="@+id/layaDelete"
+                    style="@style/VC.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/laya_delete" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Settings (collapsible) -->

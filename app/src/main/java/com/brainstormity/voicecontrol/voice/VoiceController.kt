@@ -75,6 +75,11 @@ object VoiceController : VoiceControllerApi {
 
     override fun start(context: Context) {
         val appContext = context.applicationContext
+        // T17: a voice session means tasks are coming: start loading the on-device model now if it's the one in use.
+        runCatching {
+            (com.brainstormity.voicecontrol.agent.SystemOneBackends.current(appContext)
+                as? com.brainstormity.voicecontrol.agent.laya.LayaSystemOne)?.warmup()
+        }
         scope.launch {
             if (session != null) {
                 VcLog.d(TAG, "start(): already active")

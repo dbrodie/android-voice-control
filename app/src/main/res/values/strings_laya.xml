@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T17: on-device Laya model files, in the "Next-step model" card (ui/LayaModelCard). Own file for easy merging. -->
+<resources>
+    <string name="laya_download">Download</string>
+    <string name="laya_cancel">Cancel download</string>
+    <string name="laya_import">Import…</string>
+    <string name="laya_delete">Delete</string>
+    <string name="laya_files_none">On-device model: not downloaded (%1$s).</string>
+    <string name="laya_files_partial">On-device model: %1$s of %2$s on the phone.</string>
+    <string name="laya_files_ready">On-device model: on the phone (%1$s).</string>
+    <string name="laya_files_downloading">Downloading %1$s: %2$d%% of %3$s</string>
+    <string name="laya_files_importing">Importing… (copying %1$s)</string>
+    <string name="laya_files_imported">Imported %1$s.</string>
+    <string name="laya_files_import_nothing">Nothing imported: pick the model files (tokenizer.json, token_embeddings_fp16.bin, …) or a .zip with them.</string>
+    <string name="laya_files_failed">Download failed: %1$s</string>
+    <string name="laya_files_unsupported">On-device model: %1$s.</string>
+    <string name="laya_metered_title">Download over mobile data?</string>
+    <string name="laya_metered_message">The on-device model is about %1$s. Wi-Fi is recommended.</string>
+    <string name="laya_metered_ok">Download anyway</string>
+    <string name="laya_delete_title">Delete the on-device model?</string>
+    <string name="laya_delete_message">This frees %1$s. You can download or import it again later.</string>
+    <string name="laya_cancel_button">Cancel</string>
+</resources>
