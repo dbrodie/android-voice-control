@@ -10,7 +10,7 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
 .ok{background:#e6f4ea;border-color:#a8dab5}
 </style></head><body>
 <h1>Android Voice Control — build status</h1>
-<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 12:29:54 · page auto-refreshes every 30 s</div>
+<div class=sub>Overall: <b>Phase 2 IN PROGRESS — selectable System One backend: JEV (cloud) or Laya-Android (on-device). Plan: docs/ON_DEVICE_SYSTEM1_PLAN.md</b> · updated 2026-11-17 12:51:37 · page auto-refreshes every 30 s</div>
 <p>Port brainstormity/System-One-Computer-Use to a native Android app: a floating mic overlay, OpenAI Realtime (&#x27;GPT live&#x27;) voice front-end, and an on-device JEV screenshot→action loop driven through an AccessibilityService. Deliverable: a runnable debug APK tested on the Android emulator.</p>
 
 <table><tr><th>#</th><th>Task</th><th>Status</th><th>What is happening</th></tr><tr>
@@ -111,8 +111,8 @@ th{background:#f8f9fa;font-weight:600} .badge{color:#fff;border-radius:12px;padd
 </tr><tr>
   <td><b>T16</b></td>
   <td>Accessibility tree capture (control/ → core/UiTree) + Kotlin port of Laya-Android candidate extraction/serialization, DUMP_TREE debug broadcast, JVM golden tests<div class=owner>Opus 5.5 agent: tree-capture</div></td>
-  <td><span class=badge style="background:#1a73e8">RUNNING</span></td>
-  <td></td>
+  <td><span class=badge style="background:#188038">DONE</span></td>
+  <td>Screen.uiTree() implemented (control/UiTreeCapture: all windows, pre-order nodes, 3000-node/64-depth/300 ms budget, our overlay windows dropped, Chrome lazy-WebView retry); core/UiTreeJson (schema-exact encode/decode); agent/laya/LayaCandidates = byte-exact port of Byun11/laya-android candidates.py + option_label + history_str, golden-tested against their Python on 11 trees; DUMP_TREE debug broadcast. 122 JVM tests green (+17). Branch worktree-agent-aa5d7d7624bb941a0 (on top of plan-on-device-system1-alternatives).<ul class=log><li>Emulator (API 36): Settings 92 nodes / 12 candidates / 21 ms; Chrome Wikipedia 689 / 29 / 89 ms (page links present, no retry needed); Chrome + keyboard 78 / 10 / 22 ms (IME excluded); Clock 37 / 12 / 58 ms; Home 34 / 16 / 37 ms; overlay bubble window dropped.</li><li>Golden: app/src/test/golden/gen_laya_golden.py runs laya-android@ab216d4 src/ on all fixtures -&gt; trees/laya_golden.json; Kotlin matches byte for byte.</li><li>Deviation: none in default path. Optional topApplicationWindowOnly (dialog rule from the plan) is off by default because Laya keeps windows behind dialogs.</li></ul></td>
 </tr><tr>
   <td><b>T17</b></td>
   <td>LayaEngine (on-device inference, tokenizer, mask-logit decoding, calibration) + LayaSystemOne + model download/verify UI; end-to-end on emulator with backend=laya<div class=owner>Opus 5.5 agent: laya-engine</div></td>
