@@ -436,7 +436,8 @@ class LayaEngine private constructor(private val app: Context) {
     /** Marker logits; falls back to larger windows if [window] can't be bound, and from GPU to CPU on bad output. */
     private fun runMarkers(ids: IntArray, markers: IntArray, window: Int): Pair<FloatArray, Int> {
         var lastError: Throwable? = null
-        for (w in LayaSequence.WINDOWS.filter { it >= window && it >= ids.size && it <= backendMaxWindow() }) {
+        val from = maxOf(window, backendMinWindow())
+        for (w in LayaSequence.WINDOWS.filter { it >= from && it >= ids.size && it <= backendMaxWindow() }) {
             val r = try { runner(w) } catch (t: Throwable) {
                 VcLog.w(TAG, "window $w unavailable: ${t.message}"); lastError = t; continue
             }

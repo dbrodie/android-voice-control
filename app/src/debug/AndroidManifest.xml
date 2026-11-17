@@ -113,6 +113,7 @@
                 <action android:name="com.brainstormity.voicecontrol.LAYA_STATUS" />
                 <action android:name="com.brainstormity.voicecontrol.LAYA_PARITY" />
                 <action android:name="com.brainstormity.voicecontrol.LAYA_RELEASE" />
+                <action android:name="com.brainstormity.voicecontrol.LAYA_DOWNLOAD" />
             </intent-filter>
         </receiver>
         <provider

@@ -11,6 +11,7 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import com.brainstormity.voicecontrol.agent.SystemOneBackends
 import com.brainstormity.voicecontrol.agent.laya.LayaDecoder
+import com.brainstormity.voicecontrol.agent.laya.LayaDownload
 import com.brainstormity.voicecontrol.agent.laya.LayaEngine
 import com.brainstormity.voicecontrol.agent.laya.LayaModelFiles
 import com.brainstormity.voicecontrol.agent.laya.LayaQuestion
@@ -40,6 +41,7 @@ import kotlin.math.abs
  *       `PARITY rows=.. questions=.. ids_ok=.. argmax_ok=.. max_diff=..`. Without `window` each row runs at the
  *       adaptive window (smallest that fits); with it, at that window (rows that don't fit it are skipped).
  *   adb shell am broadcast -a com.brainstormity.voicecontrol.LAYA_RELEASE      (drop the loaded graphs)
+ *   adb shell am broadcast -a com.brainstormity.voicecontrol.LAYA_DOWNLOAD [--ez cancel true]   (= the Download button)
  */
 class LayaDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastReceiver() {
 
@@ -72,6 +74,21 @@ class LayaDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
                     }
                     STATUS -> status(app)
                     RELEASE -> { LayaEngine.releaseIfLoaded(); VcLog.i(TAG, "released") }
+                    DOWNLOAD -> if (intent.getBooleanExtra("cancel", false)) LayaDownload.cancel() else {
+                        // Same path as the card's Download button; progress is logged every 10%.
+                        var lastPct = -10
+                        LayaDownload.addListener { s ->
+                            when (s) {
+                                is LayaDownload.State.Running -> if (s.percent >= lastPct + 10) {
+                                    lastPct = s.percent; VcLog.i(TAG, "DOWNLOAD ${s.file} ${s.percent}% of ${LayaModelFiles.mb(s.total)}")
+                                }
+                                null -> Unit
+                                else -> VcLog.i(TAG, "DOWNLOAD finished: $s; status: " +
+                                    SystemOneBackends.statusLine(app, SystemOneBackends.byId("laya")!!))
+                            }
+                        }
+                        LayaDownload.start(app)
+                    }
                     PARITY -> parity(app, intent.getIntExtra("window", 0),
                         intent.getStringExtra("rows")?.split(',')?.map { it.trim() }?.toSet())
                 }
@@ -159,7 +176,8 @@ class LayaDebugReceiver(private val runtimeRegistered: Boolean) : BroadcastRecei
         const val STATUS = P + "LAYA_STATUS"
         const val PARITY = P + "LAYA_PARITY"
         const val RELEASE = P + "LAYA_RELEASE"
-        val ACTIONS = listOf(IMPORT, CONFIG, STATUS, PARITY, RELEASE)
+        const val DOWNLOAD = P + "LAYA_DOWNLOAD"
+        val ACTIONS = listOf(IMPORT, CONFIG, STATUS, PARITY, RELEASE, DOWNLOAD)
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }
