@@ -149,6 +149,62 @@ object LayaPolicy {
         return null
     }
 
+    // ------------------------------------------------------------------ switches: DONE vs CLICK
+
+    private val WANT_ON = Regex("""\b(?:turn|switch)\s+(?:\S+\s+){0,4}?on\b|\b(?:enable|activate)\b""", RegexOption.IGNORE_CASE)
+    private val WANT_OFF = Regex("""\b(?:turn|switch)\s+(?:\S+\s+){0,4}?off\b|\b(?:disable|deactivate)\b""", RegexOption.IGNORE_CASE)
+    private val TOGGLE_CLASSES = listOf("Switch", "Toggle", "CheckBox", "CompoundButton", "RadioButton")
+    private val WORD = Regex("""[\p{L}\p{N}]{3,}""")
+    /** The target question must be at least this sure before it can overrule the operation. */
+    const val TOGGLE_MIN_TARGET_P = 0.6
+
+    /** A corrected decision: [action] on [target] with [confidence], and why (for the report/log). */
+    data class Override(val action: String, val target: Candidate, val confidence: Double, val note: String)
+
+    /** `true` = the task wants it on, `false` = off, null = no such intent in the task. */
+    fun wantedState(task: String): Boolean? {
+        val on = WANT_ON.containsMatchIn(task)
+        val off = WANT_OFF.containsMatchIn(task)
+        return if (on == off) null else on
+    }
+
+    private fun isToggle(c: Candidate) = c.checkable || TOGGLE_CLASSES.any { c.className.contains(it) }
+
+    private fun mentions(task: String, label: String): Boolean {
+        val words = WORD.findAll(task).map { it.value.lowercase() }.toSet()
+        return WORD.findAll(label).any { it.value.lowercase() in words }
+    }
+
+    /**
+     * Laya-Android's first observed quality issue (docs/EVAL.md, 2026-11-17): on the Display screen with the Dark
+     * theme switch OFF it answered DONE 67% while its target question pointed at the "Dark theme" Switch (94%);
+     * with the switch already ON it also said DONE, correctly. The switch's state is the signal it ignored, and we
+     * have it (`on` flag / `checked`). So, only when the task clearly asks to turn something on or off, the chosen
+     * element is a switch/checkbox named in the task, and the target answer is confident:
+     *  - DONE but the switch is not in the wanted state -> CLICK it (confidence: the mass Laya gave CLICK + DONE,
+     *    i.e. how sure it was that this switch is what the task is about);
+     *  - CLICK but the switch is already in the wanted state -> DONE (never toggles it the wrong way).
+     * Returns null when the rule doesn't apply. Pure; tested in LayaPolicyTest.
+     */
+    fun toggleOverride(
+        task: String, action: String, probs: Map<String, Double>, chosen: Candidate?, targetP: Double,
+    ): Override? {
+        if (action != "DONE" && action != "CLICK") return null
+        val c = chosen ?: return null
+        if (!isToggle(c) || targetP < TOGGLE_MIN_TARGET_P || !mentions(task, c.label)) return null
+        val wanted = wantedState(task) ?: return null
+        val agreed = (probs["CLICK"] ?: 0.0) + (probs["DONE"] ?: 0.0)
+        val state = if (c.checked) "on" else "off"
+        val want = if (wanted) "on" else "off"
+        return when {
+            action == "DONE" && c.checked != wanted -> Override("CLICK", c, agreed,
+                "Laya said DONE, but '${c.label}' is still $state and the task asks to turn it $want, so it is tapped instead.")
+            action == "CLICK" && c.checked == wanted -> Override("DONE", c, agreed,
+                "Laya wanted to tap '${c.label}', but it is already $state as the task asks, so the task is finished.")
+            else -> null
+        }
+    }
+
     /** CLICKS check without importing TaskRunner. */
     fun isClick(action: String) = action in AgentRules.CLICKS
 }

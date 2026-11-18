@@ -6,6 +6,7 @@ import com.brainstormity.voicecontrol.agent.TaskParser
 import com.brainstormity.voicecontrol.core.UiTree
 import com.brainstormity.voicecontrol.core.UiTreeJson
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -104,5 +105,57 @@ class LayaPolicyTest {
         assertEquals(LayaPolicy.MAX_TEXT_OPTIONS, q.size)
         assertEquals("t0", q.criteria["0"])
         assertEquals("Which text should be typed into the focused field?", q.instructions)
+    }
+
+    private fun toggle(label: String, checked: Boolean, cls: String = "android.widget.Switch", checkable: Boolean = true) = Candidate(
+        id = 7, line = "[7] $label ($cls) ${if (checked) "on" else ""}", option = label, label = label, className = cls,
+        resId = "", nodeIndex = 3, bounds = intArrayOf(900, 1000, 1060, 1080), depth = 5, clickable = true,
+        longClickable = false, editable = false, scrollable = false, checkable = checkable, checked = checked,
+        selected = false, enabled = true,
+    )
+
+    @Test
+    fun wantedStateFromTheTask() {
+        assertEquals(true, LayaPolicy.wantedState("Open Settings and turn on Dark theme"))
+        assertEquals(true, LayaPolicy.wantedState("turn Bluetooth on"))
+        assertEquals(false, LayaPolicy.wantedState("switch off Wi-Fi"))
+        assertEquals(false, LayaPolicy.wantedState("Disable airplane mode"))
+        assertNull(LayaPolicy.wantedState("Open the Clock app and show my alarms"))
+        assertNull(LayaPolicy.wantedState("turn on Wi-Fi and turn off Bluetooth"))   // ambiguous: no override
+    }
+
+    @Test
+    fun doneOnAnOffSwitchBecomesClick() {
+        val probs = mapOf("CLICK" to 0.30, "DONE" to 0.67, "BACK" to 0.03)
+        val o = LayaPolicy.toggleOverride("Open Settings and turn on Dark theme", "DONE", probs, toggle("Dark theme", false), 0.94)
+        assertNotNull(o)
+        assertEquals("CLICK", o!!.action)
+        assertEquals(0.97, o.confidence, 1e-9)
+        assertTrue(o.note, o.note.contains("still off"))
+    }
+
+    @Test
+    fun clickOnASwitchAlreadyInTheWantedStateBecomesDone() {
+        val probs = mapOf("CLICK" to 0.8, "DONE" to 0.1)
+        val o = LayaPolicy.toggleOverride("turn on Bluetooth", "CLICK", probs, toggle("Bluetooth", true), 0.9)
+        assertEquals("DONE", o?.action)
+        assertEquals(0.9, o!!.confidence, 1e-9)
+    }
+
+    @Test
+    fun overrideDoesNotFireWithoutTheConditions() {
+        val probs = mapOf("CLICK" to 0.3, "DONE" to 0.67)
+        val off = toggle("Dark theme", false)
+        // Normal cases: DONE on an on switch, CLICK on an off switch.
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "DONE", probs, toggle("Dark theme", true), 0.9))
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "CLICK", probs, off, 0.9))
+        // No on/off intent, label not in the task, not a toggle, target unsure, other actions.
+        assertNull(LayaPolicy.toggleOverride("Open display settings", "DONE", probs, off, 0.9))
+        assertNull(LayaPolicy.toggleOverride("turn on Bluetooth", "DONE", probs, off, 0.9))
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "DONE", probs,
+            toggle("Dark theme", false, cls = "android.widget.LinearLayout", checkable = false), 0.9))
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "DONE", probs, off, 0.5))
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "SCROLL_DOWN", probs, off, 0.9))
+        assertNull(LayaPolicy.toggleOverride("turn on Dark theme", "DONE", probs, null, 0.9))
     }
 }

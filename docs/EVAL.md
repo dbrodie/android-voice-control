@@ -25,10 +25,22 @@ max probability diff 0.00000** (fp32 s512 graph). Engine load 7.0 s.
 | Open Settings and turn on Bluetooth | jev | unsure (43–44%) | 4 | 0.4–0.5 s | pre-existing flakiness of this task with JEV (8 of 11 runs ended "unsure" before T15 too) |
 | "Open" (truncated task by a quoting mistake) | laya | unsure 2% | 1 | 37 s | correct refusal: Laya wanted OPEN_APP (98%), which wasn't offered, so the top offered action had 2% |
 
+### Fix (2026-11-18): switch-state override (`LayaPolicy.toggleOverride`)
+When the task clearly asks to turn something on/off, Laya's target points confidently (≥ 60%) at a switch/checkbox
+named in the task, and the switch's state contradicts the operation, the state wins: DONE on a still-off switch
+becomes CLICK on it (confidence = Laya's CLICK + DONE mass); CLICK on a switch already in the wanted state becomes
+DONE. Re-runs on the same emulator:
+
+| Task | Outcome | Steps | Notes |
+|---|---|---:|---|
+| Dark theme (**off**) | **done, theme on** | 3 | step 2: override DONE 67% → CLICK "Dark theme" Switch (92%); step 3 DONE 95% |
+| Dark theme (already on) | done | 2 | unchanged: DONE 71% with the row (not the switch) as target, no override |
+| Bluetooth (**off**) | done, Bluetooth on | 5 | normal CLICK path on the unlabeled Switch; override not involved |
+
 ### Findings
 - Integration works end to end: tree capture → Laya candidates → two questions → exact tap on the chosen node;
   Runs screen shows "Laya", element ids and per-step latency; cost $0.
-- **False DONE** is the first real quality issue: Laya-Android says DONE too early on the Display screen when the
+- **False DONE** was the first real quality issue (fixed above for switches named in the task): Laya-Android says DONE too early on the Display screen when the
   Dark theme switch is visible but off. Candidate fixes for T18: a per-backend higher `MIN_CONFIDENCE` for DONE
   (67% would then end as "unsure" instead of a wrong "done"), or a rule "DONE while the target question strongly
   points at a checkable element that is off → ask again / click it". Not changed yet (needs more real screens).

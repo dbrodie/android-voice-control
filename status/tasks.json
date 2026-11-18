@@ -179,8 +179,10 @@
       "title": "Verification: reference tasks with JEV vs Laya on emulator (and user's phone), latency/accuracy table, docs + USER_GUIDE update, release",
       "owner": "orchestrator",
       "status": "running",
-      "summary": "docs/EVAL.md started with the emulator table. Remaining: real-phone validation (speed, GPU path), decide DONE-confidence rule, release build size check, then a release.",
-      "log": []
+      "summary": "docs/EVAL.md has the emulator table; false-DONE on switches fixed and re-verified. Remaining: real-phone validation (speed, GPU path), release build size check, then a release.",
+      "log": [
+        "2026-11-18: false DONE fixed by LayaPolicy.toggleOverride (switch state vs task intent); Dark theme off→on in 3 steps, already-on and Bluetooth regressions OK; 183 JVM tests"
+      ]
     }
   ],
   "notes": [

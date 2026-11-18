@@ -99,9 +99,16 @@ class LayaSystemOne(
         val typeInto = LayaPolicy.typeTarget(tree, cands, chosen)
         val inputAs = LayaPolicy.inputTextAction(typeInto?.let { LayaPolicy.fieldInfo(tree, it) }, input.task)
         val probs = LayaPolicy.actionProbabilities(op.probabilityMap(), offered, inputAs, cands.isNotEmpty())
-        val (action, confidence) = LayaPolicy.best(probs) ?: ("WAIT" to 0.0)
+        var (action, confidence) = LayaPolicy.best(probs) ?: ("WAIT" to 0.0)
+        // A switch named in the task that Laya pointed at: its on/off state decides between DONE and CLICK.
+        val override = LayaPolicy.toggleOverride(input.task, action, probs, chosen, tgt?.answerConfidence ?: 0.0)
+        if (override != null) {
+            VcLog.i(TAG, "override: $action -> ${override.action}: ${override.note}")
+            action = override.action
+            confidence = override.confidence
+        }
         val typing = action == "TYPE" || action == "TYPE_ENTER"
-        val targetCand = if (typing) typeInto else chosen
+        val targetCand = if (typing) typeInto else (override?.target ?: chosen)
 
         // Text: from the task when it decides, else (only when typing now) Laya's text question.
         var textSource = ""
@@ -149,6 +156,7 @@ class LayaSystemOne(
             "history" to hist,
         )
         if (typing) extras["input_text_as"] = inputAs
+        if (override != null) { extras["override"] = override.note; extras["override_from"] = op.choice }
         if (textSource.isNotEmpty()) extras["text_source"] = textSource
         VcLog.i(TAG, "ask: $action ${AgentRules.pct(confidence)} (laya ${op.choice} ${AgentRules.pct(op.answerConfidence)})" +
             (targetCand?.let { " -> ${it.line} (${tgt?.let { t -> AgentRules.pct(t.answerConfidence) }})" } ?: "") +
