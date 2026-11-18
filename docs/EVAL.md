@@ -40,10 +40,9 @@ DONE. Re-runs on the same emulator:
 ### Findings
 - Integration works end to end: tree capture → Laya candidates → two questions → exact tap on the chosen node;
   Runs screen shows "Laya", element ids and per-step latency; cost $0.
-- **False DONE** was the first real quality issue (fixed above for switches named in the task): Laya-Android says DONE too early on the Display screen when the
-  Dark theme switch is visible but off. Candidate fixes for T18: a per-backend higher `MIN_CONFIDENCE` for DONE
-  (67% would then end as "unsure" instead of a wrong "done"), or a rule "DONE while the target question strongly
-  points at a checkable element that is off → ask again / click it". Not changed yet (needs more real screens).
+- **False DONE** was the first real quality issue: Laya-Android said DONE too early on the Display screen when the
+  Dark theme switch was visible but off. Fixed above for switches/checkboxes named in the task; a more general
+  guard (e.g. a higher DONE confidence floor for Laya) is still open pending more real screens.
 - The emulator cannot measure speed. Validation on a real arm64 phone (GPU/XNNPACK path) is still open.
 - Byun11's candidate rules keep content under a dialog in the list (no "dialog on top" filter), as the
   fine-tune was trained; T14 saw one dialog miss on synthetic trees.
